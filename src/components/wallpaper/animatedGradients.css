@@ -1,0 +1,223 @@
+/* Animated Gradient Wallpapers */
+
+.animated-gradient-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+    pointer-events: none;
+    background-size: 600% 600%;
+    transition: opacity 1s ease;
+}
+
+/* Aurora Effect */
+.gradient-aurora {
+    background: linear-gradient(-45deg, #0f172a, #1e1b4b, #312e81, #1e1b4b);
+    animation: gradientShift 10s ease infinite;
+}
+
+/* Midnight Bloom */
+.gradient-midnight {
+    background: linear-gradient(-45deg, #09090b, #18181b, #27272a, #09090b);
+    animation: gradientShift 12s ease infinite;
+}
+
+/* Ocean Depths */
+.gradient-ocean {
+    background: linear-gradient(-45deg, #0c4a6e, #075985, #0369a1, #0c4a6e);
+    animation: gradientShift 10s ease infinite;
+}
+
+/* Sunset Glow */
+.gradient-sunset {
+    background: linear-gradient(-45deg, #4c1d95, #7c3aed, #6d28d9, #4c1d95);
+    animation: gradientShift 8s ease infinite;
+}
+
+/* Cyberpunk Neon */
+.gradient-cyberpunk {
+    background: linear-gradient(-45deg, #701a75, #4a044e, #1e1b4b, #701a75);
+    animation: gradientShift 7s ease infinite;
+}
+
+/* Cosmic Nebula */
+.gradient-nebula {
+    background: linear-gradient(-45deg, #2e1065, #4c1d95, #581c87, #2e1065);
+    animation: gradientShift 15s ease infinite;
+}
+
+/* Misty Forest */
+.gradient-forest {
+    background: linear-gradient(-45deg, #064e3b, #065f46, #047857, #064e3b);
+    animation: gradientShift 12s ease infinite;
+}
+
+/* Flocus Mesh Gradient */
+.gradient-flocus {
+    background: #4158D0;
+    background-image:
+        radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+        radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+        radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%),
+        radial-gradient(at 0% 50%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+        radial-gradient(at 50% 50%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
+        radial-gradient(at 100% 50%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+        radial-gradient(at 0% 100%, hsla(339, 49%, 30%, 1) 0, transparent 50%),
+        radial-gradient(at 50% 100%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+        radial-gradient(at 100% 100%, hsla(253, 16%, 7%, 1) 0, transparent 50%);
+    background:
+        radial-gradient(circle at 0% 0%, #3b0764 0%, transparent 50%),
+        radial-gradient(circle at 100% 0%, #1e1b4b 0%, transparent 50%),
+        radial-gradient(circle at 100% 100%, #701a75 0%, transparent 50%),
+        radial-gradient(circle at 0% 100%, #4c1d95 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, #9d174d 0%, transparent 50%);
+    background-color: #1e1b4b;
+    background-size: 200% 200%;
+    animation: meshShift 15s ease infinite;
+}
+
+/* Aurora Borealis (Northern Lights) */
+.gradient-aurora-borealis {
+    background: #000;
+    background-image:
+        radial-gradient(at 100% 0%, #1e1b4b 0, transparent 50%),
+        radial-gradient(at 0% 100%, #1e1b4b 0, transparent 50%),
+        radial-gradient(at 0% 0%, #064e3b 0, transparent 50%),
+        radial-gradient(at 50% 50%, #3b0764 0, transparent 50%),
+        radial-gradient(at 100% 100%, #065f46 0, transparent 50%);
+    background-size: 200% 200%;
+    animation: auroraShift 20s ease-in-out infinite alternate;
+}
+
+@keyframes auroraShift {
+    0% {
+        background-position: 0% 0%;
+        filter: hue-rotate(0deg);
+    }
+
+    50% {
+        background-position: 100% 100%;
+        filter: hue-rotate(15deg);
+    }
+
+    100% {
+        background-position: 0% 100%;
+        filter: hue-rotate(-15deg);
+    }
+}
+
+/* Volcanic Lava Lamp */
+.gradient-lava-lamp {
+    background: #000;
+    background-image:
+        radial-gradient(circle at 50% 50%, #991b1b 0%, transparent 40%),
+        radial-gradient(circle at 20% 80%, #fb923c 0%, transparent 30%),
+        radial-gradient(circle at 80% 20%, #7c2d12 0%, transparent 30%),
+        radial-gradient(circle at 10% 10%, #450a0a 0%, transparent 50%);
+    background-size: 150% 150%;
+    animation: lavaShift 12s linear infinite;
+}
+
+@keyframes lavaShift {
+    0% {
+        background-position: 0% 0%;
+    }
+
+    50% {
+        background-position: 100% 100%;
+    }
+
+    100% {
+        background-position: 0% 0%;
+    }
+}
+
+/* Holographic Prism (Light Mode Friendly) */
+.gradient-holographic {
+    background: #f8fafc;
+    background-image:
+        radial-gradient(at 0% 0%, #ffcfd2 0, transparent 50%),
+        radial-gradient(at 50% 0%, #cfbaf0 0, transparent 50%),
+        radial-gradient(at 100% 0%, #a3c4f3 0, transparent 50%),
+        radial-gradient(at 50% 50%, #90dbf4 0, transparent 50%),
+        radial-gradient(at 0% 100%, #8eecf5 0, transparent 50%),
+        radial-gradient(at 50% 100%, #98f5e1 0, transparent 50%),
+        radial-gradient(at 100% 100%, #b9fbc0 0, transparent 50%);
+    background-size: 200% 200%;
+    animation: prismShift 8s ease infinite;
+}
+
+@keyframes prismShift {
+    0% {
+        background-position: 0% 0%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 100%;
+    }
+}
+
+@keyframes meshShift {
+    0% {
+        background-position: 0% 0%;
+    }
+
+    25% {
+        background-position: 100% 0%;
+    }
+
+    50% {
+        background-position: 100% 100%;
+    }
+
+    75% {
+        background-position: 0% 100%;
+    }
+
+    100% {
+        background-position: 0% 0%;
+    }
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Northern Soul (Aurora Interaction variant) */
+.gradient-northern-soul {
+    background: linear-gradient(-45deg, #064e3b, #1e1b4b, #3b0764, #065f46);
+    background-size: 400% 400%;
+    animation: gradientShift 20s ease infinite;
+}
+
+/* Cosmic Candy */
+.gradient-cosmic-candy {
+    background: linear-gradient(45deg, #701a75, #1e1b4b, #4338ca, #be185d);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite alternate;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .animated-gradient-bg {
+        animation: none !important;
+        background-position: center !important;
+    }
+}
+

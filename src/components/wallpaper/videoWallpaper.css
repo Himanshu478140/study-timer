@@ -1,0 +1,18 @@
+/* Video Wallpaper Styles */
+.video-wallpaper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
+    pointer-events: none;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .video-wallpaper {
+        display: none;
+    }
+}

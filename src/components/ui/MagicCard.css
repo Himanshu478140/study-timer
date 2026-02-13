@@ -1,0 +1,50 @@
+.magic-card-wrapper {
+    position: relative;
+    overflow: hidden;
+    /* Ensure it doesn't break flex/grid layouts */
+    display: flex;
+    flex-direction: column;
+}
+
+.magic-card-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    border-radius: inherit;
+    transition: opacity 0.4s ease;
+}
+
+.magic-card-border-mask {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    border-radius: inherit;
+    padding: 1px;
+    transition: opacity 0.4s ease;
+    /* The border thickness */
+    background-clip: content-box;
+
+    /* Masking for border-only effect */
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+.magic-card-content {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    display: inherit;
+    flex-direction: inherit;
+    justify-content: inherit;
+    align-items: inherit;
+}

@@ -1,0 +1,173 @@
+.flip-clock {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: center;
+    perspective: 1000px;
+}
+
+.flip-group {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.flip-separator {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    line-height: 1;
+    margin-top: -0.5rem;
+    opacity: 0.8;
+}
+
+.flip-unit {
+    position: relative;
+    width: 120px;
+    height: 160px;
+    background-color: #1a1a1a;
+    border-radius: 12px;
+    font-size: 110px;
+    font-weight: 700;
+    line-height: 160px;
+    text-align: center;
+    color: #e0e0e0;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Card Halves */
+.flip-unit>div {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    overflow: hidden;
+    background-color: #222;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+.flip-unit .top {
+    top: 0;
+    border-radius: 12px 12px 0 0;
+    z-index: 2;
+    transform-origin: bottom;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.flip-unit .bottom {
+    bottom: 0;
+    border-radius: 0 0 12px 12px;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+/* Text positioning for halves */
+.flip-unit .top span {
+    display: block;
+    transform: translateY(0);
+}
+
+.flip-unit .bottom span {
+    display: block;
+    transform: translateY(-50%);
+}
+
+/* Animation States */
+.flip-unit.flipping .top {
+    z-index: 3;
+    animation: flip-top 0.6s ease-in forwards;
+}
+
+.flip-unit.flipping .bottom-next {
+    z-index: 2;
+    animation: flip-bottom 0.6s ease-out 0.3s forwards;
+    transform: rotateX(-90deg);
+}
+
+@keyframes flip-top {
+    0% {
+        transform: rotateX(0deg);
+    }
+
+    100% {
+        transform: rotateX(-90deg);
+    }
+}
+
+@keyframes flip-bottom {
+    0% {
+        transform: rotateX(90deg);
+    }
+
+    100% {
+        transform: rotateX(0deg);
+    }
+}
+
+/* Darker backgrounds for folding effect */
+.flip-unit .top-next,
+.flip-unit .bottom-next {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 50%;
+}
+
+.flip-unit .top-next {
+    top: 0;
+    z-index: 1;
+    border-radius: 12px 12px 0 0;
+}
+
+.flip-unit .bottom-next {
+    bottom: 0;
+    z-index: 4;
+    border-radius: 0 0 12px 12px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    transform-origin: top;
+    background-color: #222;
+}
+
+/* Shadow logic */
+.flip-unit .shadow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
+    pointer-events: none;
+    background: linear-gradient(to bottom,
+            rgba(0, 0, 0, 0) 48%,
+            rgba(0, 0, 0, 0.4) 50%,
+            rgba(0, 0, 0, 0) 52%);
+}
+
+/* Media Queries for sizing */
+@media (max-width: 768px) {
+    .flip-unit {
+        width: 80px;
+        height: 110px;
+        font-size: 70px;
+        line-height: 110px;
+    }
+
+    .flip-clock {
+        gap: 0.5rem;
+    }
+
+    .flip-separator {
+        font-size: 3rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    .timer-display.fullscreen .flip-unit {
+        width: 18vw;
+        height: 24vw;
+        font-size: 16vw;
+        line-height: 24vw;
+    }
+}

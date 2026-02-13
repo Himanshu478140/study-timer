@@ -1,0 +1,56 @@
+.mode-selector {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+    background: rgba(255, 255, 255, 0.02);
+    padding: var(--space-1);
+    border-radius: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.mode-btn {
+    padding: var(--space-2) var(--space-4);
+    border-radius: 1.5rem;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    outline: none;
+}
+
+.mode-btn:hover {
+    color: var(--color-text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.mode-btn.active {
+    color: white;
+    font-weight: 700;
+}
+
+/* Sliding Indicator handle transitions */
+.mode-indicator {
+    pointer-events: none;
+    will-change: left, width;
+}
+
+@media (max-width: 600px) {
+    .mode-selector {
+        gap: 0.5rem;
+        padding: 0.25rem;
+    }
+
+    .mode-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+}

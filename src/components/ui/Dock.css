@@ -1,0 +1,75 @@
+.dock-container {
+    display: flex;
+    align-items: center;
+    /* Centered vertically for the switcher */
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(15, 15, 20, 0.08);
+    /* Deeper, more premium glass base */
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    height: 4.2rem;
+    /* Increased height to give magnification breathing room */
+    /* Compact height for the switcher bar */
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.5);
+}
+
+.dock-icon-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.7);
+    transition: color 0.3s ease, background 0.3s ease, border-color 0.3s;
+    border: 1px solid transparent;
+}
+
+.dock-icon-wrapper:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.dock-icon-wrapper.active {
+    background: white;
+    color: #0c0c0e;
+    /* Deep dark for contrast on white */
+    box-shadow:
+        0 4px 15px rgba(255, 255, 255, 0.3),
+        inset 0 2px 4px rgba(255, 255, 255, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
+    /* Subtle white border/shadow */
+    border-color: transparent;
+}
+
+.dock-tooltip {
+    position: absolute;
+    top: -3rem;
+    /* Lifted slightly more */
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 100;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dock-icon-wrapper:hover .dock-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}

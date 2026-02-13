@@ -1,0 +1,22 @@
+# Logs
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# System
+Thumbs.db
+.DS_Store
+
+# Temporary
+.gemini
+tmp

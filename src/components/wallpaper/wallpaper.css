@@ -1,0 +1,117 @@
+/* Wallpaper Selector Drawer */
+.wallpaper-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.wallpaper-drawer-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.wallpaper-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, var(--color-glass-bg), rgba(var(--color-accent-rgb), var(--glass-tint-strength)));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--color-glass-border);
+    padding: 1rem 1.5rem;
+    /* Compact padding */
+    border-radius: 1.5rem 1.5rem 0 0;
+    z-index: 1001;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+    max-height: 50vh;
+    /* Prevent it from being too tall */
+}
+
+.wallpaper-drawer.open {
+    transform: translateY(0);
+}
+
+.drawer-handle {
+    width: 32px;
+    height: 4px;
+    background: var(--color-text-secondary);
+    opacity: 0.3;
+    border-radius: 2px;
+    align-self: center;
+    margin-bottom: 0.25rem;
+}
+
+/* Trigger Button */
+.wallpaper-trigger-btn {
+    background: linear-gradient(135deg, var(--color-glass-bg), rgba(var(--color-accent-rgb), var(--glass-tint-strength)));
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--color-glass-border);
+    color: var(--color-text-primary);
+    padding: 0.6rem 1.25rem;
+    border-radius: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--font-size-sm);
+    box-shadow: var(--shadow-lg);
+    transition: all 0.2s;
+    /* Ensure it's clickable */
+}
+
+.wallpaper-trigger-btn:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Grid Override */
+.wallpaper-grid {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-text-secondary) transparent;
+}
+
+.wallpaper-grid::-webkit-scrollbar {
+    height: 4px;
+}
+
+.wallpaper-grid::-webkit-scrollbar-thumb {
+    background-color: var(--color-text-secondary);
+    border-radius: 4px;
+}
+
+/* Wallpaper Buttons */
+.wp-btn {
+    border-radius: 0.75rem;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+    cursor: pointer;
+}
+
+.wp-btn:hover {
+    transform: scale(1.05);
+}
+
+.wp-btn.active {
+    border-color: var(--color-accent);
+}
+
+.wp-active-indicator {
+    position: absolute;
+    inset: 4px;
+    border: 2px solid white;
+    border-radius: 0.5rem;
+    opacity: 0.8;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}

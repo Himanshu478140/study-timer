@@ -1,0 +1,163 @@
+.premium-select-container {
+    position: relative;
+    width: 280px;
+    /* Removed Background/Border/Padding per request */
+
+    font-family: 'Inter', sans-serif;
+    user-select: none;
+    z-index: 50;
+    /* transition: background 0.3s ease; */
+}
+
+.premium-select-container:hover {
+    background: rgba(255, 255, 255, 0.08);
+    /* Slightly more visible on hover */
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Trigger Pill */
+.select-trigger {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    /* Darker glass for contrast */
+    border-radius: 999px;
+    /* Full pill */
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    /* Thin light outline */
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: rgba(255, 255, 255, 0.9);
+    /* Lighter text for dark glass */
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.select-trigger:hover {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.select-trigger:active {
+    transform: translateY(1px);
+    background: rgba(0, 0, 0, 0.4);
+}
+
+/* Dropdown Panel */
+.dropdown-panel {
+    position: absolute;
+    top: 60px;
+    /* Spacing below trigger */
+    left: 0;
+    right: 0;
+    margin: 0 10px;
+    /* Slight inset */
+    background: linear-gradient(135deg, rgba(15, 15, 20, 1), rgba(var(--color-accent-rgb), 0.8));
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 12px;
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.4),
+        0 0 15px rgba(var(--color-accent-rgb), 0.3);
+    /* Outer glow */
+
+    transform-origin: top;
+    animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    z-index: 100;
+
+    /* Scrollbar Support */
+    max-height: 320px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Custom Scrollbar for Dropdown */
+.dropdown-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dropdown-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.dropdown-panel::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.dropdown-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Option Item - Capsule Style */
+.option-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: rgba(255, 255, 255, 0.9);
+    /* Light text */
+    font-weight: 500;
+}
+
+.option-item:last-child {
+    margin-bottom: 0;
+}
+
+.option-item:hover {
+    background: rgba(255, 255, 255, 0.3);
+    padding-left: 20px;
+    /* Slight slide hint */
+}
+
+/* Selected State */
+.option-item.selected {
+    background: var(--color-accent);
+    /* Vibrant Green */
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(var(--color-accent-rgb), 0.5);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.option-item.selected:active {
+    transform: scale(0.98);
+}
+
+.icon-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+}
+
+.icon-box span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+}

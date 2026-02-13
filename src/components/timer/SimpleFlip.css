@@ -1,0 +1,83 @@
+.simple-flip-clock {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono, monospace);
+}
+
+.simple-flip-group {
+    display: flex;
+    gap: 0.2rem;
+}
+
+.simple-flip-digit {
+    position: relative;
+    width: 0.8em;
+    height: 1.2em;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 4rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.digit-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 200%;
+    display: flex;
+    flex-direction: column;
+}
+
+.digit-container.animating {
+    animation: slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.digit-current,
+.digit-next {
+    height: 50%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.simple-flip-separator {
+    font-size: 3rem;
+    font-weight: 700;
+    opacity: 0.5;
+}
+
+@keyframes slide-up {
+    0% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(-50%);
+    }
+}
+
+/* Media Queries for sizing */
+@media (max-width: 768px) {
+    .simple-flip-digit {
+        font-size: 2.5rem;
+    }
+
+    .simple-flip-separator {
+        font-size: 2rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    .timer-display.fullscreen .simple-flip-digit {
+        font-size: 12vw;
+        border-radius: 12px;
+    }
+}

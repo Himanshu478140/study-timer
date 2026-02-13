@@ -1,0 +1,393 @@
+@import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Bebas+Neue&family=Caveat:wght@400;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Quicksand:wght@300;400;700&display=swap');
+
+:root {
+  /* Colors - Dark Mode Base */
+  --color-bg-primary: #0f0f11;
+  --color-text-primary: #f5f5f7;
+  --color-text-secondary: #a1a1aa;
+  --color-accent: #818cf8;
+  --color-accent-rgb: 129, 140, 248;
+  --color-glass-bg: rgba(20, 20, 20, 0.1);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+
+  /* --- LAYOUT CONTROL PANEL --- */
+  /* Tweak these values to position your widgets! */
+  --widget-top-left: 60%;
+  /* LEGACY - Keeping for reference or safety */
+  --timer-y-offset: -20px;
+
+  --widget-task-top: 5%;
+  /* Position for Dropdown */
+  --widget-stats-top: 66.5%;
+  /* Position for Performance/Habit Widget */
+
+  /* Moves Right Panel UP/DOWN */
+  --widget-top-right: 33%;
+  /* Moves Right Panel UP/DOWN */
+  --widget-side-gap: 4%;
+  /* Moves Panels Left/Right from edge */
+  /* NEW TRANSPARENCY CONTROLS */
+  --widget-bg-opacity: 0.1;
+  /* 0.1 = 10% visible, 0.9 = 90% visible */
+  --widget-border-opacity: 0.2;
+  /* Border visibility */
+  /* --------------------------- */
+  /* TINT CONTROL */
+  --glass-tint-strength: 0.3;
+  /* Controls how much Accent Color is mixed into the glass (0.0 - 1.0) */
+
+  /* Spacing (8px grid) */
+  --space-0_5: 0.25rem;
+  /* 4px */
+  --space-1: 0.5rem;
+  /* 8px */
+  --space-2: 1rem;
+  /* 16px */
+  --space-3: 1.5rem;
+  /* 24px */
+  --space-4: 2rem;
+  /* 32px */
+  --space-5: 2.5rem;
+  /* 40px */
+  --space-6: 3rem;
+  /* 48px */
+  --space-8: 4rem;
+  /* 64px */
+  --space-12: 6rem;
+  /* 96px */
+
+  /* Typography */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  --font-size-4xl: 2.5rem;
+  --font-size-display: 5rem;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  /* Animation */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-theme: 1s cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Global Breakpoints */
+  --breakpoint-tablet-landscape: 1100px;
+  --breakpoint-tablet-portrait: 900px;
+  --breakpoint-mobile: 600px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-family);
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition:
+    color var(--transition-theme),
+    background-color var(--transition-theme);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Utility: Flex Center */
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Utility: Full Screen */
+.fullscreen {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Glassmorphism */
+.glass {
+  background: var(--color-glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-glass-border);
+  box-shadow:
+    var(--shadow-lg),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  transition:
+    background var(--transition-theme),
+    border-color var(--transition-theme),
+    backdrop-filter var(--transition-theme),
+    box-shadow var(--transition-theme);
+}
+
+/* --- RESPONSIVE SCALING --- */
+@media (max-width: 1100px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 900px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  html {
+    font-size: 13px;
+  }
+}
+
+.mobile-only-flex {
+  display: none !important;
+}
+
+@media (max-width: 1100px) {
+  .mobile-only-flex {
+    display: flex !important;
+  }
+
+  .level-stats-pill {
+    right: 1.5rem !important;
+    top: 1rem !important;
+    padding: 4px 12px !important;
+  }
+
+  .focus-container {
+    max-width: 100%;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .level-stats-pill {
+    right: 0.75rem !important;
+    top: 0.75rem !important;
+    padding: 3px 10px !important;
+    transform: scale(0.9);
+    transform-origin: top right;
+  }
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Microinteractions */
+.interactive-hover {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.interactive-hover:hover {
+  transform: scale(1.05);
+}
+
+.interactive-press {
+  transition: transform 0.1s ease;
+}
+
+.interactive-press:active {
+  transform: scale(0.95);
+  filter: brightness(0.9);
+}
+
+/* --- CLOCK FONTS --- */
+.font-default {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+
+.font-minimal {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.font-minimal-light {
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+.font-serif {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.font-serif-condensed {
+  font-family: 'Playfair Display', serif;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0;
+}
+
+.font-handwritten {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  letter-spacing: 0;
+  display: inline-block;
+  transform: scale(1.1);
+  /* Bump size slightly for readability */
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.font-rounded {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.font-display {
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+
+.font-retro {
+  font-family: 'Abril Fatface', serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* --- FOCUS CONTAINER --- */
+.focus-container {
+  width: auto;
+  min-width: 360px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 1100px) {
+  /* Removed local container override, using global 1100px block above */
+}
+
+/* --- VIEW TRANSITION API (Circular Reveal) --- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 100;
+}
+
+::view-transition-new(root) {
+  z-index: 200;
+  animation: reveal-circular 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes reveal-circular {
+  from {
+    clip-path: circle(0% at var(--reveal-x, 50%) var(--reveal-y, 50%));
+  }
+
+  to {
+    clip-path: circle(150% at var(--reveal-x, 50%) var(--reveal-y, 50%));
+  }
+}
+
+@keyframes breathing {
+  0% {
+    transform: scale(1);
+    opacity: 0.95;
+    text-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  50% {
+    transform: scale(1.01);
+    opacity: 1;
+    text-shadow: 0 10px 50px rgba(var(--color-accent-rgb), 0.3);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.95;
+    text-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.animate-breathing {
+  animation: breathing 4s ease-in-out infinite;
+}
+
+.clock-glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4rem;
+  padding: 0.1rem 2.5rem;
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.3),
+    inset 0 1px 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Fix for flickering: Disable standard transitions during View Transition snapshots */
+.view-transitioning *,
+.view-transitioning ::before,
+.view-transitioning ::after {
+  transition: none !important;
+  animation-duration: 0s !important;
+}

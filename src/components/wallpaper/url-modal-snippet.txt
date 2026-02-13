@@ -1,0 +1,94 @@
+// URL Input Modal Component - Add this to the end of WallpaperGrid return statement, before the closing </>
+
+{/* URL Input Modal */}
+{showUrlInput && (
+    <>
+        {/* Backdrop */}
+        <div
+            onClick={() => setShowUrlInput(false)}
+            style={{
+                position: 'fixed',
+                inset: 0,
+                background: 'rgba(0,0,0,0.5)',
+                zIndex: 9998,
+                backdropFilter: 'blur(4px)'
+            }}
+        />
+        
+        {/* Modal */}
+        <div
+            style={{
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                background: 'linear-gradient(135deg, rgba(30, 30, 40, 0.95), rgba(20, 20, 30, 0.95))',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '16px',
+                padding: '2rem',
+                zIndex: 9999,
+                minWidth: '400px',
+                maxWidth: '90vw'
+            }}
+        >
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'white', marginBottom: '1rem' }}>
+                Add Video URL
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.6)', marginBottom: '1rem' }}>
+                Enter a direct link to a video file (MP4 or WebM)
+            </p>
+            <input
+                type="text"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                placeholder="https://example.com/video.mp4"
+                autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && handleVideoUrl()}
+                style={{
+                    width: '100%',
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    background: 'rgba(255,255,255,0.05)',
+                    color: 'white',
+                    fontSize: '0.9rem',
+                    marginBottom: '1.5rem'
+                }}
+            />
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                <button
+                    onClick={() => {
+                        setShowUrlInput(false);
+                        setVideoUrl('');
+                    }}
+                    style={{
+                        padding: '0.5rem 1.25rem',
+                        borderRadius: '8px',
+                        background: 'rgba(255,255,255,0.1)',
+                        color: 'rgba(255,255,255,0.7)',
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        border: 'none'
+                    }}
+                >
+                    Cancel
+                </button>
+                <button
+                    onClick={handleVideoUrl}
+                    style={{
+                        padding: '0.5rem 1.25rem',
+                        borderRadius: '8px',
+                        background: 'linear-gradient(135deg, #34d399, #10b981)',
+                        color: 'white',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        border: 'none'
+                    }}
+                >
+                    Add Video
+                </button>
+            </div>
+        </div>
+    </>
+)}

@@ -1,0 +1,712 @@
+/* Base container logic for transitions, but positioning moved to children */
+.side-widgets-container {
+    /* No longer fixes position of the group */
+    pointer-events: none;
+    /* Just a wrapper */
+}
+
+/* New Independent Positioners */
+.widget-positioner {
+    position: fixed;
+    left: var(--widget-side-gap);
+    width: 320px;
+    z-index: 40;
+    pointer-events: none;
+    /* Wrapper is passthrough */
+    display: flex;
+    flex-direction: column;
+}
+
+.widget-positioner>* {
+    pointer-events: auto;
+    /* Children clickable */
+}
+
+.task-positioner {
+    top: var(--widget-task-top);
+}
+
+.stats-positioner {
+    top: var(--widget-stats-top);
+}
+
+.widget-card {
+    /* Adaptive Glass with Tint */
+    background: linear-gradient(135deg, var(--color-glass-bg), rgba(var(--color-accent-rgb), var(--glass-tint-strength)));
+
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+
+    border: 1px solid rgba(255, 255, 255, var(--widget-border-opacity));
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    box-shadow:
+        0 8px 32px 0 rgba(0, 0, 0, 0.15),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    pointer-events: auto;
+    transition:
+        transform 0.3s ease,
+        background var(--transition-theme),
+        border-color var(--transition-theme),
+        box-shadow var(--transition-theme);
+}
+
+/* ... (middle content omitted) ... */
+
+/* Right Side Widgets */
+.right-widgets-container {
+    position: fixed;
+    /* Use variables for control */
+    right: var(--widget-side-gap);
+    top: var(--widget-top-right);
+
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 320px;
+    z-index: 40;
+    pointer-events: none;
+    /* Container is passthrough, children must be auto */
+}
+
+/* Ensure children are clickable */
+.right-widgets-container>* {
+    pointer-events: auto;
+}
+
+/* Calendar Widget Specifics */
+.calendar-toggle-group {
+    display: flex;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    /* For sliding background */
+    isolation: isolate;
+    /* Create stacking context */
+}
+
+/* The sliding background element */
+.calendar-toggle-slider {
+    position: absolute;
+    top: 4px;
+    /* match padding of group */
+    bottom: 4px;
+    width: calc(50% - 4px);
+    /* Half width minus gap/padding adjustment */
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.8));
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    z-index: 0;
+}
+
+/* Slider positions */
+.calendar-toggle-slider.left {
+    left: 4px;
+    transform: translateX(0);
+}
+
+.calendar-toggle-slider.right {
+    left: 4px;
+    transform: translateX(100%);
+    /* Moves exactly 100% of its own width so it lands correctly if widths are equal */
+    /* Alternatively, use left: 50%? No, transform is smoother for GPU */
+}
+
+/* Group interaction: add micro glow to slider when hovering the container */
+.calendar-toggle-group:hover .calendar-toggle-slider {
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        0 0 12px rgba(255, 255, 255, 0.3);
+    /* The micro glow */
+}
+
+.calendar-toggle {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: color 0.2s, text-shadow 0.2s;
+    z-index: 1;
+    /* Above slider */
+    background: transparent !important;
+    /* Override inline styles if any */
+    position: relative;
+    border: none;
+}
+
+.calendar-toggle:hover {
+    color: white;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+    /* Icon glow */
+}
+
+.calendar-toggle.active {
+    color: black;
+    font-weight: 600;
+    /* Background handled by slider */
+    box-shadow: none;
+    text-shadow: none;
+}
+
+.calendar-toggle.active:hover {
+    color: black;
+    text-shadow: none;
+}
+
+.calendar-header-large {
+    display: flex;
+    /* justify-content: space-between; Removed to respect gap + margin-left: auto */
+    align-items: baseline;
+    gap: 1.8rem;
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.calendar-weekly-label {
+    position: absolute;
+    top: -3.4rem;
+    left: 0;
+
+    /* Strong Glassmorphism */
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+
+    padding: 8px 18px;
+    border-radius: 12px;
+
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--color-text-primary);
+
+    transition: all 0.3s ease;
+}
+
+.calendar-weekly-label:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.calendar-month {
+    font-size: 2.5rem;
+    font-weight: 650;
+    /* Bold */
+    letter-spacing: -0.02em;
+    color: var(--color-text-primary);
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.calendar-day-number {
+    font-size: 2.5rem;
+    font-weight: 650;
+    /* Bold */
+    color: var(--color-text-primary);
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.calendar-week-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    position: relative;
+    padding: 1rem 0;
+}
+
+/* Curve/Arc Decoration behind week */
+/* Curve/Arc Decoration behind week */
+/* Curve/Arc Decoration behind week */
+/* ✨ Smooth surface curve under week */
+.calendar-week-arc {
+    position: absolute;
+    top: 10px;
+    /* controls vertical placement */
+    left: -15%;
+    width: 130%;
+    height: 110px;
+
+    background: radial-gradient(ellipse at center,
+            rgba(255, 255, 255, 0.10) 0%,
+            rgba(255, 255, 255, 0.06) 40%,
+            rgba(255, 255, 255, 0.02) 65%,
+            transparent 75%);
+
+    border-radius: 50%;
+    transform: scaleY(0.45);
+    /* THIS makes it a surface instead of circle */
+    pointer-events: none;
+    z-index: 1;
+}
+
+.calendar-week-arc-bottom {
+    position: absolute;
+    top: 90px;
+    left: -15%;
+    width: 130%;
+    height: 110px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform: scaleY(0.45);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.5;
+}
+
+
+.calendar-week-arc::after {
+    content: "";
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    width: 80%;
+    height: 40px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.4), transparent 70%);
+    filter: blur(20px);
+    opacity: 0.5;
+}
+
+.calendar-curve-lines {
+    position: absolute;
+    top: 10;
+    left: 0;
+    width: 100%;
+    height: 160px;
+    top: -9px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.calendar-curve-glow {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+
+    top: 30px;
+    /* position between curves */
+    width: 110%;
+    height: 50px;
+
+    background: radial-gradient(ellipse at center,
+            rgb(255, 255, 255) 0%,
+            rgb(255, 255, 255) 35%,
+            rgb(255, 255, 255) 55%,
+            transparent 75%);
+
+    filter: blur(18px);
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.calendar-curve-glow::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center,
+            rgba(255, 255, 255, 0.25),
+            transparent 70%);
+    filter: blur(30px);
+    opacity: 0.4;
+}
+
+
+
+
+.calendar-day-node {
+    /* Absolute positioned by inline styles */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    /* Tight gap */
+    width: 40px;
+    /* Fixed width for centering */
+    /* No flex layout properties here */
+}
+
+.day-name {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.day-num {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    width: 36px;
+    /* Slightly larger for circle */
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    /* Circle */
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    /* Prepare for border */
+}
+
+.day-col.active .day-num {
+    background: var(--color-accent);
+    border: none;
+    color: white;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(var(--color-accent-rgb), 0.5);
+    /* Soft shadow */
+    transform: scale(1.15);
+    /* Slightly bigger pop */
+}
+
+.calendar-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1rem;
+}
+
+.add-event-btn {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.add-event-btn:hover {
+    background: var(--color-accent);
+}
+
+.text-gradient-header {
+    background: linear-gradient(to right, var(--color-text-primary), #a78bfa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    /* Fallback */
+}
+
+/* Custom Scrollbar for Lists */
+.custom-scrollbar {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Daily Tasks Widget - Strict Scroll Control */
+.widget-daily-tasks {
+    /* Background moved to parent container */
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    min-height: 112px;
+    max-height: 250px;
+    /* User set this */
+    overflow-y: auto;
+    overflow-x: hidden;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.widget-daily-tasks-header {
+    /* Now a static block above the scroll area */
+    padding: 1.5rem 1.5rem 0.5rem 1.5rem;
+    width: 100%;
+    pointer-events: none;
+}
+
+.daily-tasks-header-pill {
+    background: rgba(16, 16, 16, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: inline-block;
+
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    /* Text color moved here from parent/defaults */
+    opacity: 0.9;
+}
+
+.widget-daily-task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.8rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+    /* Prevent squashing */
+}
+
+
+/* Month View Header Strip */
+.calendar-month-days-strip {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+
+    /* Mesh Gradient Construction */
+    background-color: var(--color-accent);
+    /* Fallback */
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.4) 0%, rgba(255, 255, 255, 0.2) 100%);
+
+    border-radius: 8px;
+    padding: 0.5rem 0;
+    margin-bottom: 0.1rem;
+    box-shadow: 0 4px 12px rgba(var(--color-accent-rgb), 0.3);
+}
+
+.calendar-month-days-strip>div {
+    text-align: center;
+    font-size: 0.8rem;
+    color: white;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* View Transitions */
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.animate-slide-right {
+    animation: slideInFromRight 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.animate-slide-left {
+    animation: slideInFromLeft 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes slideInFromBottom {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+.animate-slide-up {
+    animation: slideInFromBottom 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Habit Tracker Specifics */
+.habit-row {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    /* Clip the border-left strip to the radius */
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.05),
+        /* Subtle base shadow */
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    /* Top lip highlight */
+    backdrop-filter: blur(10px);
+    transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transform: translateZ(0);
+    /* Hardware accel */
+}
+
+.habit-row:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow:
+        0 12px 24px -8px rgba(0, 0, 0, 0.3),
+        /* Deep, soft shadow */
+        0 4px 8px -4px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    /* Brighter top edge */
+    background-color: rgba(255, 255, 255, 0.05);
+    /* Light exposure effect handled via JS mix or this overlay? JS sets bg, but this adds brightness */
+    border-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    z-index: 10;
+}
+
+.habit-delete-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease, color 0.2s ease;
+    color: rgba(239, 68, 68, 0.6);
+    /* red-500 with 0.6 opacity */
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.habit-row:hover .habit-delete-btn {
+    opacity: 1;
+}
+
+.habit-delete-btn:hover {
+    color: #ef4444 !important;
+    opacity: 1 !important;
+}
+
+/* Animations */
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes scaleOut {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}
+
+.animate-scale-in {
+    animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-out {
+    animation: scaleOut 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.habit-tracker-container {
+    will-change: transform, opacity, backdrop-filter;
+    transform: translateZ(0);
+    /* Force hardware acceleration */
+    backface-visibility: hidden;
+}
+
+.add-habit-btn {
+    background: rgba(var(--color-accent-rgb), 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(var(--color-accent-rgb), 0.3);
+    border-radius: 9999px;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    outline: none;
+}
+
+.add-habit-btn:hover {
+    background: rgba(var(--color-accent-rgb), 0.25);
+    border-color: rgba(var(--color-accent-rgb), 0.5);
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 16px rgba(var(--color-accent-rgb), 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.add-habit-btn:active {
+    transform: translateY(0) scale(0.96);
+}
+
+.task-input-placeholder-white {
+    color: white !important;
+}
+
+.task-input-placeholder-white::placeholder {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* --- RESPONSIVE OVERRIDES --- */
+
+/* Tablet Landscape: Reduce width slightly */
+@media (max-width: 1100px) {
+
+    .widget-positioner,
+    .right-widgets-container {
+        width: 280px;
+    }
+}
+
+/* Tablet Portrait & Mobile: Hide floating widgets */
+/* They will return exactly as they were when the screen is resized back */
+@media (max-width: 1100px) {
+
+    .widget-positioner,
+    .right-widgets-container {
+        display: none !important;
+    }
+}
