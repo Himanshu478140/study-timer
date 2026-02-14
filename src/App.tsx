@@ -27,7 +27,7 @@ import { ZenMode } from './components/zen/ZenMode';
 import { type AppMode } from './components/layout/GlobalModeSwitcher';
 
 import { Dashboard } from './components/dashboard/Dashboard';
-import { Trophy, Flame, Zap, PictureInPicture2, Maximize, Minimize, Headphones, LayoutGrid } from 'lucide-react';
+import { Trophy, Flame, Zap, PictureInPicture2, Maximize, Minimize, Headphones, LayoutGrid, User as UserIcon } from 'lucide-react';
 import { Dock, DockIcon } from './components/ui/Dock';
 import './components/audio/audio.css';
 import { TypingAnimation } from './components/ui/TypingAnimation';
@@ -511,62 +511,94 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
         <Zap size={18} fill="currentColor" /> {notification}
       </div>
 
-      {/* User Stats - Click to Open Dashboard */}
       <div
-        onClick={() => setIsDashboardOpen(true)}
-        className="interactive-hover level-stats-pill"
         style={{
           position: 'absolute',
           top: '1.2rem',
           right: '2rem',
-          opacity: (isFocusActive && appMode !== 'home') ? 0 : 1,
-          transition: 'opacity 0.5s ease',
+          opacity: (isDashboardOpen || (isFocusActive && appMode !== 'home')) ? 0 : 1,
+          transition: 'all 0.5s ease',
           display: 'flex',
-          gap: '1.5rem',
+          gap: '1rem',
           alignItems: 'center',
-          color: 'var(--color-text-secondary)',
-          pointerEvents: (isFocusActive && appMode !== 'home') ? 'none' : 'auto',
-          cursor: 'pointer',
-          // Glassmorphism - Matched to Widgets
-          background: 'linear-gradient(135deg, var(--color-glass-bg), rgba(var(--color-accent-rgb), var(--glass-tint-strength)))',
-          backdropFilter: 'blur(40px)',
-          WebkitBackdropFilter: 'blur(40px)',
-          border: '1px solid rgba(255, 255, 255, var(--widget-border-opacity))',
-          borderRadius: '999px', // Pill shape
-          padding: '5px 15px',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
-        }}>
+          pointerEvents: (isDashboardOpen || (isFocusActive && appMode !== 'home')) ? 'none' : 'auto',
+          zIndex: 100,
+        }}
+      >
+        {/* User Stats - Click to Open Dashboard */}
+        <div
+          onClick={() => setIsDashboardOpen(true)}
+          className="interactive-hover level-stats-pill"
+          style={{
+            display: 'flex',
+            gap: '1.5rem',
+            alignItems: 'center',
+            color: 'var(--color-text-secondary)',
+            cursor: 'pointer',
+            // Glassmorphism - Matched to Widgets
+            background: 'linear-gradient(135deg, var(--color-glass-bg), rgba(var(--color-accent-rgb), var(--glass-tint-strength)))',
+            backdropFilter: 'blur(40px)',
+            WebkitBackdropFilter: 'blur(40px)',
+            border: '1px solid rgba(255, 255, 255, var(--widget-border-opacity))',
+            borderRadius: '999px', // Pill shape
+            padding: '5px 15px',
+            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+          }}>
 
-        {/* New Daily Goal Ring */}
-        <div className="flex-center" style={{ gap: '0.5rem' }}>
-          <DailyProgressRing completed={stats.today.score} goal={100} />
-        </div>
-
-        <div className="flex-center" style={{ gap: '0.5rem' }}>
-          <div className="flex-center" style={{ flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.2 }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>LEVEL {level}</span>
-            <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>{xp} XP</span>
+          {/* New Daily Goal Ring */}
+          <div className="flex-center" style={{ gap: '0.5rem' }}>
+            <DailyProgressRing completed={stats.today.score} goal={100} />
           </div>
-          <Trophy size={20} color="var(--color-accent)" />
+
+          <div className="flex-center" style={{ gap: '0.5rem' }}>
+            <div className="flex-center" style={{ flexDirection: 'column', alignItems: 'flex-end', lineHeight: 1.2 }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>LEVEL {level}</span>
+              <span style={{ fontSize: '0.7rem', opacity: 0.7 }}>{xp} XP</span>
+            </div>
+            <Trophy size={20} color="var(--color-accent)" />
+          </div>
+
+          {/* Streak Indicator */}
+          <div className="flex-center" style={{ gap: '0.25rem' }} title="Current Streak">
+            {/* Fire Gradient Definition */}
+            <svg width="0" height="0" style={{ position: 'absolute' }}>
+              <defs>
+                <linearGradient id="fireGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#ef4444" /> {/* Red-500 */}
+                  <stop offset="100%" stopColor="#f97316" /> {/* Orange-500 */}
+                </linearGradient>
+              </defs>
+            </svg>
+            <Flame
+              size={20}
+              className={streak > 0 ? "streak-active" : ""}
+              style={streak > 0 ? { stroke: 'url(#fireGradient)', filter: 'drop-shadow(0 0 2px rgba(249, 115, 22, 0.4))' } : {}}
+            />
+            <span style={{ fontWeight: 600 }}>{streak}</span>
+          </div>
         </div>
 
-        {/* Streak */}
-        <div className="flex-center" style={{ gap: '0.25rem' }} title="Current Streak">
-          {/* Fire Gradient Definition */}
-          <svg width="0" height="0" style={{ position: 'absolute' }}>
-            <defs>
-              <linearGradient id="fireGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#ef4444" /> {/* Red-500 */}
-                <stop offset="100%" stopColor="#f97316" /> {/* Orange-500 */}
-              </linearGradient>
-            </defs>
-          </svg>
-          <Flame
-            size={20}
-            className={streak > 0 ? "streak-active" : ""}
-            style={streak > 0 ? { stroke: 'url(#fireGradient)', filter: 'drop-shadow(0 0 2px rgba(249, 115, 22, 0.4))' } : {}}
-          />
-          <span style={{ fontWeight: 600 }}>{streak}</span>
+        {/* Independent User Avatar Circle */}
+        <div
+          className="avatar-circle-container"
+          onClick={() => setIsDashboardOpen(true)}
+          title={user ? (user.displayName || user.email || 'Logged In') : 'Log in to sync your progress'}
+        >
+          {user ? (
+            user.photoURL ? (
+              <img
+                src={user.photoURL}
+                alt={user.displayName || 'User'}
+                className="user-avatar"
+              />
+            ) : (
+              <div className="user-avatar-placeholder">
+                {(user.displayName?.[0] || user.email?.[0] || '?').toUpperCase()}
+              </div>
+            )
+          ) : (
+            <UserIcon size={18} />
+          )}
         </div>
       </div>
 
