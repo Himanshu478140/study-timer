@@ -141,8 +141,6 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
     });
 
     // --- Initial Cloud Load & Sync ---
-    const { syncTrigger } = useCloudSync();
-
     useEffect(() => {
         if (!user) return;
 
@@ -208,7 +206,7 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
         };
 
         syncFromCloud();
-    }, [user, syncTrigger]);
+    }, [user]);
 
     // --- Gamification Logic ---
     const { awardXP } = useGamification();

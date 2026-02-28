@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { auth } from '../lib/firebase';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { syncDoc, loadUserDoc } from '../utils/syncUtils';
-import { useCloudSync } from '../context/CloudSyncContext';
 
 const XP_FACTOR = 100; // XP per level
 
@@ -31,8 +30,6 @@ export const useGamification = () => {
     }, []);
 
     // Initial Cloud Load
-    const { syncTrigger } = useCloudSync();
-
     useEffect(() => {
         if (!user) return;
 
@@ -56,7 +53,7 @@ export const useGamification = () => {
         };
 
         syncFromCloud();
-    }, [user, syncTrigger]);
+    }, [user]);
 
     useEffect(() => {
         localStorage.setItem('study-timer-stats', JSON.stringify(stats));

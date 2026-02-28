@@ -1,7 +1,6 @@
 import {
     doc,
     setDoc,
-    getDoc,
     collection,
     getDocs,
     query,
@@ -105,9 +104,9 @@ export const loadUserDoc = async (userId: string) => {
     if (!userId) return null;
     try {
         const userRef = doc(db, 'users', userId);
-        const snapshot = await getDoc(userRef);
-        if (snapshot.exists()) {
-            return snapshot.data();
+        const snapshot = await getDocs(query(collection(db, 'users'), where('__name__', '==', userRef.id)));
+        if (!snapshot.empty) {
+            return snapshot.docs[0].data();
         }
         return null;
     } catch (e) {
