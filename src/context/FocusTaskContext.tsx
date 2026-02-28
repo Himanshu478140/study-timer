@@ -64,6 +64,8 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
     }, []);
 
     // Initial Cloud Sync
+    const { syncTrigger } = useCloudSync();
+
     useEffect(() => {
         if (!user) return;
 
@@ -86,7 +88,7 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
         };
 
         syncFromCloud();
-    }, [user]);
+    }, [user, syncTrigger]);
 
     // Persist to LocalStorage
     useEffect(() => {

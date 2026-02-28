@@ -139,6 +139,8 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
   }, [level]);
 
   // Initial Preferences Load
+  const { syncTrigger } = useCloudSync();
+
   useEffect(() => {
     if (!user) return;
     const loadPreferences = async () => {
@@ -168,7 +170,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
       }
     };
     loadPreferences();
-  }, [user]);
+  }, [user, syncTrigger]);
 
   // Real-time Preference Sync
   useEffect(() => {
