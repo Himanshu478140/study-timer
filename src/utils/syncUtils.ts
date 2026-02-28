@@ -91,9 +91,7 @@ export const loadCollection = async (userId: string, collectionName: string) => 
     try {
         const colRef = collection(db, 'users', userId, collectionName);
         const snapshot = await getDocs(colRef);
-        const data = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
-        console.log(`Cloud Load [${collectionName}]: Found ${data.length} items`);
-        return data;
+        return snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
     } catch (e) {
         console.error(`Load Error [${collectionName}]:`, e);
         return [];

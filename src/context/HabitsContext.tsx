@@ -6,9 +6,7 @@ import {
     syncCollectionItem,
     deleteCollectionItem,
     loadCollection,
-    cleanupOldData,
-    syncDoc,
-    loadUserDoc
+    cleanupOldData
 } from '../utils/syncUtils';
 
 // --- Types ---
@@ -71,32 +69,6 @@ interface HabitsContextType {
 }
 
 // --- Helper Functions ---
-const calculateStatsFromHistory = (history: FocusSession[], dailyGoalMinutes: number) => {
-    const totalMinutes = history.reduce((acc, s) => acc + s.durationMinutes, 0);
-    const today = new Date().toLocaleDateString('en-CA');
-    const sessionsToday = history.filter(s => s.date === today);
-
-    const deepWorkMinutes = sessionsToday
-        .filter(s => s.mode === 'deep_work' || s.mode === 'flow')
-        .reduce((acc, s) => acc + s.durationMinutes, 0);
-
-    const pomodoros = sessionsToday.filter(s => s.mode === 'pomodoro').length;
-
-    // Basic score calculation
-    const score = Math.min(100, Math.round((sessionsToday.reduce((acc, s) => acc + s.durationMinutes, 0) / dailyGoalMinutes) * 100));
-
-    return {
-        totalFocusMinutes: totalMinutes,
-        today: {
-            date: today,
-            score,
-            pomodoros,
-            deepWorkMinutes,
-            sessions: sessionsToday.length
-        }
-    };
-};
-
 const getToday = (timezone: string = 'auto', date: Date = new Date()) => {
     if (timezone === 'auto') return date.toLocaleDateString('en-CA');
 
@@ -169,40 +141,34 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
     });
 
     // --- Initial Cloud Load & Sync ---
-    const { syncTrigger, setSyncStatus } = useCloudSync();
+    const { syncTrigger } = useCloudSync();
 
     useEffect(() => {
         if (!user) return;
 
         const syncFromCloud = async () => {
             console.log("Cloud Sync: Initializing for", user.email);
-            setSyncStatus('syncing');
 
             // 1. Cleanup old cloud data (30-day policy)
             await cleanupOldData(user.uid, 'sessions', 'date');
             await cleanupOldData(user.uid, 'events', 'date');
 
             // 2. Load Cloud Data
-            console.log("Cloud Sync: Fetching collections...");
             const cloudSessions = await loadCollection(user.uid, 'sessions') as FocusSession[];
             const cloudHabits = await loadCollection(user.uid, 'habits') as DailyHabit[];
             const cloudEvents = await loadCollection(user.uid, 'events') as CalendarEvent[];
-            const cloudSummary = await loadUserDoc(user.uid);
 
             // 3. Merge Logic (Cloud takes precedence for overlapping IDs)
             setStats(prev => {
                 const mergedHistory = [...cloudSessions];
-                let pushedCount = 0;
                 // Add local sessions that aren't in cloud yet
                 prev.history.forEach(local => {
                     if (!mergedHistory.find(c => c.id === local.id)) {
                         mergedHistory.push(local);
+                        // Push new local data to cloud immediately
                         syncCollectionItem(user.uid, 'sessions', local.id, local);
-                        pushedCount++;
                     }
                 });
-                if (pushedCount > 0) console.log(`Cloud Sync: Pushed ${pushedCount} new local sessions to cloud.`);
-
                 mergedHistory.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
 
                 // 30-Day Policy for local state too
@@ -211,29 +177,7 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
                 const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
                 const cleanHistory = mergedHistory.filter(s => s.date >= thirtyDaysAgoStr);
 
-                // Recalculate summary stats from history
-                const summary = cloudSummary?.habits_summary || {};
-                const dailyGoal = summary.dailyGoalMinutes || prev.dailyGoalMinutes;
-                const calc = calculateStatsFromHistory(cleanHistory, dailyGoal);
-
-                const finalStats = {
-                    ...prev,
-                    ...calc,
-                    history: cleanHistory,
-                    dailyGoalMinutes: dailyGoal,
-                    streaks: {
-                        ...prev.streaks,
-                        best: Math.max(prev.streaks.best, summary.bestStreak || 0)
-                    }
-                };
-
-                // Push summary back to cloud to keep it in sync
-                syncDoc(user.uid, 'habits_summary', {
-                    dailyGoalMinutes: finalStats.dailyGoalMinutes,
-                    bestStreak: finalStats.streaks.best
-                });
-
-                return finalStats;
+                return { ...prev, history: cleanHistory };
             });
 
             setHabits(prev => {
