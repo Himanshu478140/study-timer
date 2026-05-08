@@ -9,7 +9,6 @@ interface DayStats {
     deep: number;
     flow: number;
     custom: number;
-    ambient: number;
 }
 
 interface WeeklyTrendChartProps {
@@ -28,8 +27,7 @@ export const WeeklyTrendChart = ({ history, minimal = false }: WeeklyTrendChartP
         pomo: { color: '249, 115, 22', stroke: '#f97316', fillOpacity: 0.15, strokeOpacity: 0.3 }, // Orange
         deep: { color: '59, 130, 246', stroke: '#3b82f6', fillOpacity: 0.15, strokeOpacity: 0.3 }, // Blue
         flow: { color: '34, 197, 94', stroke: '#22c55e', fillOpacity: 0.15, strokeOpacity: 0.3 },  // Green
-        custom: { color: '250, 204, 21', stroke: '#facc15', fillOpacity: 0.15, strokeOpacity: 0.3 }, // Yellow/Gold
-        ambient: { color: '34, 211, 238', stroke: '#22d3ee', fillOpacity: 0.15, strokeOpacity: 0.3 } // Cyan
+        custom: { color: '250, 204, 21', stroke: '#facc15', fillOpacity: 0.15, strokeOpacity: 0.3 } // Yellow/Gold
     };
 
     // Process data for the last 7 days
@@ -51,7 +49,6 @@ export const WeeklyTrendChart = ({ history, minimal = false }: WeeklyTrendChartP
             const deepMins = daySessions.filter(s => s.mode === 'deep_work').reduce((acc, s) => acc + s.durationMinutes, 0);
             const flowMins = daySessions.filter(s => s.mode === 'flow').reduce((acc, s) => acc + s.durationMinutes, 0);
             const customMins = daySessions.filter(s => s.mode === 'custom').reduce((acc, s) => acc + s.durationMinutes, 0);
-            const ambientMins = daySessions.filter(s => s.mode === 'ambient').reduce((acc, s) => acc + s.durationMinutes, 0);
 
             days.push({
                 date: dateStr,
@@ -60,8 +57,7 @@ export const WeeklyTrendChart = ({ history, minimal = false }: WeeklyTrendChartP
                 pomodoro: pomodoroMins,
                 deep: deepMins,
                 flow: flowMins,
-                custom: customMins,
-                ambient: ambientMins
+                custom: customMins
             });
         }
         return days;
@@ -89,7 +85,6 @@ export const WeeklyTrendChart = ({ history, minimal = false }: WeeklyTrendChartP
     const pointsDeep = dataPoints.map((d, i) => ({ x: getX(i), y: getY(d.deep), ...d }));
     const pointsFlow = dataPoints.map((d, i) => ({ x: getX(i), y: getY(d.flow), ...d }));
     const pointsCustom = dataPoints.map((d, i) => ({ x: getX(i), y: getY(d.custom), ...d }));
-    const pointsAmbient = dataPoints.map((d, i) => ({ x: getX(i), y: getY(d.ambient), ...d }));
 
     // Generate Smooth Path
     const generatePath = (pts: { x: number, y: number }[], close: boolean = false) => {
@@ -122,7 +117,6 @@ export const WeeklyTrendChart = ({ history, minimal = false }: WeeklyTrendChartP
     const pathDeep = { stroke: generatePath(pointsDeep), fill: generatePath(pointsDeep, true) };
     const pathFlow = { stroke: generatePath(pointsFlow), fill: generatePath(pointsFlow, true) };
     const pathCustom = { stroke: generatePath(pointsCustom), fill: generatePath(pointsCustom, true) };
-    const pathAmbient = { stroke: generatePath(pointsAmbient), fill: generatePath(pointsAmbient, true) };
 
     const handleMouseMove = (e: React.MouseEvent) => {
         if (!containerRef.current) return;
@@ -151,8 +145,7 @@ export const WeeklyTrendChart = ({ history, minimal = false }: WeeklyTrendChartP
                             { color: GRAPH_CONFIG.pomo.stroke, label: 'Pomo' },
                             { color: GRAPH_CONFIG.deep.stroke, label: 'Deep' },
                             { color: GRAPH_CONFIG.flow.stroke, label: 'Flow' },
-                            { color: GRAPH_CONFIG.custom.stroke, label: 'Custom' },
-                            { color: GRAPH_CONFIG.ambient.stroke, label: 'Ambient' }
+                            { color: GRAPH_CONFIG.custom.stroke, label: 'Custom' }
                         ].map(l => (
                             <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.6rem', color: 'rgba(255,255,255,0.5)' }}>
                                 <div style={{ width: 5, height: 5, borderRadius: '50%', background: l.color }} /> {l.label}
@@ -194,11 +187,6 @@ export const WeeklyTrendChart = ({ history, minimal = false }: WeeklyTrendChartP
                             <stop offset="0%" stopColor={GRAPH_CONFIG.custom.stroke} stopOpacity={GRAPH_CONFIG.custom.fillOpacity} />
                             <stop offset="100%" stopColor={GRAPH_CONFIG.custom.stroke} stopOpacity="0" />
                         </linearGradient>
-
-                        <linearGradient id={`gAmbient-${chartId}`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor={GRAPH_CONFIG.ambient.stroke} stopOpacity={GRAPH_CONFIG.ambient.fillOpacity} />
-                            <stop offset="100%" stopColor={GRAPH_CONFIG.ambient.stroke} stopOpacity="0" />
-                        </linearGradient>
                     </defs>
 
                     {/* Rendering Order: Background to Foreground */}
@@ -218,9 +206,6 @@ export const WeeklyTrendChart = ({ history, minimal = false }: WeeklyTrendChartP
                     <path d={pathCustom.fill} fill={`url(#gCustom-${chartId})`} style={{ mixBlendMode: 'screen' }} />
                     <path d={pathCustom.stroke} fill="none" stroke={GRAPH_CONFIG.custom.stroke} strokeWidth="2" filter={`url(#glow-${chartId})`} opacity={GRAPH_CONFIG.custom.strokeOpacity} />
 
-                    <path d={pathAmbient.fill} fill={`url(#gAmbient-${chartId})`} style={{ mixBlendMode: 'screen' }} />
-                    <path d={pathAmbient.stroke} fill="none" stroke={GRAPH_CONFIG.ambient.stroke} strokeWidth="2" filter={`url(#glow-${chartId})`} opacity={GRAPH_CONFIG.ambient.strokeOpacity} />
-
                     {/* Hover Dots */}
                     {activeData && hoverIndex !== null && (
                         <>
@@ -229,7 +214,6 @@ export const WeeklyTrendChart = ({ history, minimal = false }: WeeklyTrendChartP
                             <circle cx={pointsDeep[hoverIndex].x} cy={pointsDeep[hoverIndex].y} r={4} fill="#3b82f6" stroke="#fff" strokeWidth={1} />
                             <circle cx={pointsFlow[hoverIndex].x} cy={pointsFlow[hoverIndex].y} r={4} fill="#22c55e" stroke="#fff" strokeWidth={1} />
                             <circle cx={pointsCustom[hoverIndex].x} cy={pointsCustom[hoverIndex].y} r={4} fill="#facc15" stroke="#fff" strokeWidth={1} />
-                            <circle cx={pointsAmbient[hoverIndex].x} cy={pointsAmbient[hoverIndex].y} r={4} fill="#22d3ee" stroke="#fff" strokeWidth={1} />
 
                             <line x1={pointsTotal[hoverIndex].x} y1={0} x2={pointsTotal[hoverIndex].x} y2={height} stroke="rgba(255,255,255,0.2)" strokeDasharray="4 4" />
                         </>
@@ -265,7 +249,6 @@ export const WeeklyTrendChart = ({ history, minimal = false }: WeeklyTrendChartP
                             <div style={{ color: GRAPH_CONFIG.deep.stroke }}>{activeData.deep}m</div>
                             <div style={{ color: GRAPH_CONFIG.flow.stroke }}>{activeData.flow}m</div>
                             <div style={{ color: GRAPH_CONFIG.custom.stroke }}>{activeData.custom}m</div>
-                            <div style={{ color: GRAPH_CONFIG.ambient.stroke }}>{activeData.ambient}m</div>
                             <div style={{ color: GRAPH_CONFIG.total.stroke, borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '2px', marginTop: '2px' }}>{activeData.value}m</div>
                         </div>
                     </div>

@@ -12,48 +12,46 @@ interface TimerControlsProps {
 }
 
 export const TimerControls = ({ status, onStart, onPause, onReset, onBreak, allowReset }: TimerControlsProps) => {
+    const isRunning = status === 'running';
+
     return (
         <div className="timer-controls">
-            {status === 'running' ? (
-                <button
-                    className="control-btn interactive-hover"
-                    onClick={onPause}
-                    aria-label="Pause Timer"
-                    title="Pause"
-                >
-                    <Pause size={28} fill="currentColor" />
-                </button>
-            ) : (
-                <button
-                    className="control-btn primary interactive-hover"
-                    onClick={onStart}
-                    aria-label="Start Timer"
-                    title="Start"
-                >
-                    <Play size={28} fill="currentColor" style={{ marginLeft: '4px' }} />
-                </button>
-            )}
-
+            {/* Reset — left, always small */}
             {(status !== 'idle' || allowReset) && (
                 <button
-                    className="control-btn interactive-hover"
+                    className="control-btn control-btn--secondary interactive-hover"
                     onClick={onReset}
                     aria-label="Reset Timer"
                     title="Reset"
                 >
-                    <RotateCcw size={24} />
+                    <RotateCcw size={20} />
                 </button>
             )}
 
+            {/* Play/Pause — center, hero button (big) */}
+            <button
+                className={`control-btn control-btn--primary interactive-hover`}
+                onClick={isRunning ? onPause : onStart}
+                aria-label={isRunning ? "Pause Timer" : "Start Timer"}
+                title={isRunning ? "Pause" : "Start"}
+            >
+                {isRunning ? (
+                    <Pause size={30} fill="currentColor" />
+                ) : (
+                    <Play size={30} fill="currentColor" style={{ marginLeft: '3px' }} />
+                )}
+            </button>
+
+            {/* Break button for ambient mode */}
             {onBreak && (
                 <button
-                    className="control-btn interactive-hover"
+                    className="control-btn control-btn--secondary interactive-hover"
                     onClick={onBreak}
                     aria-label="Take a Break"
                     title="Take a Break"
-                    style={{ color: '#C084FC' }} // Optional accent color
+                    style={{ color: '#C084FC' }}
                 >
-                    <Coffee size={24} />
+                    <Coffee size={20} />
                 </button>
             )}
         </div>

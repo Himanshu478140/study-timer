@@ -4,7 +4,7 @@
     /* Centered vertically for the switcher */
     gap: 0.75rem;
     padding: 0.5rem 0.75rem;
-    border-radius: 999px;
+    border-radius: 1.25rem;
     background: rgba(15, 15, 20, 0.08);
     /* Deeper, more premium glass base */
     backdrop-filter: blur(20px) saturate(180%);
@@ -72,4 +72,25 @@
 .dock-icon-wrapper:hover .dock-tooltip {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
+}
+
+.dock-icon-wrapper:focus-visible {
+    outline: 2px solid var(--color-accent, #a855f7);
+    outline-offset: 3px;
+}
+
+/* ── Respect reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+    .dock-container,
+    .dock-icon-wrapper,
+    .dock-tooltip {
+        transition: none;
+    }
+}
+
+/* ── Hide mode dock on mobile ── */
+@media (max-width: 768px) {
+    .mode-dock-wrapper {
+        display: none;
+    }
 }

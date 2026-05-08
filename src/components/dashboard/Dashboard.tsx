@@ -61,9 +61,10 @@ interface DashboardProps {
     setTimezone: (tz: string) => void;
     appMode: AppMode;
     onAppModeChange: (mode: AppMode) => void;
+    initialTab?: DashboardTab;
 }
 
-type DashboardTab = 'themes' | 'clock' | 'stats' | 'quotes' | 'features' | 'account' | 'help' | 'support' | 'about';
+export type DashboardTab = 'themes' | 'clock' | 'stats' | 'quotes' | 'features' | 'account' | 'help' | 'support' | 'about';
 
 export const Dashboard = ({
     isOpen, onClose, wallpaper, onWallpaperSelect,
@@ -72,7 +73,8 @@ export const Dashboard = ({
     customQuotes, onAddQuote, onRemoveQuote,
     quoteFont, setQuoteFont,
     timezone, setTimezone,
-    appMode, onAppModeChange
+    appMode, onAppModeChange,
+    initialTab = 'stats'
 }: DashboardProps) => {
     const TIMEZONES = [
         { id: 'auto', name: 'Automatic', subtext: 'System Default', region: 'General' },
@@ -95,7 +97,14 @@ export const Dashboard = ({
         { id: 'Pacific/Auckland', name: 'Auckland', subtext: 'NZST/NZDT', region: 'Oceania' },
     ];
 
-    const [activeTab, setActiveTab] = useState<DashboardTab>('stats');
+    const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
+    
+    useEffect(() => {
+        if (isOpen) {
+            setActiveTab(initialTab);
+        }
+    }, [isOpen, initialTab]);
+
     const [aboutVisited, setAboutVisited] = useState(() => localStorage.getItem('about_visited') === 'true');
 
     // Support Form State

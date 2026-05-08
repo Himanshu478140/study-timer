@@ -1,9 +1,9 @@
 import { useRef, useEffect, useState } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, MotionValue } from 'framer-motion';
-import { Brain, Clock, Coffee, Zap, Sliders } from 'lucide-react';
+import { Brain, Clock, Coffee, Sliders } from 'lucide-react';
 import './modes.css';
 
-export type FocusMode = 'deep_work' | 'pomodoro' | 'flow' | 'ambient' | 'custom';
+export type FocusMode = 'deep_work' | 'pomodoro' | 'flow' | 'custom';
 
 interface ModeSelectorProps {
     currentMode: FocusMode;
@@ -70,7 +70,6 @@ export const ModeSelector = ({ currentMode, onModeChange }: ModeSelectorProps) =
         { id: 'deep_work', label: 'Deep Work', icon: <Brain size={16} /> },
         { id: 'pomodoro', label: 'Pomodoro', icon: <Clock size={16} /> },
         { id: 'flow', label: '52/17', icon: <Coffee size={16} /> },
-        { id: 'ambient', label: 'Ambient', icon: <Zap size={16} /> },
         { id: 'custom', label: 'Custom', icon: <Sliders size={16} /> },
     ];
 

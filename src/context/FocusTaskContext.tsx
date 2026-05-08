@@ -25,6 +25,7 @@ interface FocusTaskContextType {
     toggleTask: (id: string) => void;
     removeTask: (id: string) => void;
     clearCompleted: () => void;
+    reorderTasks: (newTasks: FocusTask[]) => void;
 }
 
 const FocusTaskContext = createContext<FocusTaskContextType | undefined>(undefined);
@@ -188,6 +189,14 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
         if (activeTask?.completed) handleSetActiveTask(null);
     };
 
+    const reorderTasks = (newTasks: FocusTask[]) => {
+        setTasks(prev => {
+            // Merge the new order of non-deleted tasks with existing deleted tasks
+            const deletedTasks = prev.filter(t => t.isDeleted);
+            return [...newTasks, ...deletedTasks];
+        });
+    };
+
     return (
         <FocusTaskContext.Provider value={{
             tasks: tasks.filter(t => !t.isDeleted),
@@ -197,7 +206,8 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
             addTask,
             toggleTask,
             removeTask,
-            clearCompleted
+            clearCompleted,
+            reorderTasks
         }}>
             {children}
         </FocusTaskContext.Provider>

@@ -24,43 +24,64 @@
 
 .timer-controls {
     display: flex;
-    gap: var(--space-3);
+    gap: var(--space-4);
+    align-items: center;
+    justify-content: center;
 }
 
+/* Base button reset */
 .control-btn {
-    width: 64px;
-    /* var(--space-8) */
-    height: 64px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    border: none;
+    cursor: pointer;
     transition:
         transform var(--transition-fast),
         background var(--transition-theme),
-        color var(--transition-theme);
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--color-text-primary);
+        color var(--transition-theme),
+        opacity 0.3s ease,
+        width 0.3s ease;
 }
 
-.control-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+.control-btn:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+}
+
+/* Secondary buttons (Reset, Pause) — smaller */
+.control-btn--secondary {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--color-text-primary);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.control-btn--secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
     transform: translateY(-2px);
 }
 
-.control-btn:active {
+.control-btn--secondary:active {
     transform: translateY(0) scale(0.95);
 }
 
-.control-btn.primary {
+/* Primary button (Play) — hero, bigger */
+.control-btn--primary {
+    width: 72px;
+    height: 72px;
     background: var(--color-accent);
     color: white;
-    box-shadow: 0 4px 12px rgba(var(--color-accent-rgb), 0.3);
+    box-shadow: 0 4px 20px rgba(var(--color-accent-rgb), 0.35);
     position: relative;
     overflow: hidden;
 }
 
-.control-btn.primary:not(:disabled)::after {
+.control-btn--primary:not(:disabled)::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -69,16 +90,32 @@
     animation: pulse 2s infinite;
 }
 
-.control-btn.primary:hover {
-    background: var(--color-accent);
+.control-btn--primary:hover:not(:disabled) {
     filter: brightness(1.1);
-    box-shadow: 0 6px 20px rgba(var(--color-accent-rgb), 0.5);
+    box-shadow: 0 6px 24px rgba(var(--color-accent-rgb), 0.5);
     transform: translateY(-2px) scale(1.05);
 }
 
-.control-btn.primary:active {
+.control-btn--primary:active:not(:disabled) {
     transform: scale(0.95);
     filter: brightness(0.95);
+}
+
+.control-btn--primary:disabled {
+    pointer-events: none;
+}
+
+/* Secondary button disabled state (pause when not running) */
+.control-btn--secondary:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Active pause glow when timer is running */
+.control-btn--active-pause {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
 @keyframes pulse {
@@ -95,6 +132,15 @@
     100% {
         transform: scale(0.95);
         box-shadow: 0 0 0 0 rgba(var(--color-accent-rgb), 0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .control-btn--primary::after {
+        animation: none !important;
+    }
+    .control-btn {
+        transition: none !important;
     }
 }
 

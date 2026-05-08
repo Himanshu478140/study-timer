@@ -8,7 +8,6 @@ interface DayStats {
     deep: number;
     flow: number;
     custom: number;
-    ambient: number;
 }
 
 interface MonthlyTrendChartProps {
@@ -26,8 +25,7 @@ export const MonthlyTrendChart = ({ history }: MonthlyTrendChartProps) => {
         pomo: { color: '249, 115, 22', stroke: '#f97316', fillOpacity: 0.15, strokeOpacity: 0.4 },
         deep: { color: '59, 130, 246', stroke: '#3b82f6', fillOpacity: 0.15, strokeOpacity: 0.4 },
         flow: { color: '34, 197, 94', stroke: '#22c55e', fillOpacity: 0.15, strokeOpacity: 0.4 },
-        custom: { color: '250, 204, 21', stroke: '#facc15', fillOpacity: 0.15, strokeOpacity: 0.4 },
-        ambient: { color: '34, 211, 238', stroke: '#22d3ee', fillOpacity: 0.15, strokeOpacity: 0.4 }
+        custom: { color: '250, 204, 21', stroke: '#facc15', fillOpacity: 0.15, strokeOpacity: 0.4 }
     };
 
     // Process data for the last 30 days
@@ -52,7 +50,6 @@ export const MonthlyTrendChart = ({ history }: MonthlyTrendChartProps) => {
             const deepMins = daySessions.filter(s => s.mode === 'deep_work').reduce((acc, s) => acc + s.durationMinutes, 0);
             const flowMins = daySessions.filter(s => s.mode === 'flow').reduce((acc, s) => acc + s.durationMinutes, 0);
             const customMins = daySessions.filter(s => s.mode === 'custom').reduce((acc, s) => acc + s.durationMinutes, 0);
-            const ambientMins = daySessions.filter(s => s.mode === 'ambient').reduce((acc, s) => acc + s.durationMinutes, 0);
 
             days.push({
                 date: dateStr,
@@ -61,8 +58,7 @@ export const MonthlyTrendChart = ({ history }: MonthlyTrendChartProps) => {
                 pomodoro: pomodoroMins,
                 deep: deepMins,
                 flow: flowMins,
-                custom: customMins,
-                ambient: ambientMins
+                custom: customMins
             });
         }
         return days;
@@ -99,7 +95,6 @@ export const MonthlyTrendChart = ({ history }: MonthlyTrendChartProps) => {
     const pointsDeep = dataPoints.map((d, i) => ({ x: getX(i), y: getY(d.deep) }));
     const pointsFlow = dataPoints.map((d, i) => ({ x: getX(i), y: getY(d.flow) }));
     const pointsCustom = dataPoints.map((d, i) => ({ x: getX(i), y: getY(d.custom) }));
-    const pointsAmbient = dataPoints.map((d, i) => ({ x: getX(i), y: getY(d.ambient) }));
 
     const handleMouseMove = (e: React.MouseEvent) => {
         if (!containerRef.current) return;
@@ -146,7 +141,6 @@ export const MonthlyTrendChart = ({ history }: MonthlyTrendChartProps) => {
                     <path d={generatePath(pointsDeep)} fill="none" stroke={GRAPH_CONFIG.deep.stroke} strokeWidth="1.2" opacity={GRAPH_CONFIG.deep.strokeOpacity} />
                     <path d={generatePath(pointsFlow)} fill="none" stroke={GRAPH_CONFIG.flow.stroke} strokeWidth="1.2" opacity={GRAPH_CONFIG.flow.strokeOpacity} />
                     <path d={generatePath(pointsCustom)} fill="none" stroke={GRAPH_CONFIG.custom.stroke} strokeWidth="1.2" opacity={GRAPH_CONFIG.custom.strokeOpacity} />
-                    <path d={generatePath(pointsAmbient)} fill="none" stroke={GRAPH_CONFIG.ambient.stroke} strokeWidth="1.2" opacity={GRAPH_CONFIG.ambient.strokeOpacity} />
                     <path d={generatePath(pointsTotal)} fill="none" stroke={GRAPH_CONFIG.total.stroke} strokeWidth="2" />
 
                     {/* Hover Guide */}
@@ -190,9 +184,6 @@ export const MonthlyTrendChart = ({ history }: MonthlyTrendChartProps) => {
 
                             <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>Custom</div>
                             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: GRAPH_CONFIG.custom.stroke, textAlign: 'right' }}>{activeData.custom}m</div>
-
-                            <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>Ambient</div>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: GRAPH_CONFIG.ambient.stroke, textAlign: 'right' }}>{activeData.ambient}m</div>
 
                             <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#fff', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '4px', marginTop: '4px' }}>Total</div>
                             <div style={{ fontSize: '0.8rem', fontWeight: 800, color: GRAPH_CONFIG.total.stroke, textAlign: 'right', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '4px', marginTop: '4px' }}>{activeData.value}m</div>

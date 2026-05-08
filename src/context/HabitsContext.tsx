@@ -15,7 +15,7 @@ export interface FocusSession {
     date: string; // ISO Date String
     startTime: string; // ISO String
     durationMinutes: number;
-    mode: 'pomodoro' | 'deep_work' | 'flow' | 'ambient' | 'custom';
+    mode: 'pomodoro' | 'deep_work' | 'flow' | 'custom';
     rating?: number; // 1-5
     tags?: string[]; // e.g. "Distracted", "Flow State"
 }

@@ -646,28 +646,39 @@ export const WALLPAPERS: WallpaperConfig[] = [
 interface WallpaperSelectorProps {
     currentId: string;
     onSelect: (config: WallpaperConfig) => void;
+    /** If provided, controls the drawer externally (no trigger button rendered) */
+    externalOpen?: boolean;
+    onClose?: () => void;
 }
 
-export const WallpaperSelector = ({ currentId, onSelect }: WallpaperSelectorProps) => {
-    const [isOpen, setIsOpen] = useState(false);
+export const WallpaperSelector = ({ currentId, onSelect, externalOpen, onClose }: WallpaperSelectorProps) => {
+    const [internalOpen, setInternalOpen] = useState(false);
+    const isControlled = externalOpen !== undefined;
+    const isOpen = isControlled ? externalOpen : internalOpen;
+    const handleClose = () => {
+        if (isControlled && onClose) onClose();
+        else setInternalOpen(false);
+    };
 
     return (
         <>
-            {/* Trigger Button */}
-            <button
-                className="wallpaper-trigger-btn interactive-press"
-                onClick={() => setIsOpen(true)}
-            >
-                <ImageIcon size={18} />
-                <span>Wallpaper</span>
-            </button>
+            {/* Only render trigger button when NOT externally controlled */}
+            {!isControlled && (
+                <button
+                    className="wallpaper-trigger-btn interactive-press"
+                    onClick={() => setInternalOpen(true)}
+                >
+                    <ImageIcon size={18} />
+                    <span>Wallpaper</span>
+                </button>
+            )}
 
             {createPortal(
                 <>
                     {/* Backdrop */}
                     <div
                         className={`wallpaper-drawer-overlay ${isOpen ? 'open' : ''}`}
-                        onClick={() => setIsOpen(false)}
+                        onClick={handleClose}
                     />
 
                     {/* Drawer Panel */}
@@ -677,7 +688,7 @@ export const WallpaperSelector = ({ currentId, onSelect }: WallpaperSelectorProp
                         {/* Header */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>Backgrounds</h3>
-                            <button onClick={() => setIsOpen(false)} style={{ padding: '0.5rem', opacity: 0.7, color: 'white' }}>
+                            <button onClick={handleClose} style={{ padding: '0.5rem', opacity: 0.7, color: 'white' }}>
                                 <X size={20} />
                             </button>
                         </div>

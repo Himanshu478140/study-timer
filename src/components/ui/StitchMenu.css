@@ -1,0 +1,127 @@
+.stitch-menu-container {
+    position: fixed;
+    top: 4.5rem;
+    /* Adjusted for header height */
+    right: 1.5rem;
+    width: 280px;
+    background: rgba(20, 20, 20, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    z-index: 10000;
+    overflow: hidden;
+    padding: 0.5rem;
+    color: #efefef;
+    font-family: var(--font-main);
+}
+
+.stitch-menu-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    /* invisible but catches clicks */
+}
+
+.stitch-menu-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.stitch-menu-item {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 0.75rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #efefef;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: left;
+}
+
+.stitch-menu-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.stitch-menu-item.active {
+    background: rgba(147, 51, 234, 0.15);
+    /* Purple tint from image */
+    color: #c084fc;
+}
+
+.stitch-menu-item.active svg {
+    opacity: 1;
+    color: #c084fc;
+}
+
+.notification-dot {
+    width: 8px;
+    height: 8px;
+    background: #f97316;
+    /* Orange dot from image */
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+}
+
+.stitch-menu-item span {
+    font-weight: 400;
+}
+
+.stitch-menu-item svg {
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.stitch-menu-item:hover svg {
+    opacity: 1;
+}
+
+.stitch-menu-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.05);
+    margin: 0.5rem 0;
+}
+
+.stitch-menu-item.danger {
+    color: #ff4d4d;
+}
+
+.stitch-menu-item.danger:hover {
+    background: rgba(255, 77, 77, 0.1);
+}
+
+.stitch-menu-item .shortcut {
+    font-size: 0.75rem;
+    opacity: 0.4;
+    font-weight: 300;
+}
+
+/* Light mode overrides if needed */
+[data-theme='light'] .stitch-menu-container {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    color: #1a1a1a;
+}
+
+[data-theme='light'] .stitch-menu-item {
+    color: #1a1a1a;
+}
+
+[data-theme='light'] .stitch-menu-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .stitch-menu-divider {
+    background: rgba(0, 0, 0, 0.05);
+}
