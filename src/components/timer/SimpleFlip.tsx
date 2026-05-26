@@ -4,6 +4,7 @@ import './SimpleFlip.css';
 interface SimpleFlipProps {
     value1: number;
     value2: number;
+    vertical?: boolean;
 }
 
 const Digit = ({ value }: { value: number }) => {
@@ -31,19 +32,19 @@ const Digit = ({ value }: { value: number }) => {
     );
 };
 
-export const SimpleFlip = ({ value1, value2 }: SimpleFlipProps) => {
+export const SimpleFlip = ({ value1, value2, vertical }: SimpleFlipProps) => {
     const v1_1 = Math.floor(value1 / 10);
     const v1_2 = value1 % 10;
     const v2_1 = Math.floor(value2 / 10);
     const v2_2 = value2 % 10;
 
     return (
-        <div className="simple-flip-clock">
+        <div className={`simple-flip-clock ${vertical ? 'simple-flip-clock--vertical' : ''}`}>
             <div className="simple-flip-group">
                 <Digit value={v1_1} />
                 <Digit value={v1_2} />
             </div>
-            <div className="simple-flip-separator">:</div>
+            {!vertical && <div className="simple-flip-separator">:</div>}
             <div className="simple-flip-group">
                 <Digit value={v2_1} />
                 <Digit value={v2_2} />

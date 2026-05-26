@@ -5,6 +5,14 @@ import { SimpleFlip } from '../timer/SimpleFlip';
 
 export const HomeView = ({ clockFont, timeFormat = '24h' }: { clockFont?: string, timeFormat?: '12h' | '24h' }) => {
     const [time, setTime] = useState(new Date());
+    const [isPortrait, setIsPortrait] = useState(false);
+
+    useEffect(() => {
+        const checkOrientation = () => setIsPortrait(window.innerHeight > window.innerWidth);
+        checkOrientation();
+        window.addEventListener('resize', checkOrientation);
+        return () => window.removeEventListener('resize', checkOrientation);
+    }, []);
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date()), 1000);
@@ -43,7 +51,7 @@ export const HomeView = ({ clockFont, timeFormat = '24h' }: { clockFont?: string
             justifyContent: 'center',
             textAlign: 'center',
             gap: '1rem',
-            paddingBottom: '23vh'
+            paddingBottom: '12vh' /* Reduced from 23vh to prevent pushing dock off-screen at high scales */
         }}>
             <div className="home-greeting" style={{
                 fontSize: '1.8rem',
@@ -61,19 +69,19 @@ export const HomeView = ({ clockFont, timeFormat = '24h' }: { clockFont?: string
             </div>
 
             {clockFont === 'flip' ? (
-                <div style={{ transform: 'scale(1.5)', marginTop: '2rem' }}>
-                    <FlipClock value1={hours} value2={minutes} />
+                <div style={{ transform: `scale(${isPortrait ? 2.2 : 1.5})`, marginTop: '2rem' }}>
+                    <FlipClock value1={hours} value2={minutes} vertical={isPortrait} />
                 </div>
             ) : clockFont === 'simple-flip' ? (
-                <div style={{ transform: 'scale(1.5)', marginTop: '2rem' }}>
-                    <SimpleFlip value1={hours} value2={minutes} />
+                <div style={{ transform: `scale(${isPortrait ? 2.2 : 1.5})`, marginTop: '2rem' }}>
+                    <SimpleFlip value1={hours} value2={minutes} vertical={isPortrait} />
                 </div>
             ) : (
                 <div className="clock-glass animate-breathing" style={{ marginTop: '1rem' }}>
                     <div
                         className={`home-clock font-${clockFont}`}
                         style={{
-                            fontSize: '15vw',
+                            fontSize: isPortrait ? '25vw' : '15vw',
                             lineHeight: 1,
                             color: 'var(--color-text-primary)',
                             transition: 'all var(--transition-theme)',

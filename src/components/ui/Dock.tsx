@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
     motion,
     useMotionValue,
@@ -18,6 +18,16 @@ interface DockIconProps {
 
 const DockIcon = ({ children, mouseX, label, isActive, onClick }: DockIconProps) => {
     const ref = useRef<HTMLDivElement>(null);
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth <= 1100 || window.matchMedia("(pointer: coarse)").matches);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const distance = useTransform(mouseX, (val) => {
         const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
@@ -25,7 +35,7 @@ const DockIcon = ({ children, mouseX, label, isActive, onClick }: DockIconProps)
     });
 
     // Enhanced magnification range for a more 'magnetic' pull
-    const sizeTransform = useTransform(distance, [-150, 0, 150], [42, 64, 42]);
+    const sizeTransform = useTransform(distance, [-150, 0, 150], [42, isMobile ? 42 : 64, 42]);
 
     const size = useSpring(sizeTransform, {
         mass: 0.1,

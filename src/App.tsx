@@ -419,11 +419,11 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
   }
 
   return (
-    <div className="fullscreen flex-center" style={{ flexDirection: 'column' }}>
+    <div className="focus-scene">
 
       <WallpaperLayer config={wallpaper} />
 
-      {isFullscreen && features.showQuoteInFullscreen && selectedQuote && appMode !== 'home' && (
+      {isFullscreen && features.showQuoteInFullscreen && selectedQuote && appMode !== 'home' && appMode !== 'zen' && (
         <div className={`fullscreen-quote font-${quoteFont || 'serif'}`}>
           "{selectedQuote}"
         </div>
@@ -516,216 +516,212 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
       </div>
 
       {/* === NEW LAYOUT: Centered Top Header Bar (Stitch Style) === */}
-      <header
-        className="stitch-header"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '1rem 2rem',
-          zIndex: 100,
-          opacity: (isDashboardOpen || (isFocusActive && appMode !== 'home')) ? 0 : 1,
-          transition: 'opacity 0.5s ease',
-          pointerEvents: (isDashboardOpen || (isFocusActive && appMode !== 'home')) ? 'none' : 'auto',
-        }}
-      >
-        {/* Left: Branding */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '120px' }}>
-          <span style={{
-            fontSize: '0.85rem',
-            fontWeight: 800,
-            textTransform: 'uppercase',
-            letterSpacing: '0.12em',
-            color: 'var(--color-text-secondary)',
-            opacity: appMode === 'zen' ? 0 : 0.7,
-            transition: 'opacity 0.5s ease',
-          }}>Study Timer</span>
-        </div>
-
-        {/* Center: Stats Bar */}
-        <nav
-          className="stitch-stats-bar"
-          onClick={() => setIsDashboardOpen(true)}
+      <div className="focus-header">
+        <header
+          className="stitch-header"
           style={{
             display: 'flex',
-            gap: '1.5rem',
             alignItems: 'center',
-            cursor: 'pointer',
-            background: 'linear-gradient(135deg, var(--color-glass-bg), rgba(var(--color-accent-rgb), var(--glass-tint-strength)))',
-            backdropFilter: 'blur(40px)',
-            WebkitBackdropFilter: 'blur(40px)',
-            border: '1px solid rgba(255, 255, 255, var(--widget-border-opacity))',
-            borderRadius: '999px',
-            padding: '0.375rem 1.25rem',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
-            color: 'var(--color-text-secondary)',
-            transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            justifyContent: 'center',
+            padding: '1rem 2rem',
+            width: '100%',
+            opacity: (isDashboardOpen || (isFocusActive && appMode !== 'home')) ? 0 : 1,
+            transition: 'opacity 0.5s ease',
+            pointerEvents: (isDashboardOpen || (isFocusActive && appMode !== 'home')) ? 'none' : 'auto',
           }}
-          role="button"
-          tabIndex={0}
-          aria-label="Open Dashboard"
         >
-          {/* Daily Progress */}
-          <div className="flex-center" style={{ gap: '0.5rem' }}>
-            <DailyProgressRing completed={stats.today.score} goal={100} />
+          {/* ... branding and stats bar ... */}
+          {/* Left: Branding */}
+          <div className="stitch-header-left" style={{ position: 'absolute', left: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span className="brand-logo-text" style={{
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.12em',
+              color: 'var(--color-text-secondary)',
+              opacity: appMode === 'zen' ? 0 : 0.7,
+              transition: 'opacity 0.5s ease',
+            }}>Study Timer</span>
           </div>
 
-          {/* Level & XP */}
-          <div className="flex-center" style={{ gap: '0.5rem' }}>
-            <Trophy size={18} color="var(--color-accent)" />
-            <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>LVL {level}</span>
-            <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>{xp} XP</span>
-          </div>
+          {/* Center: Stats Bar */}
+          <nav
+            className="stitch-stats-bar"
+            onClick={() => setIsDashboardOpen(true)}
+            style={{
+              display: 'flex',
+              gap: '1.5rem',
+              alignItems: 'center',
+              cursor: 'pointer',
+              background: 'linear-gradient(135deg, var(--color-glass-bg), rgba(var(--color-accent-rgb), var(--glass-tint-strength)))',
+              backdropFilter: 'blur(40px)',
+              WebkitBackdropFilter: 'blur(40px)',
+              border: '1px solid rgba(255, 255, 255, var(--widget-border-opacity))',
+              borderRadius: '999px',
+              padding: '0.375rem 1.25rem',
+              boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+              color: 'var(--color-text-secondary)',
+              transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease',
+              opacity: appMode === 'home' ? 0 : 1,
+              pointerEvents: appMode === 'home' ? 'none' : 'auto',
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="Open Dashboard"
+          >
+            {/* Daily Progress */}
+            <div className="flex-center" style={{ gap: '0.5rem' }}>
+              <DailyProgressRing completed={stats.today.score} goal={100} />
+            </div>
 
-          {/* Streak */}
-          <div className="flex-center" style={{ gap: '0.25rem' }} title="Current Streak">
-            <svg width="0" height="0" style={{ position: 'absolute' }}>
-              <defs>
-                <linearGradient id="fireGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#ef4444" />
-                  <stop offset="100%" stopColor="#f97316" />
-                </linearGradient>
-              </defs>
-            </svg>
-            <Flame
-              size={18}
-              className={streak > 0 ? "streak-active" : ""}
-              style={streak > 0 ? { stroke: 'url(#fireGradient)', filter: 'drop-shadow(0 0 2px rgba(249, 115, 22, 0.4))' } : {}}
-            />
-            <span style={{ fontWeight: 600, fontSize: '0.8rem' }}>{streak}</span>
-          </div>
-        </nav>
+            {/* Level & XP */}
+            <div className="flex-center" style={{ gap: '0.5rem', whiteSpace: 'nowrap' }}>
+              <Trophy size={18} color="var(--color-accent)" />
+              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>LVL {level}</span>
+              <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>{xp} XP</span>
+            </div>
 
-        {/* Right spacer to keep stats bar centered */}
-        <div style={{ minWidth: '120px' }} />
-      </header>
+            {/* Streak */}
+            <div className="flex-center" style={{ gap: '0.25rem' }} title="Current Streak">
+              <svg width="0" height="0" style={{ position: 'absolute' }}>
+                <defs>
+                  <linearGradient id="fireGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#ef4444" />
+                    <stop offset="100%" stopColor="#f97316" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <Flame
+                size={18}
+                className={streak > 0 ? "streak-active" : ""}
+                style={streak > 0 ? { stroke: 'url(#fireGradient)', filter: 'drop-shadow(0 0 2px rgba(249, 115, 22, 0.4))' } : {}}
+              />
+              <span style={{ fontWeight: 600, fontSize: '0.8rem' }}>{streak}</span>
+            </div>
+          </nav>
 
-      {/* OLD LAYOUT: Top-right stats pill was here. See git history to restore. */}
-
-      {/* Mode Selector */}
-      <div
-        className="mode-selector-container"
-        style={{
-          opacity: (isFocusActive || appMode === 'home') ? 0 : 1,
-          transition: 'opacity 0.5s ease',
-          pointerEvents: (isFocusActive || appMode === 'home') ? 'none' : 'auto',
-          marginTop: '2.0rem', // Desktop default
-          marginBottom: '0',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
-        }}
-      >
-        <ModeSelector currentMode={mode} onModeChange={setMode} />
-        <SessionProgress completed={completedSessionsToday} />
+        </header>
       </div>
 
-      {/* Main Content Area */}
-      {appMode === 'home' ? (
-        <HomeView clockFont={clockFont} timeFormat={features.homeTimeFormat} />
-      ) : appMode === 'zen' ? (
-        <ZenMode
-          clockFont={clockFont}
-          zenModeType={features.zenModeType}
-          timeLeft={timeLeft}
-          status={status}
-          onStart={handleStart}
-          onPause={pause}
-          onReset={reset}
-          onEnterFullscreen={enterFullscreen}
-          onToggleFullscreen={handleToggleFullscreen}
-          isFullscreen={isFullscreen}
-          autoFullscreen={features.zenAutoFullscreen}
-          timeFormat={features.zenTimeFormat}
-          modeName={isBreak ? "Taking Break" : (tasks.find(t => t.id === activeTaskId)?.text || 'Ready to Focus?')}
-        />
-      ) : (
-        /* === NEW LAYOUT: Free-floating Timer (Stitch Style) === */
-        <>
-          <section className="stitch-timer-section">
-            <h2 className="stitch-mode-label" style={{
-              color: 'var(--color-text-secondary)',
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              fontSize: '0.75rem',
-              fontWeight: 500,
-              marginBottom: 'var(--space-3)',
-              opacity: isFocusActive ? 0 : 0.7,
-              display: isFocusActive ? 'none' : 'block',
-              transition: 'opacity 0.3s',
-              textAlign: 'center',
-            }}>
-              <TypingAnimation 
-                key={isBreak ? 'break' : (activeTaskId || 'no-task')} 
-                duration={100}
-              >
-                {isBreak 
-                  ? 'Taking Break' 
-                  : (tasks.find(t => t.id === activeTaskId)?.text || 'Ready to Focus?')}
-              </TypingAnimation>
-            </h2>
-
-            <TimerDisplay
-              seconds={timeLeft}
-              font={clockFont}
-              style={{
-                fontSize: isFocusActive ? '25vw' : 'clamp(4rem, 12vw, 10rem)',
-                lineHeight: 1,
-                transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-                marginBottom: '0',
-                transform: isFocusActive ? 'none' : 'none',
-              }}
-              active={status === 'running'}
-              timeLeft={timeLeft}
-              mode={mode}
-              isFullscreen={isFullscreen}
-            />
-
-            <div style={{
-              opacity: isFocusActive ? 0.05 : 1,
-              transition: 'opacity 0.3s ease',
-              position: isFocusActive ? 'absolute' : 'relative',
-              bottom: isFocusActive ? '3rem' : 'auto',
-              marginTop: 'var(--space-4)',
-            }}
-              onMouseEnter={(e) => {
-                if (isFocusActive) e.currentTarget.style.opacity = '1';
-              }}
-              onMouseLeave={(e) => {
-                if (isFocusActive) e.currentTarget.style.opacity = '0.05';
-              }}
-            >
-              <TimerControls
-                status={status}
-                onStart={handleStart}
-                onPause={() => { pause(); }}
-                onReset={handleReset}
-                onBreak={() => {
-                  setTimeLeft(5 * 60);
-                  setIsBreak(true);
-                  handleStart();
-                }}
-                allowReset
-              />
-            </div>
-          </section>
-
-          {/* Bottom-Right Quote */}
+      <main className="focus-content">
+        {appMode === 'zen' && (
+          <ZenMode
+            clockFont={clockFont}
+            zenModeType={features.zenModeType}
+            timeLeft={timeLeft}
+            status={status}
+            onStart={handleStart}
+            onPause={pause}
+            onReset={reset}
+            onEnterFullscreen={enterFullscreen}
+            onToggleFullscreen={handleToggleFullscreen}
+            isFullscreen={isFullscreen}
+            autoFullscreen={features.zenAutoFullscreen}
+            timeFormat={features.zenTimeFormat}
+            modeName={isBreak ? "Taking Break" : (tasks.find(t => t.id === activeTaskId)?.text || 'Ready to Focus?')}
+          />
+        )}
+        <div className="hud-center-stack" style={{ display: appMode === 'zen' ? 'none' : 'flex' }}>
           <div
-            className={`bottom-right-quote font-${quoteFont || 'serif'}`}
+            className="mode-selector-container"
             style={{
-              opacity: isFocusActive ? 0 : 1,
-              visibility: isFocusActive ? 'hidden' : 'visible',
+              opacity: (isFocusActive || appMode === 'home') ? 0 : 1,
+              transition: 'opacity 0.5s ease',
+              pointerEvents: (isFocusActive || appMode === 'home') ? 'none' : 'auto',
+              display: appMode === 'home' ? 'none' : 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
             }}
           >
-            <p>"{selectedQuote}"</p>
+            <ModeSelector currentMode={mode} onModeChange={setMode} />
           </div>
-        </>
 
+          {/* Main Content Area: Home, Zen, or Timer */}
+          {appMode === 'home' ? (
+            <HomeView clockFont={clockFont} timeFormat={features.homeTimeFormat} />
+          ) : appMode === 'zen' ? null : (
+            <section className="stitch-timer-section">
+              <SessionProgress completed={completedSessionsToday} />
+              <h2 className="stitch-mode-label" style={{
+                color: 'var(--color-text-secondary)',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                fontSize: '0.9rem',
+                fontWeight: 500,
+                opacity: isFocusActive ? 0 : 0.7,
+                display: isFocusActive ? 'none' : 'block',
+                transition: 'opacity 0.3s',
+                textAlign: 'center',
+              }}>
+                <TypingAnimation
+                  key={isBreak ? 'break' : (activeTaskId || 'no-task')}
+                  duration={100}
+                >
+                  {isBreak
+                    ? 'Taking Break'
+                    : (tasks.find(t => t.id === activeTaskId)?.text || 'Ready to Focus?')}
+                </TypingAnimation>
+              </h2>
+
+              <TimerDisplay
+                seconds={timeLeft}
+                font={clockFont}
+                style={{
+                  fontSize: isFocusActive ? '25vw' : '12rem',
+                  lineHeight: 1,
+                  transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+                  marginBottom: '0',
+                  transform: isFocusActive ? 'none' : 'none',
+                }}
+                active={status === 'running'}
+                timeLeft={timeLeft}
+                mode={mode}
+                isFullscreen={isFullscreen}
+              />
+
+              <div style={{
+                opacity: isFocusActive ? 0.05 : 1,
+                transition: 'opacity 0.3s ease',
+              }}
+                onMouseEnter={(e) => {
+                  if (isFocusActive) e.currentTarget.style.opacity = '1';
+                }}
+                onMouseLeave={(e) => {
+                  if (isFocusActive) e.currentTarget.style.opacity = '0.05';
+                }}
+              >
+                <TimerControls
+                  status={status}
+                  onStart={handleStart}
+                  onPause={() => { pause(); }}
+                  onReset={handleReset}
+                  onBreak={() => {
+                    setTimeLeft(5 * 60);
+                    setIsBreak(true);
+                    handleStart();
+                  }}
+                  allowReset
+                />
+              </div>
+            </section>
+          )}
+        </div>
+      </main>
+
+      {/* Overlays (Toasts, Quotes, etc.) */}
+      {!isFocusActive && (
+        <div
+          className={`bottom-right-quote font-${quoteFont || 'serif'}`}
+          style={{
+            position: 'fixed',
+            bottom: '2rem',
+            right: '2rem',
+            maxWidth: '300px',
+            textAlign: 'right',
+            opacity: 0.6,
+          }}
+        >
+          <p>"{selectedQuote}"</p>
+        </div>
       )}
 
       {/* PiP Portal */}
@@ -743,89 +739,89 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
         pipWindow.document.body
       )}
 
-      {/* Bottom Magnetic Dock */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: '1.5rem',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          opacity: (isFocusActive && appMode !== 'home') ? 0 : 1,
-          visibility: (isFocusActive && appMode !== 'home') ? 'hidden' : 'visible',
-          transition: 'all 0.5s ease',
-          pointerEvents: (isFocusActive && appMode !== 'home') ? 'none' : 'auto',
-          zIndex: 50,
-          display: 'flex',
-          gap: 'var(--space-2)',
-          alignItems: 'center',
-        }}
-      >
-        <Dock>
-          {(mouseX: MotionValue<number>) => (
-            <>
-              {/* Sounds */}
-              <DockIcon mouseX={mouseX} label="Sounds" onClick={() => setIsAudioPanelOpen(true)}>
-                <Music size={20} />
-              </DockIcon>
+      <footer className="focus-footer">
+        <div
+          className="bottom-dock-nav"
+          style={{
+            opacity: ((isFocusActive && appMode !== 'home') || appMode === 'zen') ? 0 : 1,
+            visibility: ((isFocusActive && appMode !== 'home') || appMode === 'zen') ? 'hidden' : 'visible',
+            transition: 'all 0.5s ease',
+            pointerEvents: (isFocusActive && appMode !== 'home') ? 'none' : 'auto',
+            display: 'flex',
+            gap: 'var(--space-2)',
+            alignItems: 'center',
+            transform: 'scale(var(--ui-scale))',
+            transformOrigin: 'bottom center',
+          }}
+        >
+          <Dock>
+            {(mouseX: MotionValue<number>) => (
+              <>
+                {/* Sounds */}
+                <DockIcon mouseX={mouseX} label="Sounds" onClick={() => setIsAudioPanelOpen(true)}>
+                  <Music size={20} />
+                </DockIcon>
 
-              {/* Notepad */}
-              <DockIcon mouseX={mouseX} label="Notepad" onClick={() => setIsNotepadOpen(!isNotepadOpen)}>
-                <StickyNote size={20} />
-              </DockIcon>
+                {/* Notepad */}
+                <DockIcon mouseX={mouseX} label="Notepad" onClick={() => setIsNotepadOpen(!isNotepadOpen)}>
+                  <StickyNote size={20} />
+                </DockIcon>
 
-              {/* PiP */}
-              <DockIcon mouseX={mouseX} label="Pop Out" onClick={() => requestPiP({ width: 320, height: 320 })}>
-                <PictureInPicture2 size={20} />
-              </DockIcon>
+                {/* PiP */}
+                <DockIcon mouseX={mouseX} label="Pop Out" onClick={() => requestPiP({ width: 320, height: 320 })}>
+                  <PictureInPicture2 size={20} />
+                </DockIcon>
 
-              {/* Fullscreen */}
-              <DockIcon mouseX={mouseX} label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'} onClick={handleToggleFullscreen}>
-                {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
-              </DockIcon>
-            </>
-          )}
-        </Dock>
+                {/* Fullscreen */}
+                <DockIcon mouseX={mouseX} label={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'} onClick={handleToggleFullscreen}>
+                  {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+                </DockIcon>
+              </>
+            )}
+          </Dock>
 
-        {/* Notepad Popup */}
-        <AnimatePresence>
-          {isNotepadOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.9, x: "-50%" }}
-              animate={{ opacity: 1, y: 0, scale: 1, x: "-50%" }}
-              exit={{ opacity: 0, y: 20, scale: 0.9, x: "-50%" }}
-              className="notepad-popup"
-              style={{ originX: 0.5, originY: 1 }}
-            >
-              <div className="notepad-popup-header">
-                <span className="notepad-popup-title">Notepad</span>
-                <button className="notepad-popup-close" onClick={() => setIsNotepadOpen(false)}>
-                  <X size={14} />
-                </button>
-              </div>
-              <textarea
-                className="notepad-popup-textarea custom-scrollbar"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Write something..."
-                spellCheck={false}
-                autoFocus
-              />
-              <div className="notepad-popup-footer">
-                <span>{notes.length} chars</span>
-                <span>Auto-saved</span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+          {/* Notepad Popup */}
+          <AnimatePresence>
+            {isNotepadOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.9, x: "-50%" }}
+                animate={{ opacity: 1, y: 0, scale: 1, x: "-50%" }}
+                exit={{ opacity: 0, y: 20, scale: 0.9, x: "-50%" }}
+                className="notepad-popup"
+                style={{ originX: 0.5, originY: 1 }}
+              >
+                <div className="notepad-popup-header">
+                  <span className="notepad-popup-title">Notepad</span>
+                  <button className="notepad-popup-close" onClick={() => setIsNotepadOpen(false)}>
+                    <X size={14} />
+                  </button>
+                </div>
+                <textarea
+                  className="notepad-popup-textarea custom-scrollbar"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Write something..."
+                  spellCheck={false}
+                  autoFocus
+                />
+                <div className="notepad-popup-footer">
+                  <span>{notes.length} chars</span>
+                  <span>Auto-saved</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
-      {/* Wallpaper Drawer (externally controlled) */}
-      <WallpaperSelector
-        currentId={wallpaper.id}
-        onSelect={setWallpaper}
-        externalOpen={isWallpaperOpen}
-        onClose={() => setIsWallpaperOpen(false)}
-      />
+        {/* Wallpaper Drawer (externally controlled) */}
+        <WallpaperSelector
+          currentId={wallpaper.id}
+          onSelect={setWallpaper}
+          externalOpen={isWallpaperOpen}
+          onClose={() => setIsWallpaperOpen(false)}
+        />
+
+      </footer>
 
       {/* Bottom-Left Mode Switcher Dock */}
       <div
@@ -834,10 +830,12 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
           position: 'fixed',
           bottom: '1.5rem',
           left: 'var(--space-3)',
-          opacity: (isFocusActive && appMode !== 'home') ? 0 : 1,
-          visibility: (isFocusActive && appMode !== 'home') ? 'hidden' : 'visible',
+          transform: 'scale(var(--ui-scale))',
+          transformOrigin: 'bottom left',
+          opacity: (isFocusActive && appMode !== 'home' && appMode !== 'zen') ? 0 : 1,
+          visibility: (isFocusActive && appMode !== 'home' && appMode !== 'zen') ? 'hidden' : 'visible',
           transition: 'opacity 0.4s ease, visibility 0.4s ease',
-          zIndex: 50,
+          zIndex: 51,
         }}
       >
         <Dock>
@@ -854,7 +852,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
 
               <DockIcon
                 mouseX={mouseX}
-                label="Home"
+                label="Relax"
                 isActive={appMode === 'home'}
                 onClick={() => handleAppModeChange('home')}
               >
@@ -873,52 +871,51 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
           )}
         </Dock>
       </div>
+
       {/* Right Vertical Dock — Collapsible */}
       <div
-        className="vdock-group"
+        className="vdock-group shifting-vdock"
         style={{
-          position: 'fixed',
-          right: 'var(--space-3)',
-          top: '1.2rem',
-          opacity: (isFocusActive && appMode !== 'home') ? 0 : 1,
-          visibility: (isFocusActive && appMode !== 'home') ? 'hidden' : 'visible',
-          transition: 'opacity 0.4s ease, visibility 0.4s ease',
+          opacity: ((isFocusActive && appMode !== 'home') || appMode === 'zen') ? 0 : 1,
+          visibility: ((isFocusActive && appMode !== 'home') || appMode === 'zen') ? 'hidden' : 'visible',
+          transition: 'opacity 0.4s ease, visibility 0.4s ease, top 0.5s ease, bottom 0.5s ease, right 0.5s ease, transform 0.5s ease',
           zIndex: 101,
         }}
       >
-          {/* Avatar — always visible, toggles dock */}
-          <div
-            className={`vdock-avatar ${isDockExpanded ? 'expanded' : ''}`}
-            onClick={() => setIsDockExpanded(!isDockExpanded)}
-            role="button"
-            tabIndex={0}
-            aria-label={isDockExpanded ? 'Collapse dock' : 'Expand dock'}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsDockExpanded(!isDockExpanded); } }}
-          >
-            {user ? (
-              user.photoURL ? (
-                <img src={user.photoURL} alt={user.displayName || 'User'} />
-              ) : (
-                <div className="user-avatar-placeholder">
-                  {(user.displayName?.[0] || user.email?.[0] || '?').toUpperCase()}
-                </div>
-              )
+        {/* Avatar — always visible, toggles dock */}
+        <div
+          className={`vdock-avatar ${isDockExpanded ? 'expanded' : ''}`}
+          onClick={() => setIsDockExpanded(!isDockExpanded)}
+          role="button"
+          tabIndex={0}
+          aria-label={isDockExpanded ? 'Collapse dock' : 'Expand dock'}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsDockExpanded(!isDockExpanded); } }}
+        >
+          {user ? (
+            user.photoURL ? (
+              <img src={user.photoURL} alt={user.displayName || 'User'} />
             ) : (
-              <UserIcon size={16} style={{ color: 'rgba(255,255,255,0.5)' }} />
-            )}
-            <div className="vdock-tooltip">{isDockExpanded ? 'Collapse' : 'Expand'}</div>
-          </div>
+              <div className="user-avatar-placeholder">
+                {(user.displayName?.[0] || user.email?.[0] || '?').toUpperCase()}
+              </div>
+            )
+          ) : (
+            <UserIcon size={16} style={{ color: 'rgba(255,255,255,0.5)' }} />
+          )}
+          <div className="vdock-tooltip">{isDockExpanded ? 'Collapse' : 'Expand'}</div>
+        </div>
 
-          {/* Expandable Dock */}
-          <AnimatePresence>
-            {isDockExpanded && (
-              <motion.div
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-              >
-                <VerticalDock>
+        {/* Expandable Dock */}
+        <AnimatePresence>
+          {isDockExpanded && (
+            <motion.div
+              className="vdock-motion-wrapper"
+              initial={{ opacity: 0, y: window.innerWidth <= 720 ? 10 : -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: window.innerWidth <= 720 ? 10 : -10, scale: 0.95 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+            >
+              <VerticalDock>
                 {(mouseY: MotionValue<number>) => (
                   <>
                     {/* Dashboard */}
@@ -952,10 +949,10 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
                     </VerticalDockIcon>
                   </>
                 )}
-                </VerticalDock>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </VerticalDock>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <StitchMenu
@@ -998,23 +995,6 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
       />
 
       {/* Mobile Tools Toggle (Visible <= 900px) */}
-      {!isMobileToolsOpen && (
-        <button
-          className="audio-trigger-btn interactive-press mobile-only-flex"
-          onClick={() => setIsMobileToolsOpen(true)}
-          aria-label="Open Tools"
-          title="Mobile Tools"
-          style={{
-            position: 'fixed',
-            bottom: '1.5rem',
-            right: '1rem',
-            zIndex: 51,
-          }}
-        >
-          <LayoutGrid size={20} />
-        </button>
-      )}
-
       {/* Mobile Sidebar/Drawer Overlay */}
       <MobileToolsOverlay
         isOpen={isMobileToolsOpen}

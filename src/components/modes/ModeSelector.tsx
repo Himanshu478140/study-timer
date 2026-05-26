@@ -77,12 +77,9 @@ export const ModeSelector = ({ currentMode, onModeChange }: ModeSelectorProps) =
         const updateIndicator = () => {
             const activeBtn = selectorRef.current?.querySelector('.mode-btn.active') as HTMLElement;
             if (activeBtn && selectorRef.current) {
-                const selectorRect = selectorRef.current.getBoundingClientRect();
-                const btnRect = activeBtn.getBoundingClientRect();
-
                 setIndicatorStyle({
-                    left: btnRect.left - selectorRect.left,
-                    width: btnRect.width,
+                    left: activeBtn.offsetLeft,
+                    width: activeBtn.offsetWidth,
                     opacity: 1
                 });
             }
@@ -123,7 +120,7 @@ export const ModeSelector = ({ currentMode, onModeChange }: ModeSelectorProps) =
                     top: '5px',
                     background: 'var(--color-accent)',
                     borderRadius: '1.5rem',
-                    transition: 'all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                     transform: 'scale(1.05)',
                     boxShadow: '0 4px 12px rgba(var(--color-accent-rgb), 0.2)',
                     zIndex: 0

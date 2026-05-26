@@ -11,7 +11,7 @@ interface GlobalModeSwitcherProps {
 export const GlobalModeSwitcher = ({ currentMode, onModeChange }: GlobalModeSwitcherProps) => {
     const modes: { id: AppMode; label: string; icon: any }[] = [
         { id: 'focus', label: 'Focus Timer', icon: Leaf },
-        { id: 'home', label: 'Home Dashboard', icon: Home },
+        { id: 'home', label: 'Relax', icon: Home },
         { id: 'zen', label: 'Zen Clock', icon: Moon },
     ];
 

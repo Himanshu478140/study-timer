@@ -3,14 +3,14 @@
     align-items: center;
     /* Centered vertically for the switcher */
     gap: 0.75rem;
-    padding: 0.5rem 0.75rem;
+    padding: 0.4rem 0.75rem;
     border-radius: 1.25rem;
     background: rgba(15, 15, 20, 0.08);
     /* Deeper, more premium glass base */
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    height: 4.2rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    height: 3.9rem;
     /* Increased height to give magnification breathing room */
     /* Compact height for the switcher bar */
     transition: all 0.3s ease;
@@ -81,6 +81,7 @@
 
 /* ── Respect reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
+
     .dock-container,
     .dock-icon-wrapper,
     .dock-tooltip {
@@ -89,7 +90,7 @@
 }
 
 /* ── Hide mode dock on mobile ── */
-@media (max-width: 768px) {
+@media (max-width: 720px) {
     .mode-dock-wrapper {
         display: none;
     }

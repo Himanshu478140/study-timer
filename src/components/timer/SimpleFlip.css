@@ -81,3 +81,9 @@
         border-radius: 12px;
     }
 }
+
+/* Vertical layout for portrait screens (Zen Mode) */
+.simple-flip-clock--vertical {
+    flex-direction: column;
+    gap: 1rem;
+}

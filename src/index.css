@@ -1,5 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Bebas+Neue&family=Caveat:wght@400;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Quicksand:wght@300;400;700&display=swap');
 
+.brand-logo-text {
+  font-size: 0.85rem;
+  transition: font-size 0.3s ease;
+}
+
+@media (max-width: 800px) {
+  .brand-logo-text {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 680px) {
+  .brand-logo-text {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em !important;
+  }
+}
+
 :root {
   /* Colors - Dark Mode Base */
   --color-bg-primary: #0f0f11;
@@ -35,6 +53,9 @@
   /* TINT CONTROL */
   --glass-tint-strength: 0.3;
   /* Controls how much Accent Color is mixed into the glass (0.0 - 1.0) */
+
+  /* HUD Scaling */
+  --ui-scale: clamp(0.5, min(calc(100dvh / 633px), calc(100dvw / 850px)), 1.8);
 
   /* Spacing (8px grid) */
   --space-0_5: 0.25rem;
@@ -142,6 +163,52 @@ a {
   height: 100vh;
 }
 
+/* Cinematic Focus Scene Architecture */
+.focus-scene {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding:
+    clamp(1rem, 2vh, 2rem) clamp(1rem, 3vw, 2rem) 1.5rem clamp(1rem, 3vw, 2rem);
+  box-sizing: border-box;
+  overflow: hidden;
+  position: relative;
+  background: var(--color-bg);
+  transition: background var(--transition-theme);
+}
+
+.focus-header,
+.focus-footer {
+  flex-shrink: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  z-index: 10;
+}
+
+.focus-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: clamp(2rem, 5vh, 5rem);
+  width: 100%;
+  position: relative;
+}
+
+.hud-center-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(0.8rem, 2vh, 2rem);
+  transform: scale(var(--ui-scale));
+  transform-origin: center center;
+  width: 100%;
+  max-width: 1400px;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Glassmorphism */
 .glass {
   background: var(--color-glass-bg);
@@ -159,23 +226,7 @@ a {
 }
 
 /* --- RESPONSIVE SCALING --- */
-@media (max-width: 1100px) {
-  html {
-    font-size: 15px;
-  }
-}
-
-@media (max-width: 900px) {
-  html {
-    font-size: 14px;
-  }
-}
-
-@media (max-width: 600px) {
-  html {
-    font-size: 13px;
-  }
-}
+/* UI scale is handled by --ui-scale in :root */
 
 .mobile-only-flex {
   display: none !important;
@@ -451,7 +502,7 @@ a {
   right: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 1rem 2rem;
   z-index: 100;
 }
@@ -463,11 +514,13 @@ a {
   align-items: center;
   padding: 0.375rem 1.25rem;
   border-radius: 999px;
+  transform: scale(var(--ui-scale));
+  transform-origin: top center;
   cursor: pointer;
 }
 
 .stitch-stats-bar:hover {
-  transform: scale(1.02);
+  transform: scale(calc(var(--ui-scale) * 1.02));
 }
 
 .stitch-stats-bar:focus-visible {
@@ -483,9 +536,6 @@ a {
   justify-content: center;
   text-align: center;
   width: 100%;
-  max-width: 900px;
-  padding: 0.5rem 2rem 2rem 2rem;
-  margin: 0 auto;
 }
 
 /* Mode Label */
@@ -495,60 +545,53 @@ a {
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
-  margin-bottom: var(--space-3);
 }
 
 /* ============================================
    RESPONSIVE: Tablet (≤ 768px)
    ============================================ */
 @media (max-width: 768px) {
+  /* Header elements stay stable now */
+}
+
+
+/* ============================================
+   RESPONSIVE: Mobile (≤ 560px)
+   ============================================ */
+@media (max-width: 560px) {
   .stitch-header {
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
     gap: 0.5rem;
   }
 
-  /* Hide branding text on tablet */
-  .stitch-header > div:first-child span {
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-  }
-
-  .stitch-stats-bar {
-    gap: 1rem;
-    padding: 0.3rem 1rem;
-    font-size: 0.7rem;
-  }
-
-  .stitch-timer-section {
-    padding: 1.5rem 1rem;
-  }
-}
-
-/* ============================================
-   RESPONSIVE: Mobile (≤ 480px)
-   ============================================ */
-@media (max-width: 480px) {
-  .stitch-header {
-    padding: 0.5rem 0.75rem;
-    gap: 0.25rem;
-  }
-
-  /* Hide branding on small mobile */
-  .stitch-header > div:first-child {
+  /* Hide branding earlier to make room for stats bar */
+  .stitch-header>div:first-child {
     display: none;
   }
 
   .stitch-stats-bar {
-    gap: 0.75rem;
-    padding: 0.25rem 0.75rem;
-    font-size: 0.65rem;
+    gap: 0.6rem !important;
+    /* Tighter gap for 560px-532px range */
+    padding: 0.3rem 0.8rem !important;
   }
 
-  /* Stack stats vertically in pill on very small screens */
-  .stitch-stats-bar > div:nth-child(2) span:last-child {
-    display: none; /* Hide XP text */
+  .stitch-stats-bar span {
+    font-size: 0.65rem !important;
   }
 
+  /* Hide XP earlier to prevent break at 532px */
+  .stitch-stats-bar>div:nth-child(2) span:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .stitch-stats-bar {
+    gap: 0.5rem !important;
+    padding: 0.25rem 0.6rem !important;
+  }
+
+  /* Keep stats vertically in pill on very small screens */
   .stitch-timer-section {
     padding: 1rem 0.5rem;
   }
@@ -558,12 +601,12 @@ a {
   }
 
   /* Right icons: make smaller */
-  .stitch-header > div:last-child {
+  .stitch-header>div:last-child {
     gap: 0.5rem;
   }
 
-  .stitch-header > div:last-child button,
-  .stitch-header > div:last-child .avatar-circle-container {
+  .stitch-header>div:last-child button,
+  .stitch-header>div:last-child .avatar-circle-container {
     width: 2rem !important;
     height: 2rem !important;
   }
@@ -571,6 +614,7 @@ a {
 
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
+
   .stitch-stats-bar,
   .stitch-timer-section,
   .stitch-header,
@@ -678,6 +722,7 @@ a {
     opacity: 0;
     transform: translateX(-8px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateX(0) scale(1);
@@ -788,12 +833,7 @@ a {
   margin: 0;
 }
 
-/* Hide on mobile — not enough room */
-@media (max-width: 768px) {
-  .task-strip {
-    display: none;
-  }
-}
+
 
 /* ============================================
    RIGHT STRIP — Data & Settings Bar
@@ -845,12 +885,7 @@ a {
   }
 }
 
-/* Hide on mobile */
-@media (max-width: 768px) {
-  .right-strip {
-    display: none;
-  }
-}
+
 
 /* ============================================
    STITCH BOTTOM BAR — Unified Tool Dock
@@ -895,7 +930,7 @@ a {
 }
 
 /* Neighbors scale up slightly via CSS sibling selectors */
-.stitch-toolbar-btn:hover + .stitch-toolbar-btn,
+.stitch-toolbar-btn:hover+.stitch-toolbar-btn,
 .stitch-toolbar-btn:has(+ .stitch-toolbar-btn:hover) {
   transform: translateY(-3px) scale(1.06);
   color: var(--color-text-primary);
@@ -931,6 +966,7 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .stitch-bottom-bar,
   .stitch-toolbar-btn {
     transition: none !important;
@@ -940,7 +976,7 @@ a {
     transform: none !important;
   }
 
-  .stitch-toolbar-btn:hover + .stitch-toolbar-btn,
+  .stitch-toolbar-btn:hover+.stitch-toolbar-btn,
   .stitch-toolbar-btn:has(+ .stitch-toolbar-btn:hover) {
     transform: none !important;
   }
@@ -959,8 +995,13 @@ a {
 }
 
 @keyframes slide-panel-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .slide-panel {
@@ -990,6 +1031,7 @@ a {
     opacity: 0;
     transform: translateX(-50%) translateY(100%);
   }
+
   to {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
@@ -997,6 +1039,7 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .slide-panel,
   .slide-panel__backdrop {
     animation: none !important;
@@ -1070,17 +1113,10 @@ a {
 }
 
 /* Responsive layout adjustments */
-@media (max-width: 900px) {
-  .mode-selector-container {
-    margin-top: 4rem !important;
-  }
-}
+
 
 @media (max-width: 600px) {
-  .mode-selector-container {
-    margin-top: 3.5rem !important;
-  }
-  
+
   /* Make task panel more mobile friendly */
   .task-selector-panel-mobile {
     right: 20px !important;
@@ -1114,13 +1150,48 @@ a {
 
 @media (max-width: 1100px) {
   .bottom-right-quote {
-    right: 5rem; /* Avoid collision with vertical dock handle */
+    right: 5rem;
+    /* Avoid collision with vertical dock handle */
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .bottom-right-quote {
     display: none;
+  }
+}
+
+/* Shifting Vertical Dock Avatar */
+.shifting-vdock {
+  position: fixed;
+  top: 1.5rem;
+  right: var(--space-3);
+  transform: scale(var(--ui-scale));
+  transform-origin: top right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+@media (max-width: 720px) {
+  .shifting-vdock {
+    top: auto !important;
+    bottom: 1.5rem !important;
+    right: 1rem !important;
+    transform-origin: bottom right;
+    display: flex !important;
+    flex-direction: column !important;
+    /* Keep column but use order */
+  }
+
+  /* Force menu above avatar on mobile */
+  .shifting-vdock .vdock-avatar {
+    order: 2;
+  }
+
+  .shifting-vdock .vdock-motion-wrapper {
+    order: 1;
   }
 }
 
@@ -1154,7 +1225,7 @@ a {
   outline: none;
   background: rgba(255, 255, 255, 0.04);
   border-color: rgba(var(--color-accent-rgb), 0.4);
-  box-shadow: 
+  box-shadow:
     inset 0 2px 8px rgba(0, 0, 0, 0.2),
     0 0 20px rgba(var(--color-accent-rgb), 0.1);
 }
@@ -1185,7 +1256,7 @@ a {
   -webkit-backdrop-filter: blur(40px) saturate(200%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1.5rem;
-  box-shadow: 
+  box-shadow:
     0 20px 40px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(255, 255, 255, 0.05);
   padding: 1.25rem;
@@ -1265,7 +1336,7 @@ a {
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  margin-top: 0.1rem;
+  margin-top: -1.5rem;
   padding: 0;
 }
 
@@ -1308,8 +1379,17 @@ a {
 }
 
 @keyframes dotPulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
-  50% { transform: translate(-50%, -50%) scale(1.5); opacity: 0.3; }
+
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0.3;
+  }
 }
 
 .session-divider {

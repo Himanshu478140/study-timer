@@ -490,14 +490,14 @@ export const Dashboard = ({
                                 </div>
 
                                 <div style={{ marginTop: '3rem' }}>
-                                    <h3>Home</h3>
+                                    <h3>Relax</h3>
                                     <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', marginBottom: '1rem' }}>
                                         Personalize your landing experience.
                                     </p>
                                     <div className="feature-card" style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '1rem' }}>
                                         <div className="feature-info">
                                             <h3>Time Format</h3>
-                                            <p>Switch between 12-hour and 24-hour display on the Home screen.</p>
+                                            <p>Switch between 12-hour and 24-hour display on the Relax screen.</p>
                                         </div>
                                         <div className="setting-options" style={{ background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '0.6rem' }}>
                                             <button
@@ -556,7 +556,7 @@ export const Dashboard = ({
 
                             <div className="feature-card">
                                 <div className="feature-info">
-                                    <h3>Home Mode</h3>
+                                    <h3>Relax Mode</h3>
                                     <p>Serene dashboard view with large clock and greetings.</p>
                                 </div>
                                 <div
@@ -1008,7 +1008,7 @@ export const Dashboard = ({
                                         <div className="guide-mini-card">
                                             <div className="mini-card-icon home"><Home size={18} /></div>
                                             <div className="mini-card-content">
-                                                <h4>Home Mode</h4>
+                                                <h4>Relax Mode</h4>
                                                 <p>Your main command center. View the large clock, greeting, and access all widgets (Task, Stats, Habits) directly for planning.</p>
                                             </div>
                                         </div>

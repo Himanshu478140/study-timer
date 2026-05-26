@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FlipClock } from '../timer/FlipClock';
 import { SimpleFlip } from '../timer/SimpleFlip';
 import { Maximize, Minimize } from 'lucide-react';
@@ -27,8 +27,32 @@ export const ZenMode = ({
 }: ZenModeProps) => {
     const [time, setTime] = useState(new Date());
     const [showExit, setShowExit] = useState(false);
+    const [isPortrait, setIsPortrait] = useState(false);
+    const [scale, setScale] = useState(1);
 
-    // ... (rest of the component)
+    const updateLayout = useCallback(() => {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const portrait = vh > vw;
+        setIsPortrait(portrait);
+
+        // FlipUnit base size: 120x160px, 4 digits + gaps
+        // Horizontal: ~(120*4 + gaps) x 160 ≈ 540 x 160
+        // Vertical: ~(120*2 + gap) x (160*2 + gap) ≈ 250 x 340
+        const clockW = portrait ? 250 : 540;
+        const clockH = portrait ? 340 : 160;
+
+        // Fill viewport with some padding (90% width, 85% height landscape, 80% height portrait)
+        const scaleX = (vw * (portrait ? 0.9 : 0.95)) / clockW;
+        const scaleY = (vh * (portrait ? 0.8 : 0.85)) / clockH;
+        setScale(Math.min(scaleX, scaleY));
+    }, []);
+
+    useEffect(() => {
+        updateLayout();
+        window.addEventListener('resize', updateLayout);
+        return () => window.removeEventListener('resize', updateLayout);
+    }, [updateLayout]);
 
     useEffect(() => {
         if (autoFullscreen) {
@@ -45,6 +69,9 @@ export const ZenMode = ({
     const hours = timeFormat === '12h' ? (rawHours % 12 || 12) : rawHours;
     const minutes = time.getMinutes();
 
+    const val1 = zenModeType === 'timer' ? Math.floor(timeLeft / 60) : hours;
+    const val2 = zenModeType === 'timer' ? timeLeft % 60 : minutes;
+
     return (
         <div
             style={{
@@ -57,7 +84,7 @@ export const ZenMode = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                zIndex: 9999,
+                zIndex: 50,
                 cursor: (showExit || status === 'completed') ? 'auto' : 'none',
                 userSelect: 'none'
             }}
@@ -71,59 +98,43 @@ export const ZenMode = ({
             onMouseLeave={() => setShowExit(false)}
         >
             <div style={{
-                transform: 'scale(2.1)',
-                width: '100%',
+                transform: `scale(${scale})`,
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                gap: '2rem'
+                position: 'relative',
             }}>
-                <div style={{
-                    transform: 'scale(calc(min(100vw / 600, 100vh / 400)))',
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center'
-                }}>
-                    {zenModeType === 'timer' ? (
-                        clockFont === 'simple-flip' ? (
-                            <SimpleFlip value1={Math.floor(timeLeft / 60)} value2={timeLeft % 60} />
-                        ) : (
-                            <FlipClock value1={Math.floor(timeLeft / 60)} value2={timeLeft % 60} />
-                        )
-                    ) : (
-                        clockFont === 'simple-flip' ? (
-                            <SimpleFlip value1={hours} value2={minutes} />
-                        ) : (
-                            <FlipClock value1={hours} value2={minutes} />
-                        )
-                    )}
+                {clockFont === 'simple-flip' ? (
+                    <SimpleFlip value1={val1} value2={val2} vertical={isPortrait} />
+                ) : (
+                    <FlipClock value1={val1} value2={val2} vertical={isPortrait} />
+                )}
 
-                    {zenModeType === 'clock' && timeFormat === '12h' && (
-                        <div style={{
-                            position: 'absolute',
-                            right: '15px',
-                            bottom: '10px',
-                            fontSize: '0.65rem',
-                            fontWeight: 800,
-                            opacity: 0.25,
-                            letterSpacing: '0.05em',
-                            textTransform: 'uppercase',
-                            zIndex: 10,
-                            pointerEvents: 'none',
-                            color: 'white',
-                            backgroundColor: 'rgba(0,0,0,0.2)',
-                            padding: '2px 4px',
-                            borderRadius: '3px'
-                        }}>
-                            {time.getHours() >= 12 ? 'PM' : 'AM'}
-                        </div>
-                    )}
-                </div>
+                {zenModeType === 'clock' && timeFormat === '12h' && (
+                    <div style={{
+                        position: 'absolute',
+                        right: '-2rem',
+                        bottom: '0',
+                        fontSize: '0.65rem',
+                        fontWeight: 800,
+                        opacity: 0.25,
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase',
+                        zIndex: 10,
+                        pointerEvents: 'none',
+                        color: 'white',
+                        backgroundColor: 'rgba(0,0,0,0.2)',
+                        padding: '2px 4px',
+                        borderRadius: '3px'
+                    }}>
+                        {time.getHours() >= 12 ? 'PM' : 'AM'}
+                    </div>
+                )}
             </div>
 
             <div style={{
                 position: 'absolute',
-                bottom: '10%',
+                bottom: isPortrait ? '4%' : '10%',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
