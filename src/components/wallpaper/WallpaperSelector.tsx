@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
     Image as ImageIcon, X, Info, HardDrive, Youtube, Plus,
-    Stars, CloudRain, Binary, Sparkles, Waves, Flame, Sun, Bug,
-    Moon, Wind, Zap, Mountain, Trees, Droplets, Library, Music, Map
+    Stars, Sparkles, Flame, Bug,
+    Mountain, Map
 } from 'lucide-react';
 import './wallpaper.css';
 import { getLocalStorageSize, formatBytes, estimateBase64Size, hasEnoughSpace, getStorageUsagePercent } from '../../utils/storageUtils';
 
-export type WallpaperCategory = 'Essentials' | 'Gradients' | 'Vibe' | 'Scenery' | 'Aura' | 'Motion' | 'Custom';
+export type WallpaperCategory = 'Solid Colour' | 'Vibe' | 'Scenery' | 'Aura' | 'Motion' | 'Custom';
 
 export interface WallpaperConfig {
     id: string;
@@ -33,7 +33,6 @@ export interface WallpaperConfig {
 
 // Helper to get imports if available, otherwise fallback
 const natureImg = new URL('../../assets/wallpapers/nature.png', import.meta.url).href;
-const gradientImg = new URL('../../assets/wallpapers/gradient.png', import.meta.url).href;
 const sunsetImg = new URL('../../assets/wallpapers/sunset.png', import.meta.url).href;
 const mountainsImg = new URL('../../assets/wallpapers/mountains.png', import.meta.url).href;
 const coffeeImg = new URL('../../assets/wallpapers/coffee.png', import.meta.url).href;
@@ -44,7 +43,7 @@ export const WALLPAPERS: WallpaperConfig[] = [
     {
         id: 'dark-solid',
         type: 'solid',
-        category: 'Essentials',
+        category: 'Solid Colour',
         value: '#0f0f11',
         textColorTheme: 'light',
         accentColor: '#818cf8', // Indigo
@@ -53,7 +52,7 @@ export const WALLPAPERS: WallpaperConfig[] = [
     {
         id: 'midnight-blue',
         type: 'solid',
-        category: 'Essentials',
+        category: 'Solid Colour',
         value: '#1e1b4b',
         textColorTheme: 'light',
         accentColor: '#c084fc', // Purple
@@ -62,32 +61,13 @@ export const WALLPAPERS: WallpaperConfig[] = [
     {
         id: 'forest-green',
         type: 'solid',
-        category: 'Essentials',
+        category: 'Solid Colour',
         value: '#064e3b',
         textColorTheme: 'light',
         accentColor: '#34d399', // Emerald
         overlayOpacity: 0
     },
-    {
-        id: 'gradient-soft',
-        type: 'image',
-        category: 'Gradients',
-        value: `url(${gradientImg})`,
-        thumbnail: gradientImg,
-        textColorTheme: 'dark',
-        accentColor: '#4f46e5', // Deep Indigo
-        overlayOpacity: 0.1
-    },
-    {
-        id: 'gradient-warm',
-        type: 'image',
-        category: 'Gradients',
-        value: 'linear-gradient(135deg, #f6d365 0%, #fda085 100%)',
-        thumbnail: '', // CSS Gradient doesn't need thumb
-        textColorTheme: 'dark',
-        accentColor: '#ea580c', // Orange
-        overlayOpacity: 0.1
-    },
+
     {
         id: 'nature-calm',
         type: 'image',
@@ -122,41 +102,21 @@ export const WALLPAPERS: WallpaperConfig[] = [
         id: 'nature-forest-path',
         type: 'image',
         category: 'Scenery',
-        value: 'url(https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=2560)',
+        value: 'url(https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=60&w=1600)',
         thumbnail: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=400',
         textColorTheme: 'light',
         accentColor: '#22c55e',
         overlayOpacity: 0.2
     },
     {
-        id: 'nature-desert-gold',
-        type: 'image',
-        category: 'Scenery',
-        value: 'url(https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?auto=format&fit=crop&q=80&w=2560)',
-        thumbnail: 'https://images.unsplash.com/photo-1473580044384-7ba9967e16a0?auto=format&fit=crop&q=80&w=400',
-        textColorTheme: 'light',
-        accentColor: '#f59e0b',
-        overlayOpacity: 0.1
-    },
-    {
         id: 'nature-mountain-peak',
         type: 'image',
         category: 'Scenery',
-        value: 'url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2560)',
+        value: 'url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=60&w=1600)',
         thumbnail: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=400',
         textColorTheme: 'light',
         accentColor: '#0ea5e9',
         overlayOpacity: 0.2
-    },
-    {
-        id: 'nature-ocean-shore',
-        type: 'image',
-        category: 'Scenery',
-        value: 'url(https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=2560)',
-        thumbnail: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=400',
-        textColorTheme: 'dark',
-        accentColor: '#2dd4bf',
-        overlayOpacity: 0.15
     },
     {
         id: 'cozy-coffee',
@@ -192,7 +152,7 @@ export const WALLPAPERS: WallpaperConfig[] = [
         id: 'abstract-silk-dark',
         type: 'image',
         category: 'Vibe',
-        value: 'url(https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=2560)',
+        value: 'url(https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=60&w=1600)',
         thumbnail: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=400',
         textColorTheme: 'light',
         accentColor: '#818cf8',
@@ -202,7 +162,7 @@ export const WALLPAPERS: WallpaperConfig[] = [
         id: 'abstract-light-trails',
         type: 'image',
         category: 'Vibe',
-        value: 'url(https://images.unsplash.com/photo-1555680202-c86f0e12f086?auto=format&fit=crop&q=80&w=2560)',
+        value: 'url(https://images.unsplash.com/photo-1555680202-c86f0e12f086?auto=format&fit=crop&q=60&w=1600)',
         thumbnail: 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?auto=format&fit=crop&q=80&w=400',
         textColorTheme: 'light',
         accentColor: '#ec4899',
@@ -212,112 +172,14 @@ export const WALLPAPERS: WallpaperConfig[] = [
         id: 'abstract-geometric-prism',
         type: 'image',
         category: 'Vibe',
-        value: 'url(https://images.unsplash.com/photo-1550684376-efcbd6e3f031?auto=format&fit=crop&q=80&w=2560)',
+        value: 'url(https://images.unsplash.com/photo-1550684376-efcbd6e3f031?auto=format&fit=crop&q=60&w=1600)',
         thumbnail: 'https://images.unsplash.com/photo-1550684376-efcbd6e3f031?auto=format&fit=crop&q=80&w=400',
         textColorTheme: 'dark',
         accentColor: '#6366f1',
         overlayOpacity: 0.1
     },
-    {
-        id: 'abstract-misty-purple',
-        type: 'image',
-        category: 'Vibe',
-        value: 'url(https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&q=80&w=2560)',
-        thumbnail: 'https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&q=80&w=400',
-        textColorTheme: 'light',
-        accentColor: '#a855f7',
-        overlayOpacity: 0.15
-    },
     // Video Wallpapers - Users can add their own videos in the Custom category
     // These are placeholders showing the structure
-    {
-        id: 'aurora-gradient',
-        type: 'animated-gradient',
-        category: 'Aura',
-        value: 'gradient-aurora',
-        thumbnail: 'linear-gradient(135deg, #0f172a, #312e81)',
-        textColorTheme: 'light',
-        accentColor: '#4ade80',
-        overlayOpacity: 0.1,
-        icon: Sparkles
-    },
-    {
-        id: 'midnight-gradient',
-        type: 'animated-gradient',
-        category: 'Aura',
-        value: 'gradient-midnight',
-        thumbnail: 'linear-gradient(135deg, #09090b, #27272a)',
-        textColorTheme: 'light',
-        accentColor: '#818cf8',
-        overlayOpacity: 0.1,
-        icon: Moon
-    },
-    {
-        id: 'ocean-gradient',
-        type: 'animated-gradient',
-        category: 'Aura',
-        value: 'gradient-ocean',
-        thumbnail: 'linear-gradient(135deg, #0c4a6e, #0369a1)',
-        textColorTheme: 'light',
-        accentColor: '#38bdf8',
-        overlayOpacity: 0.1,
-        icon: Waves
-    },
-    {
-        id: 'sunset-gradient',
-        type: 'animated-gradient',
-        category: 'Aura',
-        value: 'gradient-sunset',
-        thumbnail: 'linear-gradient(135deg, #4c1d95, #6d28d9)',
-        textColorTheme: 'light',
-        accentColor: '#c084fc',
-        overlayOpacity: 0.1,
-        icon: Sun
-    },
-    {
-        id: 'cyberpunk-gradient',
-        type: 'animated-gradient',
-        category: 'Aura',
-        value: 'gradient-cyberpunk',
-        thumbnail: 'linear-gradient(135deg, #701a75, #1e1b4b)',
-        textColorTheme: 'light',
-        accentColor: '#f472b6',
-        overlayOpacity: 0.15,
-        icon: Zap
-    },
-    {
-        id: 'nebula-gradient',
-        type: 'animated-gradient',
-        category: 'Aura',
-        value: 'gradient-nebula',
-        thumbnail: 'linear-gradient(135deg, #2e1065, #581c87)',
-        textColorTheme: 'light',
-        accentColor: '#a78bfa',
-        overlayOpacity: 0.1,
-        icon: Stars
-    },
-    {
-        id: 'forest-gradient',
-        type: 'animated-gradient',
-        category: 'Aura',
-        value: 'gradient-forest',
-        thumbnail: 'linear-gradient(135deg, #064e3b, #047857)',
-        textColorTheme: 'light',
-        accentColor: '#34d399',
-        overlayOpacity: 0.1,
-        icon: Trees
-    },
-    {
-        id: 'flocus-aura',
-        type: 'animated-gradient',
-        category: 'Aura',
-        value: 'gradient-flocus',
-        thumbnail: 'linear-gradient(135deg, #1e1b4b, #701a75)',
-        textColorTheme: 'light',
-        accentColor: '#f472b6',
-        overlayOpacity: 0.1,
-        icon: Sparkles
-    },
     {
         id: 'aurora-borealis',
         type: 'animated-gradient',
@@ -368,40 +230,6 @@ export const WALLPAPERS: WallpaperConfig[] = [
         overlayOpacity: 0.1,
         icon: Mountain
     },
-    {
-        id: 'hybrid-neon-matrix',
-        type: 'animated-gradient',
-        category: 'Motion',
-        value: 'gradient-cyberpunk',
-        particleConfig: {
-            type: 'matrix',
-            density: 30,
-            speed: 0.5,
-            color: '#f472b6'
-        },
-        thumbnail: 'linear-gradient(135deg, #4a044e, #1e1b4b)',
-        textColorTheme: 'light',
-        accentColor: '#f472b6',
-        overlayOpacity: 0.2,
-        icon: Binary
-    },
-    {
-        id: 'hybrid-forest-fireflies',
-        type: 'animated-gradient',
-        category: 'Motion',
-        value: 'gradient-forest',
-        particleConfig: {
-            type: 'fireflies',
-            density: 30,
-            speed: 0.6,
-            color: '#bef264'
-        },
-        thumbnail: 'linear-gradient(135deg, #064e3b, #065f46)',
-        textColorTheme: 'light',
-        accentColor: '#34d399',
-        overlayOpacity: 0.1,
-        icon: Bug
-    },
     // Particle Ambient Presets
     {
         id: 'ambient-stars',
@@ -421,40 +249,6 @@ export const WALLPAPERS: WallpaperConfig[] = [
         icon: Stars
     },
     {
-        id: 'ambient-snow',
-        type: 'particles',
-        category: 'Motion',
-        value: 'linear-gradient(to bottom, #1e293b, #0f172a)',
-        particleConfig: {
-            type: 'snow',
-            density: 40,
-            speed: 1,
-            color: '#f8fafc'
-        },
-        thumbnail: '#1e293b',
-        textColorTheme: 'light',
-        accentColor: '#7dd3fc',
-        overlayOpacity: 0,
-        icon: Wind
-    },
-    {
-        id: 'ambient-dust',
-        type: 'particles',
-        category: 'Motion',
-        value: '#111827',
-        particleConfig: {
-            type: 'dust',
-            density: 30,
-            speed: 0.3,
-            color: '#fcd34d'
-        },
-        thumbnail: '#111827',
-        textColorTheme: 'light',
-        accentColor: '#fb923c',
-        overlayOpacity: 0,
-        icon: Droplets
-    },
-    {
         id: 'ambient-fireflies',
         type: 'particles',
         category: 'Motion',
@@ -471,135 +265,15 @@ export const WALLPAPERS: WallpaperConfig[] = [
         overlayOpacity: 0,
         icon: Bug
     },
-    {
-        id: 'ambient-matrix',
-        type: 'particles',
-        category: 'Motion',
-        value: '#000000',
-        particleConfig: {
-            type: 'matrix',
-            density: 40,
-            speed: 1,
-            color: '#22c55e'
-        },
-        thumbnail: '#000000',
-        textColorTheme: 'light',
-        accentColor: '#22c55e',
-        overlayOpacity: 0,
-        icon: Binary
-    },
-    {
-        id: 'ambient-rain',
-        type: 'particles',
-        category: 'Motion',
-        value: '#0f172a',
-        particleConfig: {
-            type: 'rain',
-            density: 50,
-            speed: 1.2,
-            color: '#38bdf8'
-        },
-        thumbnail: '#0f172a',
-        textColorTheme: 'light',
-        accentColor: '#38bdf8',
-        overlayOpacity: 0.2,
-        icon: CloudRain
-    },
     // --- Expansion: reaching 50 presets ---
     {
         id: 'slate-solid',
         type: 'solid',
-        category: 'Essentials',
+        category: 'Solid Colour',
         value: '#1e293b',
         thumbnail: '#1e293b',
         textColorTheme: 'light',
         accentColor: '#94a3b8'
-    },
-    {
-        id: 'lavender-gradient',
-        type: 'animated-gradient',
-        category: 'Gradients',
-        value: 'gradient-sunset', // Reusing base for lavender feel
-        thumbnail: 'linear-gradient(135deg, #e9d5ff, #fbcfe8)',
-        textColorTheme: 'dark',
-        accentColor: '#d8b4fe'
-    },
-    {
-        id: 'deep-ocean-gradient',
-        type: 'animated-gradient',
-        category: 'Gradients',
-        value: 'gradient-ocean',
-        thumbnail: 'linear-gradient(135deg, #1e3a8a, #1d4ed8)',
-        textColorTheme: 'light',
-        accentColor: '#60a5fa'
-    },
-    {
-        id: 'northern-soul-aura',
-        type: 'animated-gradient',
-        category: 'Aura',
-        value: 'gradient-northern-soul',
-        particleConfig: {
-            type: 'fireflies',
-            density: 20,
-            speed: 0.3,
-            color: '#4ade80',
-            interactionType: 'follow'
-        },
-        thumbnail: 'linear-gradient(135deg, #064e3b, #1e1b4b)',
-        textColorTheme: 'light',
-        accentColor: '#4ade80',
-        icon: Sparkles
-    },
-    {
-        id: 'cosmic-candy-aura',
-        type: 'animated-gradient',
-        category: 'Aura',
-        value: 'gradient-cosmic-candy',
-        particleConfig: {
-            type: 'stars',
-            density: 40,
-            speed: 0.5,
-            color: '#f472b6',
-            interactionType: 'follow'
-        },
-        thumbnail: 'linear-gradient(135deg, #701a75, #4338ca)',
-        textColorTheme: 'light',
-        accentColor: '#f472b6',
-        icon: Stars
-    },
-    {
-        id: 'stardust-gold-motion',
-        type: 'particles',
-        category: 'Motion',
-        value: '#020617',
-        particleConfig: {
-            type: 'stars',
-            density: 60,
-            speed: 0.4,
-            color: '#fcd34d',
-            interactionType: 'follow'
-        },
-        thumbnail: '#020617',
-        textColorTheme: 'light',
-        accentColor: '#fcd34d',
-        icon: Moon
-    },
-    {
-        id: 'magnetic-rain-motion',
-        type: 'particles',
-        category: 'Motion',
-        value: '#09090b',
-        particleConfig: {
-            type: 'rain',
-            density: 40,
-            speed: 1.5,
-            color: '#22d3ee',
-            interactionType: 'repel'
-        },
-        thumbnail: '#09090b',
-        textColorTheme: 'light',
-        accentColor: '#22d3ee',
-        icon: CloudRain
     },
     {
         id: 'tokyo-night-scenery',
@@ -610,36 +284,6 @@ export const WALLPAPERS: WallpaperConfig[] = [
         textColorTheme: 'light',
         accentColor: '#f472b6',
         icon: Map
-    },
-    {
-        id: 'swiss-alps-scenery',
-        type: 'image',
-        category: 'Scenery',
-        value: 'url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1920)',
-        thumbnail: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=40&w=300',
-        textColorTheme: 'light',
-        accentColor: '#7dd3fc',
-        icon: Mountain
-    },
-    {
-        id: 'library-vibe',
-        type: 'image',
-        category: 'Vibe',
-        value: 'url(https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&q=80&w=1920)',
-        thumbnail: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&q=40&w=300',
-        textColorTheme: 'light',
-        accentColor: '#fbbf24',
-        icon: Library
-    },
-    {
-        id: 'vinyl-vibe',
-        type: 'image',
-        category: 'Vibe',
-        value: 'url(https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&q=80&w=1920)',
-        thumbnail: 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?auto=format&fit=crop&q=40&w=300',
-        textColorTheme: 'light',
-        accentColor: '#ef4444',
-        icon: Music
     },
 ];
 
@@ -704,7 +348,7 @@ export const WallpaperSelector = ({ currentId, onSelect, externalOpen, onClose }
 };
 
 export const WallpaperGrid = ({ currentId, onSelect }: WallpaperSelectorProps) => {
-    const [activeCategory, setActiveCategory] = useState<WallpaperCategory>('Essentials');
+    const [activeCategory, setActiveCategory] = useState<WallpaperCategory>('Solid Colour');
     const [customWallpapers, setCustomWallpapers] = useState<WallpaperConfig[]>(() => {
         try {
             const saved = localStorage.getItem('custom-wallpapers-list');
@@ -757,7 +401,7 @@ export const WallpaperGrid = ({ currentId, onSelect }: WallpaperSelectorProps) =
         setStoragePercent(getStorageUsagePercent());
     }, [customWallpapers]);
 
-    const categories: WallpaperCategory[] = ['Essentials', 'Gradients', 'Aura', 'Motion', 'Scenery', 'Vibe', 'Custom'];
+    const categories: WallpaperCategory[] = ['Solid Colour', 'Aura', 'Motion', 'Scenery', 'Vibe', 'Custom'];
 
     const allWallpapers = [...WALLPAPERS, ...customWallpapers];
     const filteredWallpapers = allWallpapers.filter(wp => wp.category === activeCategory);

@@ -115,3 +115,25 @@
     opacity: 0.8;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
+
+/* === Dual-Layer Wallpaper Cross-Fade and Performance Optimization === */
+.wallpaper-image {
+    position: fixed;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    z-index: -2;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.wallpaper-image.transitioning {
+    will-change: opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wallpaper-image {
+        transition: none !important;
+    }
+}

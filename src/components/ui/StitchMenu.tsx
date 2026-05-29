@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    LayoutGrid, Clock, BarChart2, Quote, Sparkles, User, 
-    Info, HelpCircle, MessageSquare 
+    LayoutGrid, Clock, BarChart2, Quote, User, 
+    Info, MessageSquare 
 } from 'lucide-react';
 import type { DashboardTab } from '../dashboard/Dashboard';
 import './StitchMenu.css';
@@ -45,10 +45,6 @@ export const StitchMenu = ({ isOpen, onClose, onOpenSection }: StitchMenuProps) 
                                 <Quote size={18} />
                                 <span>Quotes</span>
                             </button>
-                            <button className="stitch-menu-item" onClick={() => { onOpenSection('features'); onClose(); }}>
-                                <Sparkles size={18} />
-                                <span>Features</span>
-                            </button>
                         </div>
 
                         <div className="stitch-menu-divider" />
@@ -72,10 +68,6 @@ export const StitchMenu = ({ isOpen, onClose, onOpenSection }: StitchMenuProps) 
                         <div className="stitch-menu-divider" />
 
                         <div className="stitch-menu-section">
-                            <button className="stitch-menu-item" onClick={() => { onOpenSection('help'); onClose(); }}>
-                                <HelpCircle size={18} />
-                                <span>Help / Guide</span>
-                            </button>
                             <button className="stitch-menu-item" onClick={() => { onOpenSection('support'); onClose(); }}>
                                 <MessageSquare size={18} />
                                 <span>Support</span>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 
 interface DailyProgressRingProps {
     completed: number;
@@ -7,7 +7,7 @@ interface DailyProgressRingProps {
     strokeWidth?: number;
 }
 
-export const DailyProgressRing = ({
+export const DailyProgressRing = memo(({
     completed,
     goal = 4,
     size = 48,
@@ -78,4 +78,6 @@ export const DailyProgressRing = ({
             )}
         </div>
     );
-};
+});
+
+DailyProgressRing.displayName = 'DailyProgressRing';

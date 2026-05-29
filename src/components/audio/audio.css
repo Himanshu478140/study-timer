@@ -1,277 +1,342 @@
-/* Reuse drawer styles from wallpaper.css but namespaced for audio */
-.audio-drawer-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.4s ease;
-    z-index: 1000;
+/* ============================================
+   AudioPanel — Premium Floating Sidebar Panel
+   ============================================ */
+
+.audio-panel {
+  display: flex;
+  flex-direction: column;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: var(--font-family, 'Inter', sans-serif);
+  
+  /* User-requested premium deep dark solid gradient */
+  background: linear-gradient(
+    180deg,
+    rgba(25, 25, 30, 0.96),
+    rgba(12, 12, 16, 0.96)
+  ) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
 }
 
-.audio-drawer-overlay.open {
-    opacity: 1;
-    pointer-events: auto;
+/* --- Header --- */
+.audio-panel__header {
+  padding: 1.5rem 1.5rem 1rem;
+  flex-shrink: 0;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
+.audio-panel__header-icon {
+  color: var(--color-accent, #818cf8);
 }
 
-.loading-spinner-tiny {
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(var(--color-accent-rgb), 0.3);
-    border-top-color: var(--color-accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+.audio-panel__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: -0.02em;
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+.audio-panel__close-btn {
+  background: none;
+  border: none;
+  padding: 0.375rem;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
 }
 
-/* GLASS-MORTPHIC AUDIO DRAWER */
-.audio-drawer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(135deg, rgba(20, 20, 25, 0.1), rgba(var(--color-accent-rgb), 0.1));
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 1.25rem 1.5rem;
-    border-radius: 2rem 2rem 0 0;
-    z-index: 1001;
-    transform: translateY(100%);
-    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
-    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
-    color: #ffffff;
+.audio-panel__close-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+  transform: rotate(90deg);
 }
 
-.audio-drawer.open {
-    transform: translateY(0);
+/* --- Status feedback --- */
+.audio-panel__status {
+  margin: 0 1.5rem 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  background: rgba(129, 140, 248, 0.08);
+  border: 1px solid rgba(129, 140, 248, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--color-accent, #818cf8);
+  animation: fadeIn 0.3s ease;
 }
 
-.close-drawer-btn {
-    padding: 0.5rem;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
-    cursor: pointer;
-    transition: all 0.2s;
+/* --- Scrollable Content --- */
+.audio-panel__content {
+  padding: 0 1.5rem 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-height: 0;
 }
 
-.close-drawer-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: rotate(90deg);
+.audio-panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex-shrink: 0;
 }
 
-
-/* Simplified Volume Sliders */
-.volume-control {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.25rem 0;
+.audio-panel__divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
 }
 
-.volume-slider {
-    flex: 1;
-    height: 6px;
-    -webkit-appearance: none;
-    appearance: none;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    outline: none;
+/* --- Dynamic Volume Sliders --- */
+.audio-panel__volume-control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.volume-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #ffffff;
-    border: 3px solid var(--color-accent);
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s;
+.audio-panel__volume-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.volume-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
+.audio-panel__volume-icon {
+  color: var(--color-accent, #818cf8);
+  opacity: 0.8;
 }
 
-/* Category Tabs */
-.category-tabs-container {
-    margin: 0.25rem 0;
+.audio-panel__volume-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.category-tabs {
-    display: flex;
-    gap: 0.6rem;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-    scrollbar-width: none;
+.audio-panel__volume-percentage {
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: monospace;
+  color: var(--color-accent, #818cf8);
 }
 
-.category-tabs::-webkit-scrollbar {
-    display: none;
+.audio-panel__volume-slider {
+  width: 100%;
+  height: 6px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 99px;
+  outline: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.category-tab {
-    padding: 0.5rem 1rem;
-    border-radius: 99px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.85rem;
-    font-weight: 500;
-    white-space: nowrap;
-    transition: all 0.2s;
-    cursor: pointer;
+.audio-panel__volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid var(--color-accent, #818cf8);
+  box-shadow: 0 0 10px rgba(129, 140, 248, 0.4);
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
 }
 
-.category-tab.active {
-    background: var(--color-accent);
-    color: white;
-    border-color: var(--color-accent);
-    box-shadow: var(--shadow-sm);
+.audio-panel__volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
 }
 
-/* Glass Audio Buttons */
-.ambient-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 1rem;
-    max-height: 350px;
-    overflow-y: auto;
-    padding-right: 4px;
-    padding-bottom: 1rem;
+/* --- Category Tabs --- */
+.audio-panel__categories {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.375rem;
+  scrollbar-width: none;
 }
 
-.ambient-grid::-webkit-scrollbar {
-    width: 4px;
+.audio-panel__categories::-webkit-scrollbar {
+  display: none;
 }
 
-.ambient-grid::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
+.audio-panel__category-tab {
+  padding: 0.375rem 0.875rem;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
-.ambient-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1.25rem 0.5rem;
-    border-radius: 1.25rem;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    color: rgba(255, 255, 255, 0.8);
+.audio-panel__category-tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
-.ambient-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    transform: translateY(-3px);
-    border-color: rgba(255, 255, 255, 0.1);
+.audio-panel__category-tab.active {
+  background: var(--color-accent, #818cf8);
+  color: #0f0f11;
+  border-color: var(--color-accent, #818cf8);
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(129, 140, 248, 0.25);
 }
 
-.ambient-btn.active {
-    background: rgba(var(--color-accent-rgb), 0.2);
-    border-color: var(--color-accent);
-    color: #ffffff;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+/* --- Ambient Sounds Grid --- */
+.audio-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
-.ambient-icon-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
+.audio-panel__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 1rem 0.5rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  color: rgba(255, 255, 255, 0.75);
 }
 
-.play-overlay {
-    position: absolute;
-    bottom: -8px;
-    right: -10px;
-    animation: fadeIn 0.3s ease;
+.audio-panel__btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.95);
 }
 
-.mini-dot {
-    width: 6px;
-    height: 6px;
-    background: var(--color-accent);
-    border-radius: 50%;
-    box-shadow: 0 0 10px var(--color-accent);
+.audio-panel__btn.active {
+  background: rgba(129, 140, 248, 0.08);
+  border-color: var(--color-accent, #818cf8);
+  color: #ffffff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
-.active-indicator {
-    position: absolute;
-    top: 8px;
-    right: 8px;
+.audio-panel__icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
 }
 
-.active-indicator .dot {
-    width: 4px;
-    height: 4px;
-    background: var(--color-accent);
-    border-radius: 50%;
-    box-shadow: 0 0 8px var(--color-accent);
+.audio-panel__btn-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
 }
 
-/* Trigger Button */
-.audio-trigger-btn {
-    background: linear-gradient(135deg, var(--color-glass-bg), rgba(var(--color-accent-rgb), var(--glass-tint-strength)));
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: var(--color-text-primary);
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-    transition: all 0.2s;
-    cursor: pointer;
+/* --- Bobbing Soundwave Animation --- */
+.audio-panel__soundwave {
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(180deg, rgba(25, 25, 30, 0.95), rgba(12, 12, 16, 0.95));
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 4px;
+  animation: fadeIn 0.25s ease;
+  z-index: 2;
 }
 
-.audio-trigger-btn:hover {
-    transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(var(--color-accent-rgb), 0.5);
+.soundwave-bar {
+  width: 2px;
+  height: 100%;
+  background-color: var(--color-accent, #818cf8);
+  border-radius: 99px;
+  animation: soundwave-bounce 0.8s ease-in-out infinite alternate;
+  transform-origin: bottom;
 }
 
-@keyframes slideUp {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
+.soundwave-bar:nth-child(2) {
+  animation-delay: 0.25s;
+}
 
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+.soundwave-bar:nth-child(3) {
+  animation-delay: 0.45s;
+}
+
+@keyframes soundwave-bounce {
+  0% {
+    transform: scaleY(0.2);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+/* --- Scrollbar Customization --- */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 99px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* --- Accessibility: Focus States --- */
+.audio-panel__volume-slider:focus-visible {
+  outline: 2px solid var(--color-accent, #818cf8);
+  outline-offset: 4px;
+}
+
+.audio-panel__category-tab:focus-visible,
+.audio-panel__btn:focus-visible,
+.audio-panel__close-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #818cf8);
+  outline-offset: 2px;
+}
+
+/* --- Accessibility: Reduced Motion --- */
+@media (prefers-reduced-motion: reduce) {
+  .audio-panel,
+  .audio-panel__close-btn,
+  .audio-panel__category-tab,
+  .audio-panel__btn,
+  .audio-panel__volume-slider::-webkit-slider-thumb {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  
+  .soundwave-bar {
+    animation: none !important;
+    transform: scaleY(0.6) !important;
+  }
 }

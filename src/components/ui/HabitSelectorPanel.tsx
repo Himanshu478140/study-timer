@@ -19,6 +19,24 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
     
     const panelRef = useRef<HTMLDivElement>(null);
     const [yPos, setYPos] = useState('50%');
+    const [maxHeight, setMaxHeight] = useState('calc(100vh - 40px)');
+    const [isPositioned, setIsPositioned] = useState(false);
+
+    const [dimensions, setDimensions] = useState({
+        scale: Math.max(0.5, Math.min(Math.min(window.innerHeight / 633, window.innerWidth / 850), 1.8))
+    });
+
+    useEffect(() => {
+        const handleResize = () => {
+            setDimensions({
+                scale: Math.max(0.5, Math.min(Math.min(window.innerHeight / 633, window.innerWidth / 850), 1.8))
+            });
+        };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const scale = dimensions.scale;
 
     // Viewport clamping logic
     useEffect(() => {
@@ -30,12 +48,26 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
                 const viewportHeight = window.innerHeight;
                 const margin = 20;
                 
-                let idealTop = triggerCenterY - panelHeight / 2;
-                const minTop = margin;
-                const maxTop = viewportHeight - panelHeight - margin;
-                
+                // 1. Calculate the max allowable unscaled height to fit inside the viewport visually
+                const maxUnscaledHeight = (viewportHeight - 2 * margin) / scale;
+                const maxH = Math.max(200, maxUnscaledHeight);
+
+                // 2. Compute offsetY shift due to scaling around 'right center' origin
+                const currentHeight = Math.min(panelHeight, maxH);
+                const offsetY = ((scale - 1) * currentHeight) / 2;
+
+                // 3. Calculate idealTop (unscaled) centered around trigger
+                let idealTop = triggerCenterY - currentHeight / 2;
+
+                // 4. Clamped boundaries for unscaled top to keep visual top/bottom in viewport
+                const minTop = margin + offsetY;
+                const maxTop = viewportHeight - currentHeight - offsetY - margin;
+
                 const finalTop = Math.max(minTop, Math.min(maxTop, idealTop));
+                
                 setYPos(`${finalTop}px`);
+                setMaxHeight(`${maxH}px`);
+                setIsPositioned(true);
             }
         };
 
@@ -58,8 +90,10 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
                 window.removeEventListener('resize', updatePosition);
                 observer.disconnect();
             };
+        } else {
+            setIsPositioned(false);
         }
-    }, [isOpen, triggerRef]);
+    }, [isOpen, triggerRef, scale]);
 
     // Click outside logic
     useEffect(() => {
@@ -138,31 +172,33 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
             {isOpen && (
                 <motion.div
                     ref={panelRef}
-                    initial={{ opacity: 0, x: 40, scale: 0.98 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    exit={{ opacity: 0, x: 40, scale: 0.98 }}
+                    initial={{ opacity: 0, x: 40 * scale, scale: 0.98 * scale }}
+                    animate={{ opacity: isPositioned ? 1 : 0, x: 0, scale: scale }}
+                    exit={{ opacity: 0, x: 40 * scale, scale: 0.98 * scale }}
                     transition={{ type: "spring", damping: 25, stiffness: 300 }}
                     className="task-selector-panel-mobile"
                     style={{
                         position: 'fixed',
-                        right: '100px',
+                        right: `${92 * scale}px`,
                         top: yPos,
                         width: 'var(--panel-width, 420px)',
                         maxWidth: 'calc(100vw - 40px)',
                         borderRadius: '2rem',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.06)',
                         padding: '24px',
                         zIndex: 9999,
-                        background: 'rgba(18, 18, 18, 0.85)',
-                        backdropFilter: 'blur(30px)',
-                        WebkitBackdropFilter: 'blur(30px)',
-                        boxShadow: '0 25px 70px -15px rgba(0, 0, 0, 0.8)',
+                        background: 'rgba(0, 0, 0, 0.95)',
+                        backdropFilter: 'none',
+                        WebkitBackdropFilter: 'none',
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)',
                         color: 'white',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '20px',
-                        maxHeight: 'calc(100vh - 40px)',
-                        overflow: 'hidden'
+                        maxHeight: maxHeight,
+                        overflowY: 'auto',
+                        transformOrigin: 'right center',
+                        visibility: isPositioned ? 'visible' : 'hidden'
                     }}
                 >
                     {/* Header */}

@@ -6,7 +6,7 @@ interface TimerControlsProps {
     status: TimerStatus;
     onStart: () => void;
     onPause: () => void;
-    onReset: () => void;
+    onReset?: () => void;
     onBreak?: () => void;
     allowReset?: boolean;
 }
@@ -17,7 +17,7 @@ export const TimerControls = ({ status, onStart, onPause, onReset, onBreak, allo
     return (
         <div className="timer-controls">
             {/* Reset — left, always small */}
-            {(status !== 'idle' || allowReset) && (
+            {onReset && (status !== 'idle' || allowReset) && (
                 <button
                     className="control-btn control-btn--secondary interactive-hover"
                     onClick={onReset}

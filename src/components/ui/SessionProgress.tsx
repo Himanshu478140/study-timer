@@ -25,7 +25,7 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({
           initial={false}
           animate={{
             scale: isFilled ? [1, 1.3, 1] : 1,
-            opacity: isFilled ? 1 : 0.25,
+            opacity: isFilled ? 1 : 0.6,
           }}
           transition={{
             duration: 0.5,

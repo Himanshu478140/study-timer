@@ -46,13 +46,13 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
             const brightness = ((r * 299) + (g * 587) + (b * 114)) / 1000;
             isLight = brightness > 128;
             setThemeMode(isLight ? 'light' : 'dark');
-            applyThemeVars(isLight);
+            applyThemeVars();
         } else {
             // Async image analysis
             // Use pre-configured theme as immediate fallback to prevent flash
             const initialMode = wallpaper.textColorTheme;
             setThemeMode(initialMode);
-            applyThemeVars(initialMode === 'light');
+            applyThemeVars();
 
             // Async image analysis REMOVED to prevent flickering.
             // We rely on the manually configured 'textColorTheme' in WALLPAPERS constant.
@@ -67,21 +67,14 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    const applyThemeVars = (isLight: boolean) => {
+    const applyThemeVars = () => {
         const root = document.documentElement;
-        if (isLight) {
-            root.style.setProperty('--color-text-primary', '#1f2937'); // Gray-800
-            root.style.setProperty('--color-text-secondary', '#4b5563'); // Gray-600 (Darker for readability)
-            root.style.setProperty('--color-glass-bg', 'rgba(255, 255, 255, 0.10)'); // Slightly more opaque
-            root.style.setProperty('--color-glass-border', 'rgba(255, 255, 255, 0.4)');
-            root.style.setProperty('--shadow-text', 'none');
-        } else {
-            root.style.setProperty('--color-text-primary', '#f5f5f7'); // Zinc-50
-            root.style.setProperty('--color-text-secondary', '#d1d5db'); // Gray-300 (Lighter for contrast against dark)
-            root.style.setProperty('--color-glass-bg', 'rgba(20, 20, 20, 0.10)');
-            root.style.setProperty('--color-glass-border', 'rgba(255, 255, 255, 0.08)');
-            root.style.setProperty('--shadow-text', '0 2px 4px rgba(0,0,0,0.5)');
-        }
+        // Always force light text (white) regardless of theme mode or wallpaper brightness
+        root.style.setProperty('--color-text-primary', '#ffffff');
+        root.style.setProperty('--color-text-secondary', 'rgba(255, 255, 255, 0.7)');
+        root.style.setProperty('--color-glass-bg', 'rgba(20, 20, 20, 0.10)');
+        root.style.setProperty('--color-glass-border', 'rgba(255, 255, 255, 0.08)');
+        root.style.setProperty('--shadow-text', '0 2px 4px rgba(0,0,0,0.5)');
     };
 
     const toggleTheme = (event?: React.MouseEvent | MouseEvent) => {
@@ -89,7 +82,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
         const updateTheme = () => {
             setThemeMode(newMode);
-            applyThemeVars(newMode === 'light');
+            applyThemeVars();
         };
 
         // Support for View Transition API (Circular Reveal)

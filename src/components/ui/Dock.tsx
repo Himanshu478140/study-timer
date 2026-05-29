@@ -35,7 +35,7 @@ const DockIcon = ({ children, mouseX, label, isActive, onClick }: DockIconProps)
     });
 
     // Enhanced magnification range for a more 'magnetic' pull
-    const sizeTransform = useTransform(distance, [-150, 0, 150], [42, isMobile ? 42 : 64, 42]);
+    const sizeTransform = useTransform(distance, [-150, 0, 150], [36, isMobile ? 36 : 50, 36]);
 
     const size = useSpring(sizeTransform, {
         mass: 0.1,
@@ -51,7 +51,7 @@ const DockIcon = ({ children, mouseX, label, isActive, onClick }: DockIconProps)
             whileTap={{ scale: 0.92 }} // Tactile feedback
             className={`dock-icon-wrapper ${isActive ? "active" : ""}`}
         >
-            <motion.div style={{ scale: useTransform(size, [42, 64], [1, 1.2]) }}>
+            <motion.div style={{ scale: useTransform(size, [36, 50], [1, 1.2]) }}>
                 {children}
             </motion.div>
             {label && <div className="dock-tooltip">{label}</div>}

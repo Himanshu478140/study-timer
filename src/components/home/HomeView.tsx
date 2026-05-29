@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { TypingAnimation } from '../ui/TypingAnimation';
-import { FlipClock } from '../timer/FlipClock';
-import { SimpleFlip } from '../timer/SimpleFlip';
 
 export const HomeView = ({ clockFont, timeFormat = '24h' }: { clockFont?: string, timeFormat?: '12h' | '24h' }) => {
     const [time, setTime] = useState(new Date());
@@ -20,12 +18,9 @@ export const HomeView = ({ clockFont, timeFormat = '24h' }: { clockFont?: string
     }, []);
 
     const rawHours = time.getHours();
-    const hours = timeFormat === '12h' ? (rawHours % 12 || 12) : rawHours;
-    const minutes = time.getMinutes();
     const isMorning = rawHours >= 5 && rawHours < 12;
     const isAfternoon = rawHours >= 12 && rawHours < 17;
     const isEvening = rawHours >= 17 && rawHours < 21;
-    // const isNight = rawHours >= 21 || rawHours < 5;
 
     const getGreeting = () => {
         const dayName = time.toLocaleDateString('en-US', { weekday: 'long' });
@@ -51,7 +46,7 @@ export const HomeView = ({ clockFont, timeFormat = '24h' }: { clockFont?: string
             justifyContent: 'center',
             textAlign: 'center',
             gap: '1rem',
-            paddingBottom: '12vh' /* Reduced from 23vh to prevent pushing dock off-screen at high scales */
+            paddingBottom: '12vh'
         }}>
             <div className="home-greeting" style={{
                 fontSize: '1.8rem',
@@ -68,29 +63,22 @@ export const HomeView = ({ clockFont, timeFormat = '24h' }: { clockFont?: string
                 </TypingAnimation>
             </div>
 
-            {clockFont === 'flip' ? (
-                <div style={{ transform: `scale(${isPortrait ? 2.2 : 1.5})`, marginTop: '2rem' }}>
-                    <FlipClock value1={hours} value2={minutes} vertical={isPortrait} />
-                </div>
-            ) : clockFont === 'simple-flip' ? (
-                <div style={{ transform: `scale(${isPortrait ? 2.2 : 1.5})`, marginTop: '2rem' }}>
-                    <SimpleFlip value1={hours} value2={minutes} vertical={isPortrait} />
-                </div>
-            ) : (
-                <div className="clock-glass animate-breathing" style={{ marginTop: '1rem' }}>
-                    <div
-                        className={`home-clock font-${clockFont}`}
-                        style={{
-                            fontSize: isPortrait ? '25vw' : '15vw',
-                            lineHeight: 1,
-                            color: 'var(--color-text-primary)',
-                            transition: 'all var(--transition-theme)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem'
-                        }}
-                    >
+            <div className="clock-glass" style={{ marginTop: '1rem', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}>
+                <div
+                    className={`home-clock font-${(clockFont === 'flip' || clockFont === 'simple-flip') ? 'default' : clockFont}`}
+                    style={{
+                        fontSize: isPortrait
+                            ? 'clamp(6rem, 25vw, 12rem)'
+                            : 'clamp(5rem, 12vw, 10rem)',
+                        lineHeight: 1,
+                        color: 'var(--color-text-primary)',
+                        transition: 'all var(--transition-theme)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem'
+                    }}
+                >
                         <span>{timeString.replace(/\s?[AP]M/i, '')}</span>
                         {timeFormat === '12h' && (
                             <div style={{
@@ -118,7 +106,6 @@ export const HomeView = ({ clockFont, timeFormat = '24h' }: { clockFont?: string
                         )}
                     </div>
                 </div>
-            )}
         </div>
     );
 };

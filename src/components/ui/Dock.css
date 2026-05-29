@@ -5,16 +5,15 @@
     gap: 0.75rem;
     padding: 0.4rem 0.75rem;
     border-radius: 1.25rem;
-    background: rgba(15, 15, 20, 0.08);
-    /* Deeper, more premium glass base */
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    height: 3.9rem;
-    /* Increased height to give magnification breathing room */
+    background: rgba(0, 0, 0, 0.6);
+    /* Deeper, more premium solid black base */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    height: 3.5rem;
     /* Compact height for the switcher bar */
     transition: all 0.3s ease;
-    box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
 .dock-icon-wrapper {
@@ -93,5 +92,12 @@
 @media (max-width: 720px) {
     .mode-dock-wrapper {
         display: none;
+    }
+}
+
+/* Hide tooltips on tablet, mobile, and all touch/pointer-coarse devices like iPad Pro */
+@media (hover: none) and (pointer: coarse) {
+    .dock-tooltip {
+        display: none !important;
     }
 }

@@ -1,22 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useHabits } from '../../hooks/useHabits';
-import { InteractiveFocusChart } from '../stats/InteractiveFocusChart';
-import { TrendingUp, Target, Zap } from 'lucide-react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { FocusCalendar } from '../calendar/FocusCalendar';
+import { Calendar as CalendarIcon } from 'lucide-react';
 
-interface GraphSelectorPanelProps {
+interface CalendarSelectorPanelProps {
     isOpen: boolean;
     onClose: () => void;
     triggerRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-export const GraphSelectorPanel = ({ isOpen, onClose, triggerRef }: GraphSelectorPanelProps) => {
-    const { stats } = useHabits();
+export const CalendarSelectorPanel = ({ isOpen, onClose, triggerRef }: CalendarSelectorPanelProps) => {
     const panelRef = useRef<HTMLDivElement>(null);
-    const [yPos, setYPos] = useState('50%');
-    const [maxHeight, setMaxHeight] = useState('calc(100vh - 40px)');
-    const [isPositioned, setIsPositioned] = useState(false);
+    const shouldReduceMotion = useReducedMotion();
 
     const [dimensions, setDimensions] = useState({
         scale: Math.max(0.5, Math.min(Math.min(window.innerHeight / 633, window.innerWidth / 850), 1.8))
@@ -33,6 +29,23 @@ export const GraphSelectorPanel = ({ isOpen, onClose, triggerRef }: GraphSelecto
     }, []);
 
     const scale = dimensions.scale;
+    const [yPos, setYPos] = useState('50%');
+    const [maxHeight, setMaxHeight] = useState('calc(100vh - 40px)');
+    const [isPositioned, setIsPositioned] = useState(false);
+
+    const isMobile = window.innerWidth <= 768;
+
+    const motionProps = isMobile ? {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+        transition: { duration: 0.1 }
+    } : {
+        initial: { opacity: 0, x: 40 * scale, scale: 0.98 * scale },
+        animate: { opacity: 1, x: 0, scale: scale },
+        exit: { opacity: 0, x: 40 * scale, scale: 0.98 * scale },
+        transition: { type: "spring" as const, damping: 25, stiffness: 300 }
+    };
 
     // Update position with viewport clamping
     useEffect(() => {
@@ -108,20 +121,18 @@ export const GraphSelectorPanel = ({ isOpen, onClose, triggerRef }: GraphSelecto
             {isOpen && (
                 <motion.div
                     ref={panelRef}
-                    initial={{ opacity: 0, x: 40 * scale, scale: 0.98 * scale }}
-                    animate={{ opacity: isPositioned ? 1 : 0, x: 0, scale: scale }}
-                    exit={{ opacity: 0, x: 40 * scale, scale: 0.98 * scale }}
-                    transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                    className="task-selector-panel-mobile"
+                    {...motionProps}
+                    animate={shouldReduceMotion ? undefined : { opacity: isPositioned ? 1 : 0, x: 0, scale: scale }}
+                    className="calendar-selector-panel"
                     style={{
                         position: 'fixed',
                         right: `${92 * scale}px`,
                         top: yPos,
-                        width: 'var(--panel-width, 600px)',
+                        width: 'var(--panel-width, 380px)',
                         maxWidth: 'calc(100vw - 40px)',
                         borderRadius: '2rem',
                         border: '1px solid rgba(255, 255, 255, 0.06)',
-                        padding: '24px',
+                        padding: '24px 16px',
                         zIndex: 9999,
                         background: 'rgba(0, 0, 0, 0.95)',
                         backdropFilter: 'none',
@@ -132,71 +143,40 @@ export const GraphSelectorPanel = ({ isOpen, onClose, triggerRef }: GraphSelecto
                         flexDirection: 'column',
                         maxHeight: maxHeight,
                         overflowY: 'auto',
-                        overflowX: 'hidden',
                         transformOrigin: 'right center',
                         visibility: isPositioned ? 'visible' : 'hidden'
                     }}
                 >
                     {/* Header */}
-                    <div style={{ marginBottom: '24px', flexShrink: 0 }}>
+                    <div style={{ padding: '0 16px', marginBottom: '8px', flexShrink: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                            <TrendingUp size={14} color="#a855f7" />
+                            <CalendarIcon size={14} color="var(--color-accent)" />
                             <h3 style={{ 
                                 fontSize: '10px', 
                                 fontWeight: 'bold', 
                                 letterSpacing: '0.2em', 
                                 textTransform: 'uppercase', 
-                                color: 'rgba(255, 255, 255, 0.4)' 
-                            }}>Performance Insights</h3>
+                                color: 'rgba(255, 255, 255, 0.4)',
+                                margin: 0
+                            }}>Planning</h3>
                         </div>
                         <h2 style={{ 
                             fontSize: '24px', 
                             fontFamily: "'Noto Serif', serif", 
                             fontStyle: 'italic', 
-                            color: 'white',
                             margin: 0
-                        }}>Activity Trend</h2>
+                        }}>Focus Calendar</h2>
                     </div>
 
-                    {/* Stats Grid */}
-                    <div style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(2, 1fr)', 
-                        gap: '12px', 
-                        marginBottom: '24px',
-                        flexShrink: 0
+                    {/* Calendar Body */}
+                    <div className="custom-scrollbar" style={{ 
+                        flex: 1,
+                        overflowY: 'auto',
                     }}>
-                        <div style={{ 
-                            background: 'rgba(255, 255, 255, 0.03)', 
-                            padding: '12px 16px', 
-                            borderRadius: '1.25rem',
-                            border: '1px solid rgba(255, 255, 255, 0.05)'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', opacity: 0.5 }}>
-                                <Zap size={12} />
-                                <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Daily Streak</span>
-                            </div>
-                            <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{stats.streaks.current} Days</div>
-                        </div>
-                        <div style={{ 
-                            background: 'rgba(255, 255, 255, 0.03)', 
-                            padding: '12px 16px', 
-                            borderRadius: '1.25rem',
-                            border: '1px solid rgba(255, 255, 255, 0.05)'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', opacity: 0.5 }}>
-                                <Target size={12} />
-                                <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Focus Today</span>
-                            </div>
-                            <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{stats.today.score}m</div>
+                        <div style={{ width: '100%' }}>
+                            <FocusCalendar />
                         </div>
                     </div>
-
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-                        <InteractiveFocusChart history={stats.history} />
-                    </div>
-
-
                 </motion.div>
             )}
         </AnimatePresence>

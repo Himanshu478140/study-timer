@@ -1,20 +1,17 @@
 import { useState, useEffect } from 'react';
 import {
     X, Layout, Clock, BarChart2, MessageSquare,
-    Sparkles, User, HelpCircle, Plus, Minus, Info,
-    LogOut, RefreshCw, Library, Monitor, Smartphone,
-    Cloud, Zap,
-    Home, Moon, Shield
+    Sparkles, User, Plus, Minus, Info, LogOut, RefreshCw
 } from 'lucide-react';
 import { useCloudSync } from '../../context/CloudSyncContext';
 import { StatsPanel } from './StatsPanel';
 import './dashboard.css';
-import { WallpaperGrid, type WallpaperConfig } from '../wallpaper/WallpaperSelector';
+import { type WallpaperConfig } from '../wallpaper/WallpaperSelector';
+import { WallpaperGallery } from '../wallpaper/WallpaperGallery';
 import { auth, googleProvider, db } from '../../lib/firebase';
 import { signInWithPopup, signOut } from 'firebase/auth';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useHabits } from '../../hooks/useHabits';
-import type { AppMode } from '../layout/GlobalModeSwitcher';
 
 interface DashboardProps {
     isOpen: boolean;
@@ -59,12 +56,10 @@ interface DashboardProps {
     stats: any;
     timezone: string;
     setTimezone: (tz: string) => void;
-    appMode: AppMode;
-    onAppModeChange: (mode: AppMode) => void;
     initialTab?: DashboardTab;
 }
 
-export type DashboardTab = 'themes' | 'clock' | 'stats' | 'quotes' | 'features' | 'account' | 'help' | 'support' | 'about';
+export type DashboardTab = 'themes' | 'clock' | 'stats' | 'quotes' | 'account' | 'support' | 'about';
 
 export const Dashboard = ({
     isOpen, onClose, wallpaper, onWallpaperSelect,
@@ -73,7 +68,6 @@ export const Dashboard = ({
     customQuotes, onAddQuote, onRemoveQuote,
     quoteFont, setQuoteFont,
     timezone, setTimezone,
-    appMode, onAppModeChange,
     initialTab = 'stats'
 }: DashboardProps) => {
     const TIMEZONES = [
@@ -202,20 +196,6 @@ export const Dashboard = ({
 
                 {/* Sidebar */}
                 <div className="dashboard-sidebar">
-                    <div style={{
-                        padding: '0.5rem 0 1rem 0',
-                        textAlign: 'center',
-                        fontSize: '0.9rem',
-                        fontWeight: 900,
-                        letterSpacing: '0.15em',
-                        color: 'var(--color-accent)',
-                        opacity: 1,
-                        textTransform: 'uppercase',
-                        fontFamily: 'Inter, sans-serif'
-                    }}>
-                        Study Timer
-                    </div>
-
                     <SidebarItem
                         icon={Layout}
                         label="Themes"
@@ -226,11 +206,8 @@ export const Dashboard = ({
                     <SidebarItem icon={Clock} label="Clock" active={activeTab === 'clock'} onClick={() => setActiveTab('clock')} />
                     <SidebarItem icon={BarChart2} label="Stats" active={activeTab === 'stats'} onClick={() => setActiveTab('stats')} />
                     <SidebarItem icon={MessageSquare} label="Quotes" active={activeTab === 'quotes'} onClick={() => setActiveTab('quotes')} />
-                    <SidebarItem icon={Sparkles} label="Features" active={activeTab === 'features'} onClick={() => setActiveTab('features')} />
                     <SidebarItem icon={User} label="Account" active={activeTab === 'account'} onClick={() => setActiveTab('account')} hasNotification={!user} />
 
-                    {/* Spacer to push items to bottom */}
-                    <div style={{ flex: 1 }} />
 
                     <SidebarItem
                         icon={Info}
@@ -243,7 +220,6 @@ export const Dashboard = ({
                             localStorage.setItem('about_visited', 'true');
                         }}
                     />
-                    <SidebarItem icon={HelpCircle} label="Help / Guide" active={activeTab === 'help'} onClick={() => setActiveTab('help')} />
                     <SidebarItem icon={MessageSquare} label="Support" active={activeTab === 'support'} onClick={() => setActiveTab('support')} />
 
 
@@ -262,11 +238,7 @@ export const Dashboard = ({
 
                     {activeTab === 'themes' && (
                         <div className="dashboard-section">
-                            <h2>Themes & Wallpapers</h2>
-                            <p style={{ marginBottom: '1.5rem', color: 'rgba(255,255,255,0.7)' }}>
-                                Choose a background that fits your vibe. The interface will automatically adapt its colors.
-                            </p>
-                            <WallpaperGrid currentId={wallpaper.id} onSelect={onWallpaperSelect} />
+                            <WallpaperGallery currentId={wallpaper.id} wallpaper={wallpaper} onSelect={onWallpaperSelect} />
                         </div>
                     )}
 
@@ -549,56 +521,7 @@ export const Dashboard = ({
                         </div>
                     )}
 
-                    {activeTab === 'features' && (
-                        <div className="dashboard-section">
-                            <h2>Pro Features</h2>
-                            <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1.5rem' }}>Enhance your focus experience.</p>
 
-                            <div className="feature-card">
-                                <div className="feature-info">
-                                    <h3>Relax Mode</h3>
-                                    <p>Serene dashboard view with large clock and greetings.</p>
-                                </div>
-                                <div
-                                    className={`toggle-switch ${appMode === 'home' ? 'active' : ''}`}
-                                    onClick={() => onAppModeChange(appMode === 'home' ? 'focus' : 'home')}
-                                ></div>
-                            </div>
-
-                            <div className="feature-card">
-                                <div className="feature-info">
-                                    <h3>Ambient Mode</h3>
-                                    <p>Hide UI elements during focus sessions for complete immersion.</p>
-                                </div>
-                                <div
-                                    className={`toggle-switch ${features.ambientMode ? 'active' : ''}`}
-                                    onClick={() => setFeatures({ ...features, ambientMode: !features.ambientMode })}
-                                ></div>
-                            </div>
-
-                            <div className="feature-card">
-                                <div className="feature-info">
-                                    <h3>Focus Sounds</h3>
-                                    <p>Play ambient sounds or white noise to block distractions.</p>
-                                </div>
-                                <div
-                                    className={`toggle-switch ${features.sound ? 'active' : ''}`}
-                                    onClick={() => setFeatures({ ...features, sound: !features.sound })}
-                                ></div>
-                            </div>
-
-                            <div className="feature-card">
-                                <div className="feature-info">
-                                    <h3>Inspirational Quotes</h3>
-                                    <p>Show selected quote above the clock in fullscreen mode.</p>
-                                </div>
-                                <div
-                                    className={`toggle-switch ${features.showQuoteInFullscreen ? 'active' : ''}`}
-                                    onClick={() => setFeatures({ ...features, showQuoteInFullscreen: !features.showQuoteInFullscreen })}
-                                ></div>
-                            </div>
-                        </div>
-                    )}
 
                     {activeTab === 'quotes' && (
                         <div className="dashboard-section">
@@ -978,129 +901,7 @@ export const Dashboard = ({
                         </div>
                     )}
 
-                    {activeTab === 'help' && (
-                        <div className="dashboard-section" style={{ maxWidth: '900px', margin: '0 auto' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2.5rem' }}>
-                                <div style={{
-                                    width: '56px',
-                                    height: '56px',
-                                    background: 'rgba(var(--color-accent-rgb), 0.1)',
-                                    borderRadius: '16px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: 'var(--color-accent)',
-                                    border: '1px solid rgba(var(--color-accent-rgb), 0.2)'
-                                }}>
-                                    <Library size={28} />
-                                </div>
-                                <div>
-                                    <h2 style={{ margin: 0, fontSize: '1.8rem' }}>User Guide</h2>
-                                    <p style={{ margin: 0, color: 'rgba(255,255,255,0.5)', fontSize: '1rem' }}>Everything you need to master your focus.</p>
-                                </div>
-                            </div>
 
-                            <div className="guide-grid">
-                                {/* Workspace Modes */}
-                                <div className="guide-section full-width">
-                                    <h3 className="guide-header"><Monitor size={20} /> Workspace Modes</h3>
-                                    <div className="guide-card-row">
-                                        <div className="guide-mini-card">
-                                            <div className="mini-card-icon home"><Home size={18} /></div>
-                                            <div className="mini-card-content">
-                                                <h4>Relax Mode</h4>
-                                                <p>Your main command center. View the large clock, greeting, and access all widgets (Task, Stats, Habits) directly for planning.</p>
-                                            </div>
-                                        </div>
-                                        <div className="guide-mini-card">
-                                            <div className="mini-card-icon zen"><Moon size={18} /></div>
-                                            <div className="mini-card-content">
-                                                <h4>Zen Mode</h4>
-                                                <p>Minimalist experience for deep work. Automatically enters fullscreen, hides distractions, and features vertical AM/PM indicators.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Focus Modes */}
-                                <div className="guide-section">
-                                    <h3 className="guide-header"><Zap size={20} /> Focus Modes</h3>
-                                    <div className="guide-list">
-                                        <div className="guide-item">
-                                            <strong>Deep Work:</strong> 90-min sessions for complex projects.
-                                        </div>
-                                        <div className="guide-item">
-                                            <strong>Pomodoro:</strong> 25-min focus with short breaks.
-                                        </div>
-                                        <div className="guide-item">
-                                            <strong>52/17:</strong> Research-backed flow for high productivity.
-                                        </div>
-                                        <div className="guide-item">
-                                            <strong>Custom:</strong> Set your own focus and break durations.
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Customization */}
-                                <div className="guide-section">
-                                    <h3 className="guide-header"><Sparkles size={20} /> Customization</h3>
-                                    <div className="guide-list">
-                                        <div className="guide-item">
-                                            <strong>YouTube Wallpapers:</strong> Paste any link in the Wallpaper menu to focus with your favorite visuals.
-                                        </div>
-                                        <div className="guide-item">
-                                            <strong>Video Audio:</strong> Toggle "Video Sound" to hear audio from YouTube or custom video backgrounds.
-                                        </div>
-                                        <div className="guide-item">
-                                            <strong>Ambience:</strong> Mix layers (Rain, Forest, Binaural) in the Audio panel for perfect focus.
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Data & Sync */}
-                                <div className="guide-section">
-                                    <h3 className="guide-header"><Cloud size={20} /> Data & Sync</h3>
-                                    <div className="guide-list">
-                                        <div className="guide-item">
-                                            <strong>Local Storage:</strong> Your daily stats, habits, tasks, quotes, and preferences are securely stored in your browser, ensuring fast performance and full functionality—no account required.
-                                        </div>
-                                        <div className="guide-item">
-                                            <strong>Cloud Sync:</strong> Sign in with Google (Account tab) to sync your progress, streaks, and habits across all your devices.
-                                        </div>
-                                        <div className="guide-item">
-                                            <strong>Daily Goals:</strong> Syncs your Daily Focus Target to keep you consistent everywhere.
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Mobile Experience */}
-                                <div className="guide-section">
-                                    <h3 className="guide-header"><Smartphone size={20} /> Mobile & Tools</h3>
-                                    <div className="guide-list">
-                                        <div className="guide-item">
-                                            <strong>Mobile Tools:</strong> On small screens, tap the <strong>Grid icon</strong> at the bottom to access hidden widgets.
-                                        </div>
-                                        <div className="guide-item">
-                                            <strong>Tablet View:</strong> Layout automatically adjusts to provide the best view of the timer and stats.
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Pro Tips */}
-                            <div className="pro-tips-banner" style={{ marginTop: '3rem' }}>
-                                <div className="tip-header"><Zap size={18} /> Pro Tip</div>
-                                <p>Combine <strong>Zen Mode</strong> with <strong>Ambient Audio</strong> and a <strong>Lo-Fi YouTube background</strong> for the ultimate deep work setup. Don't forget to define your <strong>Primary Task</strong> before starting!</p>
-                            </div>
-
-                            {/* Privacy */}
-                            <div style={{ marginTop: '3rem', textAlign: 'center', padding: '2rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'rgba(255,255,255,0.4)', fontSize: '0.85rem' }}>
-                                    <Shield size={14} /> Your data is private and secure. Study Timer is built for focus, not tracking.
-                                </div>
-                            </div>
-                        </div>
-                    )}
 
                     {activeTab === 'support' && (
                         <div className="dashboard-section" style={{ maxWidth: '600px', margin: '0 auto' }}>

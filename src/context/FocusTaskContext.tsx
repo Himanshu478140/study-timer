@@ -10,6 +10,8 @@ export interface FocusTask {
     id: string;
     text: string;
     completed: boolean;
+    category?: string;        // e.g. "STUDY", "WORK", "PERSONAL"
+    estimatedMinutes?: number; // e.g. 45
     completedAt?: string | null; // ISO Date String
     isDeleted?: boolean; // Soft delete for stats
     timeSpent?: number; // Total time in ms
@@ -21,7 +23,7 @@ interface FocusTaskContextType {
     allTasks: FocusTask[]; // LIVE + DELETED (For Stats)
     activeTaskId: string | null;
     setActiveTaskId: (id: string | null) => void;
-    addTask: (text: string) => string;
+    addTask: (text: string, category?: string, estimatedMinutes?: number) => string;
     toggleTask: (id: string) => void;
     removeTask: (id: string) => void;
     clearCompleted: () => void;
@@ -124,11 +126,13 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
         setActiveTaskId(newId);
     };
 
-    const addTask = (text: string) => {
+    const addTask = (text: string, category?: string, estimatedMinutes?: number) => {
         const newTask: FocusTask = {
             id: Date.now().toString(),
             text,
             completed: false,
+            category: category || undefined,
+            estimatedMinutes: estimatedMinutes || undefined,
             completedAt: null,
             isDeleted: false,
             timeSpent: 0

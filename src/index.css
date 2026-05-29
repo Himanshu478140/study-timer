@@ -55,7 +55,7 @@
   /* Controls how much Accent Color is mixed into the glass (0.0 - 1.0) */
 
   /* HUD Scaling */
-  --ui-scale: clamp(0.5, min(calc(100dvh / 633px), calc(100dvw / 850px)), 1.8);
+  --ui-scale: clamp(0.5, min(calc(100dvh / 633px), calc(100dvw / 850px)), 1.5);
 
   /* Spacing (8px grid) */
   --space-0_5: 0.25rem;
@@ -507,20 +507,17 @@ a {
   z-index: 100;
 }
 
-/* Centered Stats Pill in Header */
 .stitch-stats-bar {
   display: flex;
   gap: 1.5rem;
   align-items: center;
   padding: 0.375rem 1.25rem;
   border-radius: 999px;
-  transform: scale(var(--ui-scale));
-  transform-origin: top center;
   cursor: pointer;
 }
 
 .stitch-stats-bar:hover {
-  transform: scale(calc(var(--ui-scale) * 1.02));
+  transform: scale(1.02);
 }
 
 .stitch-stats-bar:focus-visible {
@@ -1095,8 +1092,9 @@ a {
   padding: var(--space-3) var(--space-4) var(--space-4);
 }
 
-/* Override widget-card inside slide panels for seamless look */
-.slide-panel__body .widget-card {
+/* Override widget-card inside slide panels & calendar selector panel for seamless look */
+.slide-panel__body .widget-card,
+.calendar-selector-panel .widget-card {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
@@ -1138,26 +1136,19 @@ a {
 }
 
 .bottom-right-quote p {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   font-style: italic;
   color: var(--color-text-secondary);
   line-height: 1.4;
   margin: 0;
   text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   letter-spacing: 0.01em;
-  opacity: 0.8;
+  opacity: 0.95;
 }
 
 @media (max-width: 1100px) {
   .bottom-right-quote {
-    right: 5rem;
-    /* Avoid collision with vertical dock handle */
-  }
-}
-
-@media (max-width: 900px) {
-  .bottom-right-quote {
-    display: none;
+    display: none !important;
   }
 }
 
@@ -1174,26 +1165,7 @@ a {
   gap: 0.75rem;
 }
 
-@media (max-width: 720px) {
-  .shifting-vdock {
-    top: auto !important;
-    bottom: 1.5rem !important;
-    right: 1rem !important;
-    transform-origin: bottom right;
-    display: flex !important;
-    flex-direction: column !important;
-    /* Keep column but use order */
-  }
 
-  /* Force menu above avatar on mobile */
-  .shifting-vdock .vdock-avatar {
-    order: 2;
-  }
-
-  .shifting-vdock .vdock-motion-wrapper {
-    order: 1;
-  }
-}
 
 /* Notepad Styles */
 .notepad-container {
@@ -1336,7 +1308,7 @@ a {
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
-  margin-top: -1.5rem;
+  margin: 1rem 0;
   padding: 0;
 }
 
@@ -1355,7 +1327,7 @@ a {
 }
 
 .session-dot.empty {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.45);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
@@ -1402,4 +1374,173 @@ a {
 .extra-sessions {
   margin-top: 0.25rem;
   padding-top: 0.25rem;
+}
+
+/* Session Ring (Mode Icon Progress Halo) */
+.session-ring-segment-animate {
+  animation: ringSegmentFill 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes ringSegmentFill {
+  0% {
+    stroke-opacity: 0.3;
+    stroke-width: 1;
+  }
+  50% {
+    stroke-opacity: 1;
+    stroke-width: 4;
+  }
+  100% {
+    stroke-opacity: 1;
+    stroke-width: 2.5;
+  }
+}
+
+.session-ring-badge {
+  animation: badgePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes badgePop {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-ring-segment-animate {
+    animation: none !important;
+  }
+  .session-ring-badge {
+    animation: none !important;
+  }
+}
+
+/* Weather Card (Relax Mode - Compact Left Widget) */
+.cardContainer {
+  width: fit-content;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  position: relative;
+  width: 150px;
+  height: 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 8px;
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  background-color: rgba(65, 65, 65, 0.308);
+  border: 1px solid rgba(255, 255, 255, 0.089);
+  cursor: pointer;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+.city {
+  font-weight: 700;
+  font-size: 0.8em;
+  letter-spacing: 1px;
+  color: white;
+  margin: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.weather {
+  font-weight: 500;
+  font-size: 0.65em;
+  letter-spacing: 1px;
+  color: rgb(197, 197, 197);
+  margin: 0;
+}
+
+.temp {
+  font-size: 1.4em;
+  color: white;
+  margin: 0;
+  font-weight: 600;
+}
+
+.minmaxContainer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.min,
+.max {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0px 10px;
+  gap: 2px;
+}
+
+.max {
+  align-items: flex-start;
+  border-left: 1.5px solid rgba(255, 255, 255, 0.3);
+}
+
+.maxHeading,
+.minHeading {
+  font-size: 0.6em;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.maxTemp,
+.minTemp {
+  font-size: 0.55em;
+  font-weight: 500;
+  color: rgb(197, 197, 197);
+  margin: 0;
+}
+
+.cardContainer::before {
+  width: 70px;
+  height: 70px;
+  content: "";
+  position: absolute;
+  background-color: var(--color-accent, rgb(144, 161, 255));
+  z-index: -1;
+  border-radius: 50%;
+  left: 65px;
+  top: 35px;
+  transition: all 1s;
+  opacity: 0.8;
+}
+
+.cardContainer:hover::before {
+  transform: translate(-30px, 30px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cardContainer::before {
+    transition: none;
+  }
+
+  .card {
+    transition: none;
+  }
 }

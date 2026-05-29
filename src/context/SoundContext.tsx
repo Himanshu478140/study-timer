@@ -82,7 +82,7 @@ export const SoundProvider = ({ children }: { children: ReactNode }) => {
     const [activeAmbient, setActiveAmbient] = useState<AmbientSound | string>('none');
     const [volumes, setVolumes] = useState({
         master: 0.5, // Default lower to be subtle
-        ambient: 0.7,
+        ambient: 1.0,
         ui: 0.6
     });
 
@@ -99,7 +99,7 @@ export const SoundProvider = ({ children }: { children: ReactNode }) => {
 
                 // Initialize manager volumes
                 audioManager.setVolume('master', parsed.volumes?.master ?? 0.5);
-                audioManager.setVolume('ambient', parsed.volumes?.ambient ?? 0.7);
+                audioManager.setVolume('ambient', parsed.volumes?.ambient ?? 1.0);
                 audioManager.setVolume('ui', parsed.volumes?.ui ?? 0.6);
             } catch (e) { console.error(e); }
         }

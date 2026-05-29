@@ -14,12 +14,9 @@ import { useCloudSync } from './context/CloudSyncContext';
 
 import { TimerDisplay } from './components/timer/TimerDisplay';
 import { TimerControls } from './components/timer/TimerControls';
-import { FocusCalendar } from './components/calendar/FocusCalendar';
-
-import { SlidePanel } from './components/ui/SlidePanel';
 
 import { MiniTimer } from './components/timer/MiniTimer';
-import { ModeSelector, type FocusMode } from './components/modes/ModeSelector';
+import { type FocusMode } from './components/modes/ModeSelector';
 import { WallpaperSelector, WALLPAPERS, type WallpaperConfig } from './components/wallpaper/WallpaperSelector';
 import { WallpaperLayer } from './components/layout/WallpaperLayer';
 // import { FocusContainer } from './components/layout/FocusContainer'; // OLD LAYOUT
@@ -29,27 +26,30 @@ import { AudioPanel } from './components/audio/AudioPanel';
 import { HomeView } from './components/home/HomeView';
 import { ZenMode } from './components/zen/ZenMode';
 import { type AppMode } from './components/layout/GlobalModeSwitcher';
+import { WeatherWidget } from './components/widgets/WeatherWidget';
 
 import { Dashboard } from './components/dashboard/Dashboard';
-import { Trophy, Flame, Zap, PictureInPicture2, Maximize, Minimize, LayoutGrid, User as UserIcon, Music, Calendar as CalendarIcon, BarChart3, Sun, Moon, ClipboardList, Target, Leaf, Home as HomeIcon, Sparkles, Image as ImageIcon, StickyNote, X } from 'lucide-react';
+import { Trophy, Zap, PictureInPicture2, Maximize, Minimize, User as UserIcon, Leaf, Home as HomeIcon, Sparkles, X, Brain, Clock, Coffee, Sliders, Pencil } from 'lucide-react';
 import { Dock, DockIcon } from './components/ui/Dock';
-import { VerticalDock, VerticalDockIcon } from './components/ui/VerticalDock';
+import { VerticalDockPanel } from './components/ui/VerticalDockPanel';
 import { StitchMenu } from './components/ui/StitchMenu';
 import { TaskSelectorPanel } from './components/ui/TaskSelectorPanel';
 import { GraphSelectorPanel } from './components/ui/GraphSelectorPanel';
 import { HabitSelectorPanel } from './components/ui/HabitSelectorPanel';
+import { CalendarSelectorPanel } from './components/ui/CalendarSelectorPanel';
+import { ModeSelectorPanel } from './components/ui/ModeSelectorPanel';
 import type { DashboardTab } from './components/dashboard/Dashboard';
 import './components/audio/audio.css';
+import './components/ui/VerticalDock.css';
 import { TypingAnimation } from './components/ui/TypingAnimation';
 import { DailyProgressRing } from './components/widgets/DailyProgressRing';
 import { SessionQualityModal } from './components/modals/SessionQualityModal';
 import { BreakPromptModal } from './components/modals/BreakPromptModal';
-import { SessionProgress } from './components/ui/SessionProgress';
+import { SessionRing } from './components/ui/SessionRing';
 import { DesktopWidgetLayout } from './components/layout/DesktopWidgetLayout';
 import { GamificationNotification } from './components/ui/GamificationNotification';
 import { MobileToolsOverlay } from './components/layout/MobileToolsOverlay';
 import { syncDoc, loadUserDoc } from './utils/syncUtils';
-
 
 const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: (tz: string) => void }) => {
   const [mode, setMode] = useState<FocusMode>('deep_work');
@@ -77,15 +77,111 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
   const [isHabitsOpen, setIsHabitsOpen] = useState(false);
   const [isTaskPanelOpen, setIsTaskPanelOpen] = useState(false);
   const [isGraphPanelOpen, setIsGraphPanelOpen] = useState(false);
+  const [isModePanelOpen, setIsModePanelOpen] = useState(false);
   const [pendingSession, setPendingSession] = useState<{ mode: string, duration: number } | null>(null);
   const [isStitchMenuOpen, setIsStitchMenuOpen] = useState(false);
   const [isDockExpanded, setIsDockExpanded] = useState(false);
   const [isWallpaperOpen, setIsWallpaperOpen] = useState(false);
   const [isNotepadOpen, setIsNotepadOpen] = useState(false);
   const [dashboardTab, setDashboardTab] = useState<DashboardTab>('stats');
-  const taskIconRef = useRef<HTMLDivElement>(null);
   const graphIconRef = useRef<HTMLDivElement>(null);
   const habitIconRef = useRef<HTMLDivElement>(null);
+  const calendarIconRef = useRef<HTMLDivElement>(null);
+  const modeIconRef = useRef<HTMLDivElement>(null);
+  const avatarRef = useRef<HTMLDivElement>(null);
+  const notepadIconRef = useRef<HTMLDivElement>(null);
+  const taskIconRef = useRef<HTMLDivElement>(null);
+  const audioIconRef = useRef<HTMLDivElement>(null);
+  const notepadRef = useRef<HTMLDivElement>(null);
+  const [notepadYPos, setNotepadYPos] = useState('50%');
+  const [notepadMaxHeight, setNotepadMaxHeight] = useState('calc(100vh - 40px)');
+  const [isNotepadPositioned, setIsNotepadPositioned] = useState(false);
+  const homeTaskPencilRef = useRef<HTMLDivElement>(null);
+  const [taskPanelTriggerRef, setTaskPanelTriggerRef] = useState<React.RefObject<HTMLDivElement | null>>(homeTaskPencilRef);
+
+  const [dimensions, setDimensions] = useState({
+    scale: Math.max(0.5, Math.min(Math.min(window.innerHeight / 633, window.innerWidth / 850), 1.8))
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setDimensions({
+        scale: Math.max(0.5, Math.min(Math.min(window.innerHeight / 633, window.innerWidth / 850), 1.8))
+      });
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const scale = dimensions.scale;
+
+  // Update Notepad position with viewport clamping next to its sidebar icon
+  useEffect(() => {
+    const updatePosition = () => {
+      if (isNotepadOpen && notepadIconRef.current) {
+        const triggerRect = notepadIconRef.current.getBoundingClientRect();
+        const triggerCenterY = triggerRect.top + triggerRect.height / 2;
+        const panelHeight = notepadRef.current ? notepadRef.current.offsetHeight : 340;
+        const viewportHeight = window.innerHeight;
+        const margin = 20;
+        
+        // 1. Calculate the max allowable unscaled height to fit inside the viewport visually
+        const maxUnscaledHeight = (viewportHeight - 2 * margin) / scale;
+        const maxH = Math.max(200, maxUnscaledHeight);
+
+        // 2. Compute offsetY shift due to scaling around 'right center' origin
+        const currentHeight = Math.min(panelHeight, maxH);
+        const offsetY = ((scale - 1) * currentHeight) / 2;
+
+        // 3. Calculate idealTop (unscaled) centered around trigger
+        let idealTop = triggerCenterY - currentHeight / 2;
+
+        // 4. Clamped boundaries for unscaled top to keep visual top/bottom in viewport
+        const minTop = margin + offsetY;
+        const maxTop = viewportHeight - currentHeight - offsetY - margin;
+
+        const finalTop = Math.max(minTop, Math.min(maxTop, idealTop));
+        
+        setNotepadYPos(`${finalTop}px`);
+        setNotepadMaxHeight(`${maxH}px`);
+        setIsNotepadPositioned(true);
+      }
+    };
+
+    if (isNotepadOpen) {
+      updatePosition();
+      window.addEventListener('resize', updatePosition);
+      
+      const observer = new ResizeObserver(() => {
+        requestAnimationFrame(updatePosition);
+      });
+      if (notepadRef.current) {
+        observer.observe(notepadRef.current);
+      }
+      
+      return () => {
+        window.removeEventListener('resize', updatePosition);
+        observer.disconnect();
+      };
+    } else {
+      setIsNotepadPositioned(false);
+    }
+  }, [isNotepadOpen, scale]);
+
+  // Close notepad on click outside
+  useEffect(() => {
+    if (!isNotepadOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const isOutsideNotepad = notepadRef.current && !notepadRef.current.contains(e.target as Node);
+      const isNotNotepadTrigger = notepadIconRef.current && !notepadIconRef.current.contains(e.target as Node);
+      
+      if (isOutsideNotepad && isNotNotepadTrigger) {
+        setIsNotepadOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isNotepadOpen]);
 
   // Task context for vertical strip
   const { tasks, activeTaskId } = useFocusTask();
@@ -381,8 +477,8 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
 
   // Removed Focus Protection Hook as per user request
 
-  // Generalize Focus Mode: Only hide UI if manually in fullscreen OR Ambient Mode is enabled while running
-  const isFocusActive = isFullscreen || (status === 'running' && features.ambientMode && appMode === 'focus');
+  // Generalize Focus Mode: Only hide UI if Ambient Mode is enabled while running
+  const isFocusActive = status === 'running' && features.ambientMode && appMode === 'focus';
   const handleToggleFullscreen = () => {
     if (document.fullscreenElement) {
       exitFullscreen();
@@ -423,11 +519,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
 
       <WallpaperLayer config={wallpaper} />
 
-      {isFullscreen && features.showQuoteInFullscreen && selectedQuote && appMode !== 'home' && appMode !== 'zen' && (
-        <div className={`fullscreen-quote font-${quoteFont || 'serif'}`}>
-          "{selectedQuote}"
-        </div>
-      )}
+
 
       {/* OLD LAYOUT: Branding credit was here. Now in stitch-header. See git history to restore. */}
 
@@ -461,8 +553,6 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
           setQuoteFont={setQuoteFont}
           timezone={timezone}
           setTimezone={setTimezone}
-          appMode={appMode}
-          onAppModeChange={setAppMode}
           initialTab={dashboardTab}
         />
       )}
@@ -525,14 +615,23 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
             justifyContent: 'center',
             padding: '1rem 2rem',
             width: '100%',
-            opacity: (isDashboardOpen || (isFocusActive && appMode !== 'home')) ? 0 : 1,
+            opacity: (isDashboardOpen || isFocusActive) ? 0 : 1,
             transition: 'opacity 0.5s ease',
-            pointerEvents: (isDashboardOpen || (isFocusActive && appMode !== 'home')) ? 'none' : 'auto',
+            pointerEvents: (isDashboardOpen || isFocusActive) ? 'none' : 'auto',
           }}
         >
           {/* ... branding and stats bar ... */}
-          {/* Left: Branding */}
-          <div className="stitch-header-left" style={{ position: 'absolute', left: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {/* Left: Branding & Weather Card */}
+          <div className="stitch-header-left" style={{
+            position: 'absolute',
+            left: '2rem',
+            top: '1.2rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: '1rem',
+            zIndex: 50
+          }}>
             <span className="brand-logo-text" style={{
               fontWeight: 800,
               textTransform: 'uppercase',
@@ -541,63 +640,13 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
               opacity: appMode === 'zen' ? 0 : 0.7,
               transition: 'opacity 0.5s ease',
             }}>Study Timer</span>
+
+            {appMode === 'home' && (
+              <WeatherWidget />
+            )}
           </div>
 
-          {/* Center: Stats Bar */}
-          <nav
-            className="stitch-stats-bar"
-            onClick={() => setIsDashboardOpen(true)}
-            style={{
-              display: 'flex',
-              gap: '1.5rem',
-              alignItems: 'center',
-              cursor: 'pointer',
-              background: 'linear-gradient(135deg, var(--color-glass-bg), rgba(var(--color-accent-rgb), var(--glass-tint-strength)))',
-              backdropFilter: 'blur(40px)',
-              WebkitBackdropFilter: 'blur(40px)',
-              border: '1px solid rgba(255, 255, 255, var(--widget-border-opacity))',
-              borderRadius: '999px',
-              padding: '0.375rem 1.25rem',
-              boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
-              color: 'var(--color-text-secondary)',
-              transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease',
-              opacity: appMode === 'home' ? 0 : 1,
-              pointerEvents: appMode === 'home' ? 'none' : 'auto',
-            }}
-            role="button"
-            tabIndex={0}
-            aria-label="Open Dashboard"
-          >
-            {/* Daily Progress */}
-            <div className="flex-center" style={{ gap: '0.5rem' }}>
-              <DailyProgressRing completed={stats.today.score} goal={100} />
-            </div>
-
-            {/* Level & XP */}
-            <div className="flex-center" style={{ gap: '0.5rem', whiteSpace: 'nowrap' }}>
-              <Trophy size={18} color="var(--color-accent)" />
-              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>LVL {level}</span>
-              <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>{xp} XP</span>
-            </div>
-
-            {/* Streak */}
-            <div className="flex-center" style={{ gap: '0.25rem' }} title="Current Streak">
-              <svg width="0" height="0" style={{ position: 'absolute' }}>
-                <defs>
-                  <linearGradient id="fireGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#ef4444" />
-                    <stop offset="100%" stopColor="#f97316" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <Flame
-                size={18}
-                className={streak > 0 ? "streak-active" : ""}
-                style={streak > 0 ? { stroke: 'url(#fireGradient)', filter: 'drop-shadow(0 0 2px rgba(249, 115, 22, 0.4))' } : {}}
-              />
-              <span style={{ fontWeight: 600, fontSize: '0.8rem' }}>{streak}</span>
-            </div>
-          </nav>
+          {/* Stats Bar is now moved next to the vdock avatar */}
 
         </header>
       </div>
@@ -617,22 +666,16 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
             isFullscreen={isFullscreen}
             autoFullscreen={features.zenAutoFullscreen}
             timeFormat={features.zenTimeFormat}
-            modeName={isBreak ? "Taking Break" : (tasks.find(t => t.id === activeTaskId)?.text || 'Ready to Focus?')}
+            modeName={isBreak ? "• Taking Break" : "• " + (tasks.find(t => t.id === activeTaskId)?.text || 'Ready to Focus?')}
           />
         )}
         <div className="hud-center-stack" style={{ display: appMode === 'zen' ? 'none' : 'flex' }}>
           <div
             className="mode-selector-container"
             style={{
-              opacity: (isFocusActive || appMode === 'home') ? 0 : 1,
-              transition: 'opacity 0.5s ease',
-              pointerEvents: (isFocusActive || appMode === 'home') ? 'none' : 'auto',
-              display: appMode === 'home' ? 'none' : 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
+              display: 'none',
             }}
           >
-            <ModeSelector currentMode={mode} onModeChange={setMode} />
           </div>
 
           {/* Main Content Area: Home, Zen, or Timer */}
@@ -640,27 +683,71 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
             <HomeView clockFont={clockFont} timeFormat={features.homeTimeFormat} />
           ) : appMode === 'zen' ? null : (
             <section className="stitch-timer-section">
-              <SessionProgress completed={completedSessionsToday} />
-              <h2 className="stitch-mode-label" style={{
-                color: 'var(--color-text-secondary)',
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                fontSize: '0.9rem',
-                fontWeight: 500,
-                opacity: isFocusActive ? 0 : 0.7,
-                display: isFocusActive ? 'none' : 'block',
-                transition: 'opacity 0.3s',
-                textAlign: 'center',
-              }}>
-                <TypingAnimation
-                  key={isBreak ? 'break' : (activeTaskId || 'no-task')}
-                  duration={100}
-                >
-                  {isBreak
-                    ? 'Taking Break'
-                    : (tasks.find(t => t.id === activeTaskId)?.text || 'Ready to Focus?')}
-                </TypingAnimation>
-              </h2>
+              <div 
+                style={{ 
+                  display: isFocusActive ? 'none' : 'flex',
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  gap: '12px',
+                  opacity: isFocusActive ? 0 : 1,
+                  transition: 'opacity 0.3s',
+                  marginBottom: '1rem'
+                }}
+              >
+                <h2 className="stitch-mode-label" style={{
+                  color: 'var(--color-text-secondary)',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  fontSize: '1.7rem',
+                  fontWeight: 500,
+                  margin: 0,
+                  textAlign: 'center',
+                }}>
+                  <TypingAnimation
+                    key={isBreak ? 'break' : (activeTaskId || 'no-task')}
+                    duration={100}
+                  >
+                    {isBreak
+                      ? '• Taking Break'
+                      : '• ' + (tasks.find(t => t.id === activeTaskId)?.text || 'Ready to Focus?')}
+                  </TypingAnimation>
+                </h2>
+                {!isBreak && (
+                  <div
+                    ref={homeTaskPencilRef}
+                    id="home-task-pencil-trigger"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTaskPanelTriggerRef(homeTaskPencilRef);
+                      setIsTaskPanelOpen(!isTaskPanelOpen);
+                    }}
+                    style={{
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      color: 'rgba(255, 255, 255, 0.4)',
+                      transition: 'color 0.2s',
+                      padding: '4px',
+                      borderRadius: '8px',
+                      background: 'rgba(255, 255, 255, 0.02)',
+                      border: '1px solid rgba(255, 255, 255, 0.05)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = 'white';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = 'rgba(255, 255, 255, 0.4)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+                    }}
+                    title="Change Focus Intentions"
+                  >
+                    <Pencil size={16} />
+                  </div>
+                )}
+              </div>
 
               <TimerDisplay
                 seconds={timeLeft}
@@ -675,7 +762,6 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
                 active={status === 'running'}
                 timeLeft={timeLeft}
                 mode={mode}
-                isFullscreen={isFullscreen}
               />
 
               <div style={{
@@ -708,7 +794,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
       </main>
 
       {/* Overlays (Toasts, Quotes, etc.) */}
-      {!isFocusActive && (
+      {!isFocusActive && appMode !== 'home' && appMode !== 'zen' && (
         <div
           className={`bottom-right-quote font-${quoteFont || 'serif'}`}
           style={{
@@ -717,7 +803,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
             right: '2rem',
             maxWidth: '300px',
             textAlign: 'right',
-            opacity: 0.6,
+            opacity: 0.95,
           }}
         >
           <p>"{selectedQuote}"</p>
@@ -740,33 +826,90 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
       )}
 
       <footer className="focus-footer">
+        {/* Wallpaper Drawer (externally controlled) */}
+        <WallpaperSelector
+          currentId={wallpaper.id}
+          onSelect={setWallpaper}
+          externalOpen={isWallpaperOpen}
+          onClose={() => setIsWallpaperOpen(false)}
+        />
+      </footer>
+
+      {/* Bottom-Left Unified Docks Group */}
+      <div
+        className="bottom-docks-group"
+        style={{
+          position: 'fixed',
+          bottom: '1.5rem',
+          left: 'var(--space-3)',
+          display: 'flex',
+          gap: 'var(--space-3)',
+          alignItems: 'center',
+          transform: 'scale(var(--ui-scale))',
+          transformOrigin: 'bottom left',
+          zIndex: 51,
+        }}
+      >
+        {/* Mode Switcher Dock */}
         <div
-          className="bottom-dock-nav"
+          className="mode-dock-wrapper"
           style={{
-            opacity: ((isFocusActive && appMode !== 'home') || appMode === 'zen') ? 0 : 1,
-            visibility: ((isFocusActive && appMode !== 'home') || appMode === 'zen') ? 'hidden' : 'visible',
-            transition: 'all 0.5s ease',
-            pointerEvents: (isFocusActive && appMode !== 'home') ? 'none' : 'auto',
-            display: 'flex',
-            gap: 'var(--space-2)',
-            alignItems: 'center',
-            transform: 'scale(var(--ui-scale))',
-            transformOrigin: 'bottom center',
+            opacity: isFocusActive ? 0 : 1,
+            visibility: isFocusActive ? 'hidden' : 'visible',
+            transition: 'opacity 0.4s ease, visibility 0.4s ease',
           }}
         >
           <Dock>
             {(mouseX: MotionValue<number>) => (
               <>
-                {/* Sounds */}
-                <DockIcon mouseX={mouseX} label="Sounds" onClick={() => setIsAudioPanelOpen(true)}>
-                  <Music size={20} />
+                <DockIcon
+                  mouseX={mouseX}
+                  label="Focus Timer"
+                  isActive={appMode === 'focus'}
+                  onClick={() => handleAppModeChange('focus')}
+                >
+                  <Leaf size={20} />
                 </DockIcon>
 
-                {/* Notepad */}
-                <DockIcon mouseX={mouseX} label="Notepad" onClick={() => setIsNotepadOpen(!isNotepadOpen)}>
-                  <StickyNote size={20} />
+                <DockIcon
+                  mouseX={mouseX}
+                  label="Relax"
+                  isActive={appMode === 'home'}
+                  onClick={() => handleAppModeChange('home')}
+                >
+                  <HomeIcon size={20} />
                 </DockIcon>
 
+                <DockIcon
+                  mouseX={mouseX}
+                  label="Zen Mode"
+                  isActive={appMode === 'zen'}
+                  onClick={() => handleAppModeChange('zen')}
+                >
+                  <Sparkles size={20} />
+                </DockIcon>
+              </>
+            )}
+          </Dock>
+        </div>
+
+        {/* Bottom Tool Dock */}
+        <div
+          className="bottom-dock-nav"
+          style={{
+            position: 'relative',
+            opacity: (isFocusActive || appMode === 'zen') ? 0 : 1,
+            visibility: (isFocusActive || appMode === 'zen') ? 'hidden' : 'visible',
+            transition: 'all 0.5s ease',
+            pointerEvents: isFocusActive ? 'none' : 'auto',
+            display: 'flex',
+            gap: 'var(--space-2)',
+            alignItems: 'center',
+          }}
+        >
+          <Dock>
+            {(mouseX: MotionValue<number>) => (
+              <>
                 {/* PiP */}
                 <DockIcon mouseX={mouseX} label="Pop Out" onClick={() => requestPiP({ width: 320, height: 320 })}>
                   <PictureInPicture2 size={20} />
@@ -779,180 +922,120 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
               </>
             )}
           </Dock>
-
-          {/* Notepad Popup */}
-          <AnimatePresence>
-            {isNotepadOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.9, x: "-50%" }}
-                animate={{ opacity: 1, y: 0, scale: 1, x: "-50%" }}
-                exit={{ opacity: 0, y: 20, scale: 0.9, x: "-50%" }}
-                className="notepad-popup"
-                style={{ originX: 0.5, originY: 1 }}
-              >
-                <div className="notepad-popup-header">
-                  <span className="notepad-popup-title">Notepad</span>
-                  <button className="notepad-popup-close" onClick={() => setIsNotepadOpen(false)}>
-                    <X size={14} />
-                  </button>
-                </div>
-                <textarea
-                  className="notepad-popup-textarea custom-scrollbar"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Write something..."
-                  spellCheck={false}
-                  autoFocus
-                />
-                <div className="notepad-popup-footer">
-                  <span>{notes.length} chars</span>
-                  <span>Auto-saved</span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
-
-        {/* Wallpaper Drawer (externally controlled) */}
-        <WallpaperSelector
-          currentId={wallpaper.id}
-          onSelect={setWallpaper}
-          externalOpen={isWallpaperOpen}
-          onClose={() => setIsWallpaperOpen(false)}
-        />
-
-      </footer>
-
-      {/* Bottom-Left Mode Switcher Dock */}
-      <div
-        className="mode-dock-wrapper"
-        style={{
-          position: 'fixed',
-          bottom: '1.5rem',
-          left: 'var(--space-3)',
-          transform: 'scale(var(--ui-scale))',
-          transformOrigin: 'bottom left',
-          opacity: (isFocusActive && appMode !== 'home' && appMode !== 'zen') ? 0 : 1,
-          visibility: (isFocusActive && appMode !== 'home' && appMode !== 'zen') ? 'hidden' : 'visible',
-          transition: 'opacity 0.4s ease, visibility 0.4s ease',
-          zIndex: 51,
-        }}
-      >
-        <Dock>
-          {(mouseX: MotionValue<number>) => (
-            <>
-              <DockIcon
-                mouseX={mouseX}
-                label="Focus Timer"
-                isActive={appMode === 'focus'}
-                onClick={() => handleAppModeChange('focus')}
-              >
-                <Leaf size={20} />
-              </DockIcon>
-
-              <DockIcon
-                mouseX={mouseX}
-                label="Relax"
-                isActive={appMode === 'home'}
-                onClick={() => handleAppModeChange('home')}
-              >
-                <HomeIcon size={20} />
-              </DockIcon>
-
-              <DockIcon
-                mouseX={mouseX}
-                label="Zen Mode"
-                isActive={appMode === 'zen'}
-                onClick={() => handleAppModeChange('zen')}
-              >
-                <Sparkles size={20} />
-              </DockIcon>
-            </>
-          )}
-        </Dock>
       </div>
 
       {/* Right Vertical Dock — Collapsible */}
       <div
         className="vdock-group shifting-vdock"
         style={{
-          opacity: ((isFocusActive && appMode !== 'home') || appMode === 'zen') ? 0 : 1,
-          visibility: ((isFocusActive && appMode !== 'home') || appMode === 'zen') ? 'hidden' : 'visible',
+          opacity: (isFocusActive || appMode === 'zen') ? 0 : 1,
+          visibility: (isFocusActive || appMode === 'zen') ? 'hidden' : 'visible',
           transition: 'opacity 0.4s ease, visibility 0.4s ease, top 0.5s ease, bottom 0.5s ease, right 0.5s ease, transform 0.5s ease',
           zIndex: 101,
         }}
       >
-        {/* Avatar — always visible, toggles dock */}
-        <div
-          className={`vdock-avatar ${isDockExpanded ? 'expanded' : ''}`}
-          onClick={() => setIsDockExpanded(!isDockExpanded)}
-          role="button"
-          tabIndex={0}
-          aria-label={isDockExpanded ? 'Collapse dock' : 'Expand dock'}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsDockExpanded(!isDockExpanded); } }}
-        >
-          {user ? (
-            user.photoURL ? (
-              <img src={user.photoURL} alt={user.displayName || 'User'} />
-            ) : (
-              <div className="user-avatar-placeholder">
-                {(user.displayName?.[0] || user.email?.[0] || '?').toUpperCase()}
-              </div>
-            )
-          ) : (
-            <UserIcon size={16} style={{ color: 'rgba(255,255,255,0.5)' }} />
-          )}
-          <div className="vdock-tooltip">{isDockExpanded ? 'Collapse' : 'Expand'}</div>
-        </div>
-
-        {/* Expandable Dock */}
-        <AnimatePresence>
-          {isDockExpanded && (
-            <motion.div
-              className="vdock-motion-wrapper"
-              initial={{ opacity: 0, y: window.innerWidth <= 720 ? 10 : -10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: window.innerWidth <= 720 ? 10 : -10, scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+        {/* Horizontal wrapper for Stats Bar and the vdock avatar button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          {appMode !== 'home' && (
+            <nav
+              className="stitch-stats-bar"
+              onClick={() => { setDashboardTab('stats'); setIsDashboardOpen(true); }}
+              style={{
+                display: 'flex',
+                gap: '1.25rem',
+                alignItems: 'center',
+                cursor: 'pointer',
+                background: 'rgba(0, 0, 0, 0.6)',
+                backdropFilter: 'none',
+                WebkitBackdropFilter: 'none',
+                border: '1px solid rgba(255, 255, 255, 0.06)',
+                borderRadius: '1.25rem',
+                padding: '0 1.25rem',
+                height: '3.5rem',
+                boxSizing: 'border-box',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)',
+                color: 'var(--color-text-secondary)',
+                transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label="Open Dashboard"
             >
-              <VerticalDock>
-                {(mouseY: MotionValue<number>) => (
-                  <>
-                    {/* Dashboard */}
-                    <VerticalDockIcon mouseY={mouseY} label="Dashboard" onClick={() => setIsStitchMenuOpen(true)}>
-                      <LayoutGrid size={20} />
-                    </VerticalDockIcon>
+              {/* Daily Progress */}
+              <div className="flex-center" style={{ gap: '0.5rem' }}>
+                <DailyProgressRing completed={stats.today.score} goal={100} />
+              </div>
 
-                    {/* Tools */}
-                    <VerticalDockIcon ref={taskIconRef} mouseY={mouseY} label="Tasks" onClick={() => setIsTaskPanelOpen(!isTaskPanelOpen)}>
-                      <ClipboardList size={20} />
-                    </VerticalDockIcon>
+              {/* Level & XP */}
+              <div className="flex-center" style={{ gap: '0.5rem', whiteSpace: 'nowrap' }}>
+                <Trophy size={20} color="var(--color-accent)" />
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, lineHeight: 1.1 }}>LEVEL {level}</span>
+                  <span style={{ fontSize: '0.65rem', opacity: 0.6, lineHeight: 1.1 }}>{xp} XP</span>
+                </div>
+              </div>
 
-                    <VerticalDockIcon ref={graphIconRef} mouseY={mouseY} label="Graph" onClick={() => setIsGraphPanelOpen(!isGraphPanelOpen)}>
-                      <BarChart3 size={20} />
-                    </VerticalDockIcon>
+              {/* Focus Mode Icon & Label — wrapped in SessionRing */}
+              <SessionRing currentSession={completedSessionsToday} totalSessions={4} mode={mode}>
+                <div
+                  className="flex-center"
+                  title="Current Focus Mode"
+                >
+                  {(() => {
+                    const config = {
+                      deep_work: { icon: <Brain size={18} />, color: '#a855f7', label: 'Deep Work' },
+                      pomodoro: { icon: <Clock size={18} />, color: '#ef4444', label: 'Pomodoro' },
+                      flow: { icon: <Coffee size={18} />, color: '#3b82f6', label: '52/17' },
+                      custom: { icon: <Sliders size={18} />, color: '#22c55e', label: 'Custom' }
+                    }[mode] || { icon: <Brain size={18} />, color: '#a855f7', label: 'Deep Work' };
 
-                    <VerticalDockIcon mouseY={mouseY} label={themeMode === 'light' ? 'Dark Mode' : 'Light Mode'} onClick={(e: React.MouseEvent<HTMLDivElement>) => toggleTheme(e)}>
-                      {themeMode === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-                    </VerticalDockIcon>
-
-                    <VerticalDockIcon mouseY={mouseY} label="Wallpaper" onClick={() => setIsWallpaperOpen(true)}>
-                      <ImageIcon size={20} />
-                    </VerticalDockIcon>
-
-                    <VerticalDockIcon mouseY={mouseY} label="Calendar" onClick={() => setIsCalendarOpen(true)}>
-                      <CalendarIcon size={20} />
-                    </VerticalDockIcon>
-
-                    <VerticalDockIcon ref={habitIconRef} mouseY={mouseY} label="Habits" onClick={() => setIsHabitsOpen(!isHabitsOpen)}>
-                      <Target size={20} />
-                    </VerticalDockIcon>
-                  </>
-                )}
-              </VerticalDock>
-            </motion.div>
+                    return (
+                      <span style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '2rem',
+                        height: '2rem',
+                        borderRadius: '0.5rem',
+                        background: `linear-gradient(135deg, ${config.color}, ${config.color}cc)`,
+                        color: '#ffffff',
+                        boxShadow: `0 4px 12px ${config.color}40`,
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                      }}>
+                        {config.icon}
+                      </span>
+                    );
+                  })()}
+                </div>
+              </SessionRing>
+            </nav>
           )}
-        </AnimatePresence>
+
+          {/* Avatar Button — always visible, toggles right-side Control Center panel */}
+          <div
+            ref={avatarRef}
+            className={`vdock-avatar ${isDockExpanded ? 'expanded' : ''}`}
+            onClick={() => setIsDockExpanded(!isDockExpanded)}
+            role="button"
+            tabIndex={0}
+            aria-label={isDockExpanded ? 'Close Control Center' : 'Open Control Center'}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsDockExpanded(!isDockExpanded); } }}
+          >
+            {user ? (
+              user.photoURL ? (
+                <img src={user.photoURL} alt={user.displayName || 'User'} />
+              ) : (
+                <div className="user-avatar-placeholder">
+                  {(user.displayName?.[0] || user.email?.[0] || '?').toUpperCase()}
+                </div>
+              )
+            ) : (
+              <UserIcon size={16} style={{ color: 'rgba(255,255,255,0.5)' }} />
+            )}
+            <div className="vdock-tooltip">{isDockExpanded ? 'Close' : 'Open Control Center'}</div>
+          </div>
+        </div>
       </div>
 
       <StitchMenu
@@ -967,7 +1050,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
       <TaskSelectorPanel
         isOpen={isTaskPanelOpen}
         onClose={() => setIsTaskPanelOpen(false)}
-        triggerRef={taskIconRef}
+        triggerRef={taskPanelTriggerRef}
       />
 
       <GraphSelectorPanel
@@ -982,16 +1065,105 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
         triggerRef={habitIconRef}
       />
 
-      {/* Calendar Slide Panel */}
-      <SlidePanel isOpen={isCalendarOpen} onClose={() => setIsCalendarOpen(false)} title="Calendar">
-        <FocusCalendar />
-      </SlidePanel>
+      {/* Calendar Selector Panel */}
+      <CalendarSelectorPanel
+        isOpen={isCalendarOpen}
+        onClose={() => setIsCalendarOpen(false)}
+        triggerRef={calendarIconRef}
+      />
 
+      {/* Mode Selector Panel */}
+      <ModeSelectorPanel
+        isOpen={isModePanelOpen}
+        onClose={() => setIsModePanelOpen(false)}
+        currentMode={mode}
+        onModeChange={setMode}
+        triggerRef={modeIconRef}
+      />
+
+      {/* Notepad Popup (Global Overlay) */}
+      <AnimatePresence>
+        {isNotepadOpen && (
+          <motion.div
+            ref={notepadRef}
+            initial={{ opacity: 0, x: 40 * scale, scale: 0.98 * scale }}
+            animate={{ opacity: isNotepadPositioned ? 1 : 0, x: 0, scale: scale }}
+            exit={{ opacity: 0, x: 40 * scale, scale: 0.98 * scale }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className="notepad-popup"
+            style={{
+              position: 'fixed',
+              right: `${92 * scale}px`,
+              top: notepadYPos,
+              left: 'auto',
+              bottom: 'auto',
+              transform: 'none',
+              transformOrigin: 'right center',
+              zIndex: 1001,
+              maxHeight: notepadMaxHeight,
+              visibility: isNotepadPositioned ? 'visible' : 'hidden',
+              overflowY: 'auto'
+            }}
+          >
+            <div className="notepad-popup-header">
+              <span className="notepad-popup-title">Notepad</span>
+              <button className="notepad-popup-close" onClick={() => setIsNotepadOpen(false)}>
+                <X size={14} />
+              </button>
+            </div>
+            <textarea
+              className="notepad-popup-textarea custom-scrollbar"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Write something..."
+              spellCheck={false}
+              autoFocus
+            />
+            <div className="notepad-popup-footer">
+              <span>{notes.length} chars</span>
+              <span>Auto-saved</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Control Center Side Panel */}
+      <VerticalDockPanel
+        isOpen={isDockExpanded}
+        onClose={() => setIsDockExpanded(false)}
+        mode={mode}
+        completedSessionsToday={completedSessionsToday}
+        notes={notes}
+        onOpenDashboard={() => { setDashboardTab('themes'); setIsDashboardOpen(true); }}
+        onToggleGraph={() => setIsGraphPanelOpen(!isGraphPanelOpen)}
+        onToggleSounds={() => setIsAudioPanelOpen(!isAudioPanelOpen)}
+        onToggleNotepad={() => setIsNotepadOpen(!isNotepadOpen)}
+        onToggleCalendar={() => setIsCalendarOpen(!isCalendarOpen)}
+        onToggleHabits={() => setIsHabitsOpen(!isHabitsOpen)}
+        onToggleModeSelector={() => setIsModePanelOpen(!isModePanelOpen)}
+        onToggleTasks={() => { setTaskPanelTriggerRef(taskIconRef); setIsTaskPanelOpen(!isTaskPanelOpen); }}
+        triggerRef={avatarRef}
+        modeIconRef={modeIconRef}
+        graphIconRef={graphIconRef}
+        calendarIconRef={calendarIconRef}
+        habitIconRef={habitIconRef}
+        notepadIconRef={notepadIconRef}
+        taskIconRef={taskIconRef}
+        audioIconRef={audioIconRef}
+        isModeOpen={isModePanelOpen}
+        isGraphOpen={isGraphPanelOpen}
+        isAudioOpen={isAudioPanelOpen}
+        isNotepadOpen={isNotepadOpen}
+        isCalendarOpen={isCalendarOpen}
+        isHabitsOpen={isHabitsOpen}
+        isTaskOpen={isTaskPanelOpen}
+      />
 
       {/* Audio Panel (hidden by default, triggered from toolbar) */}
       <AudioPanel
         externalOpen={isAudioPanelOpen}
         onOpenChange={setIsAudioPanelOpen}
+        triggerRef={audioIconRef}
       />
 
       {/* Mobile Tools Toggle (Visible <= 900px) */}
