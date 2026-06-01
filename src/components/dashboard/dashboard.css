@@ -406,13 +406,16 @@
 
 /* Reset arrows and styles for input */
 .adjuster-input::-webkit-outer-spin-button,
-.adjuster-input::-webkit-inner-spin-button {
+.adjuster-input::-webkit-inner-spin-button,
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
     -webkit-appearance: none;
     appearance: none;
     margin: 0;
 }
 
-.adjuster-input[type=number] {
+.adjuster-input[type=number],
+.no-spinner[type=number] {
     -moz-appearance: textfield;
     appearance: textfield;
 }

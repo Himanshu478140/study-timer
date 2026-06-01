@@ -25,6 +25,10 @@ export interface DailyHabit {
     name: string;
     color: string; // Hex code or tailwind class
     completedDates: string[]; // ISO Date strings "YYYY-MM-DD"
+    icon?: string;
+    goal?: string;
+    frequency?: 'daily' | 'weekdays' | 'weekly' | 'custom';
+    activeDays?: string[];
 }
 
 export interface FocusStats {
@@ -58,7 +62,7 @@ interface HabitsContextType {
     stats: FocusStats;
     recordSession: (mode: string, noDistractions: boolean, durationMinutes?: number, taskFinished?: boolean, rating?: number, tags?: string[]) => void;
     habits: DailyHabit[];
-    addHabit: (name: string, color: string) => void;
+    addHabit: (name: string, color: string, icon?: string, goal?: string, frequency?: 'daily' | 'weekdays' | 'weekly' | 'custom', activeDays?: string[]) => void;
     toggleHabit: (id: string, date: string) => void;
     deleteHabit: (id: string) => void;
     events: CalendarEvent[];
@@ -270,12 +274,23 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
     }, [events]);
 
     // Actions
-    const addHabit = (name: string, color: string) => {
-        const newHabit = {
+    const addHabit = (
+        name: string,
+        color: string,
+        icon?: string,
+        goal?: string,
+        frequency?: 'daily' | 'weekdays' | 'weekly' | 'custom',
+        activeDays?: string[]
+    ) => {
+        const newHabit: DailyHabit = {
             id: crypto.randomUUID(),
             name,
             color,
-            completedDates: []
+            completedDates: [],
+            icon,
+            goal,
+            frequency,
+            activeDays
         };
         setHabits(prev => [...prev, newHabit]);
         if (user) syncCollectionItem(user.uid, 'habits', newHabit.id, newHabit);

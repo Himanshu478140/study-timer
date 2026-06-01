@@ -1,4 +1,4 @@
-import { Leaf, Home, Moon } from 'lucide-react';
+import { Hourglass, CloudSun, Leaf } from 'lucide-react';
 import { Dock, DockIcon } from '../ui/Dock';
 
 export type AppMode = 'focus' | 'home' | 'zen';
@@ -10,9 +10,9 @@ interface GlobalModeSwitcherProps {
 
 export const GlobalModeSwitcher = ({ currentMode, onModeChange }: GlobalModeSwitcherProps) => {
     const modes: { id: AppMode; label: string; icon: any }[] = [
-        { id: 'focus', label: 'Focus Timer', icon: Leaf },
-        { id: 'home', label: 'Relax', icon: Home },
-        { id: 'zen', label: 'Zen Clock', icon: Moon },
+        { id: 'focus', label: 'Focus Timer', icon: Hourglass },
+        { id: 'home', label: 'Relax', icon: CloudSun },
+        { id: 'zen', label: 'Zen Clock', icon: Leaf },
     ];
 
     return (

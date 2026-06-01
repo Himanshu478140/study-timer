@@ -19,7 +19,7 @@ export const BreakPromptModal = ({ isOpen, breakTime, onTakeBreak, onSkipBreak }
                 </div>
 
                 <h2>Session Complete!</h2>
-                <p>Great focus. Time to recharge your brain?</p>
+                <p>Time to recharge your brain?</p>
 
                 <div className="break-actions">
                     <button

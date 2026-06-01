@@ -1,15 +1,14 @@
 import { useState, useEffect } from 'react';
 import {
-    X, Layout, Clock, BarChart2, MessageSquare,
-    Sparkles, User, Plus, Minus, Info, LogOut, RefreshCw
+    X, GalleryHorizontalEnd, Clock, BarChart2, Quote, MessageSquare,
+    Sparkles, User, Plus, Minus, BadgeInfo
 } from 'lucide-react';
 import { useCloudSync } from '../../context/CloudSyncContext';
 import { StatsPanel } from './StatsPanel';
 import './dashboard.css';
 import { type WallpaperConfig } from '../wallpaper/WallpaperSelector';
 import { WallpaperGallery } from '../wallpaper/WallpaperGallery';
-import { auth, googleProvider, db } from '../../lib/firebase';
-import { signInWithPopup, signOut } from 'firebase/auth';
+import { db } from '../../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useHabits } from '../../hooks/useHabits';
 
@@ -27,6 +26,12 @@ interface DashboardProps {
         longBreak: number;
         custom: number;
         customBreak: number;
+        pomodoroBreakMode?: 'auto' | 'fixed';
+        pomodoroBreakDuration?: number;
+        flowBreakMode?: 'auto' | 'fixed';
+        flowBreakDuration?: number;
+        deepWorkBreakMode?: 'auto' | 'fixed';
+        deepWorkBreakDuration?: number;
     };
     setTimerConfig: (config: any) => void;
     features: {
@@ -35,7 +40,6 @@ interface DashboardProps {
         notifications: boolean;
         showQuoteInFullscreen: boolean;
         zenModeType: 'clock' | 'timer';
-        zenAutoFullscreen: boolean;
         zenTimeFormat: '12h' | '24h';
         homeTimeFormat: '12h' | '24h';
     };
@@ -57,6 +61,10 @@ interface DashboardProps {
     timezone: string;
     setTimezone: (tz: string) => void;
     initialTab?: DashboardTab;
+    customAvatar: string | null;
+    setCustomAvatar: (avatar: string | null) => void;
+    zenClockStyle: string;
+    setZenClockStyle: (style: string) => void;
 }
 
 export type DashboardTab = 'themes' | 'clock' | 'stats' | 'quotes' | 'account' | 'support' | 'about';
@@ -68,8 +76,12 @@ export const Dashboard = ({
     customQuotes, onAddQuote, onRemoveQuote,
     quoteFont, setQuoteFont,
     timezone, setTimezone,
-    initialTab = 'stats'
+    initialTab = 'stats',
+    customAvatar, setCustomAvatar,
+    zenClockStyle, setZenClockStyle
 }: DashboardProps) => {
+    const { user } = useCloudSync();
+    
     const TIMEZONES = [
         { id: 'auto', name: 'Automatic', subtext: 'System Default', region: 'General' },
         { id: 'UTC', name: 'UTC', subtext: 'Universal Time', region: 'General' },
@@ -109,6 +121,51 @@ export const Dashboard = ({
     const [focusError, setFocusError] = useState(false);
     const [breakError, setBreakError] = useState(false);
     const [rateLimitActive, setRateLimitActive] = useState(false);
+
+    const [activeBreakSettingMode, setActiveBreakSettingMode] = useState<'pomodoro' | 'flow' | 'deep_work'>('pomodoro');
+
+    const getBreakMode = (m: 'pomodoro' | 'flow' | 'deep_work') => {
+        if (m === 'pomodoro') return timerConfig.pomodoroBreakMode || 'auto';
+        if (m === 'flow') return timerConfig.flowBreakMode || 'auto';
+        return timerConfig.deepWorkBreakMode || 'auto';
+    };
+
+    const setBreakMode = (m: 'pomodoro' | 'flow' | 'deep_work', modeValue: 'auto' | 'fixed') => {
+        if (m === 'pomodoro') {
+            setTimerConfig({ ...timerConfig, pomodoroBreakMode: modeValue });
+        } else if (m === 'flow') {
+            setTimerConfig({ ...timerConfig, flowBreakMode: modeValue });
+        } else {
+            setTimerConfig({ ...timerConfig, deepWorkBreakMode: modeValue });
+        }
+    };
+
+    const getBreakDuration = (m: 'pomodoro' | 'flow' | 'deep_work') => {
+        if (m === 'pomodoro') return timerConfig.pomodoroBreakDuration !== undefined ? timerConfig.pomodoroBreakDuration : 5;
+        if (m === 'flow') return timerConfig.flowBreakDuration !== undefined ? timerConfig.flowBreakDuration : 17;
+        return timerConfig.deepWorkBreakDuration !== undefined ? timerConfig.deepWorkBreakDuration : 15;
+    };
+
+    const setBreakDuration = (m: 'pomodoro' | 'flow' | 'deep_work', durationValue: number) => {
+        if (m === 'pomodoro') {
+            setTimerConfig({ ...timerConfig, pomodoroBreakDuration: durationValue });
+        } else if (m === 'flow') {
+            setTimerConfig({ ...timerConfig, flowBreakDuration: durationValue });
+        } else {
+            setTimerConfig({ ...timerConfig, deepWorkBreakDuration: durationValue });
+        }
+    };
+
+    const getAutoBreakTime = (m: 'pomodoro' | 'flow' | 'deep_work') => {
+        if (m === 'pomodoro') return timerConfig.shortBreak;
+        if (m === 'flow') return 17;
+        return timerConfig.longBreak;
+    };
+
+    const isCustomPreset = (m: 'pomodoro' | 'flow' | 'deep_work') => {
+        const dur = getBreakDuration(m);
+        return dur === 5 || dur === 10 || dur === 15;
+    };
 
     // Rate limit check on mount or when support tab opens
     useEffect(() => {
@@ -152,28 +209,8 @@ export const Dashboard = ({
             setIsSubmitting(false);
         }
     };
-    const { user, syncStatus, triggerSync, lastSyncedAt } = useCloudSync();
-    const [authError, setAuthError] = useState<string | null>(null);
     const [newQuoteText, setNewQuoteText] = useState('');
     const { setDailyGoal } = useHabits();
-
-    const handleGoogleLogin = async () => {
-        setAuthError(null);
-        try {
-            await signInWithPopup(auth, googleProvider);
-        } catch (error: any) {
-            console.error("Login failed", error);
-            setAuthError(error.message);
-        }
-    };
-
-    const handleLogout = async () => {
-        try {
-            await signOut(auth);
-        } catch (error) {
-            console.error("Logout failed", error);
-        }
-    };
 
     // Close on Escape key
     useEffect(() => {
@@ -197,7 +234,7 @@ export const Dashboard = ({
                 {/* Sidebar */}
                 <div className="dashboard-sidebar">
                     <SidebarItem
-                        icon={Layout}
+                        icon={GalleryHorizontalEnd}
                         label="Themes"
                         active={activeTab === 'themes'}
                         onClick={() => setActiveTab('themes')}
@@ -205,12 +242,12 @@ export const Dashboard = ({
                     {/* Placeholder items */}
                     <SidebarItem icon={Clock} label="Clock" active={activeTab === 'clock'} onClick={() => setActiveTab('clock')} />
                     <SidebarItem icon={BarChart2} label="Stats" active={activeTab === 'stats'} onClick={() => setActiveTab('stats')} />
-                    <SidebarItem icon={MessageSquare} label="Quotes" active={activeTab === 'quotes'} onClick={() => setActiveTab('quotes')} />
-                    <SidebarItem icon={User} label="Account" active={activeTab === 'account'} onClick={() => setActiveTab('account')} hasNotification={!user} />
+                    <SidebarItem icon={Quote} label="Quotes" active={activeTab === 'quotes'} onClick={() => setActiveTab('quotes')} />
+                    <SidebarItem icon={User} label="Account" active={activeTab === 'account'} onClick={() => setActiveTab('account')} />
 
 
                     <SidebarItem
-                        icon={Info}
+                        icon={BadgeInfo}
                         label="About"
                         active={activeTab === 'about'}
                         glow={!aboutVisited}
@@ -382,6 +419,109 @@ export const Dashboard = ({
                                     </button>
                                 </div>
                             </div>
+                            <div className="setting-group" style={{ marginTop: '3rem' }}>
+                                <label>Break Duration Settings</label>
+                                <p style={{ color: 'rgba(255,255,255,0.7)', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+                                    Customize individual break durations for core focus routines.
+                                </p>
+
+                                <div className="setting-options" style={{ background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '0.6rem', width: 'fit-content', marginBottom: '1.25rem', display: 'flex' }}>
+                                    {(['pomodoro', 'flow', 'deep_work'] as const).map(m => (
+                                        <button
+                                            key={m}
+                                            type="button"
+                                            className={`setting-btn ${activeBreakSettingMode === m ? 'active' : ''}`}
+                                            onClick={() => setActiveBreakSettingMode(m)}
+                                            style={{ fontSize: '0.8rem', padding: '0.4rem 1rem', borderRadius: '0.4rem', border: 'none', background: activeBreakSettingMode === m ? 'var(--color-accent)' : 'transparent', boxShadow: activeBreakSettingMode === m ? '0 4px 12px rgba(var(--color-accent-rgb), 0.3)' : 'none' }}
+                                        >
+                                            {m === 'pomodoro' ? 'Pomodoro' : m === 'flow' ? '52/17' : 'Deep Work'}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className="feature-card" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1.25rem', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', padding: '1.25rem', borderRadius: '1.25rem' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                        {/* Option 1: Auto */}
+                                        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', cursor: 'pointer', fontSize: '0.9rem', color: 'white' }}>
+                                            <input
+                                                type="radio"
+                                                name={`break-mode-${activeBreakSettingMode}`}
+                                                checked={getBreakMode(activeBreakSettingMode) === 'auto'}
+                                                onChange={() => setBreakMode(activeBreakSettingMode, 'auto')}
+                                                style={{ accentColor: 'var(--color-accent)', marginTop: '3px' }}
+                                            />
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                                <span style={{ fontWeight: 600 }}>Auto <span style={{ color: 'var(--color-accent)', fontSize: '0.75rem', fontWeight: 600 }}>(recommended)</span></span>
+                                                <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)' }}>
+                                                    Current fixed break: {getAutoBreakTime(activeBreakSettingMode)} min
+                                                </span>
+                                            </div>
+                                        </label>
+
+                                        {/* Option 2: Fixed */}
+                                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.9rem', color: 'white' }}>
+                                            <input
+                                                type="radio"
+                                                name={`break-mode-${activeBreakSettingMode}`}
+                                                checked={getBreakMode(activeBreakSettingMode) === 'fixed'}
+                                                onChange={() => setBreakMode(activeBreakSettingMode, 'fixed')}
+                                                style={{ accentColor: 'var(--color-accent)' }}
+                                            />
+                                            <span style={{ fontWeight: 600 }}>Fixed Duration</span>
+                                        </label>
+                                    </div>
+
+                                    {/* If Fixed is selected, show duration selectors */}
+                                    {getBreakMode(activeBreakSettingMode) === 'fixed' && (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', paddingLeft: '1.5rem', borderLeft: '2px solid rgba(var(--color-accent-rgb), 0.2)', animation: 'dashboardFadeIn 0.2s ease-out' }}>
+                                            <div className="setting-options" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: 0 }}>
+                                                {[5, 10, 15].map(min => (
+                                                    <button
+                                                        key={min}
+                                                        type="button"
+                                                        className={`setting-btn ${getBreakDuration(activeBreakSettingMode) === min ? 'active' : ''}`}
+                                                        onClick={() => setBreakDuration(activeBreakSettingMode, min)}
+                                                        style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', borderRadius: '0.375rem' }}
+                                                    >
+                                                        {min} min
+                                                    </button>
+                                                ))}
+                                                
+                                                {/* Custom input */}
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.375rem', padding: '0.2rem 0.5rem' }}>
+                                                    <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>Custom:</span>
+                                                    <input
+                                                        className="no-spinner"
+                                                        type="number"
+                                                        min="1"
+                                                        max="180"
+                                                        value={isCustomPreset(activeBreakSettingMode) ? '' : getBreakDuration(activeBreakSettingMode)}
+                                                        placeholder={isCustomPreset(activeBreakSettingMode) ? '17' : getBreakDuration(activeBreakSettingMode).toString()}
+                                                        onChange={(e) => {
+                                                            const val = parseInt(e.target.value);
+                                                            if (!isNaN(val) && val > 0 && val <= 180) {
+                                                                setBreakDuration(activeBreakSettingMode, val);
+                                                            }
+                                                        }}
+                                                        style={{
+                                                            background: 'transparent',
+                                                            border: 'none',
+                                                            color: 'white',
+                                                            width: '32px',
+                                                            textAlign: 'center',
+                                                            fontSize: '0.8rem',
+                                                            fontWeight: 600,
+                                                            outline: 'none',
+                                                            padding: 0
+                                                        }}
+                                                    />
+                                                    <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>min</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
                             <div style={{ marginTop: '3rem' }}>
                                 <h3>Zen Clock</h3>
@@ -395,8 +535,8 @@ export const Dashboard = ({
                                     ].map(f => (
                                         <div
                                             key={f.id}
-                                            className={`font-preview-card ${clockFont === f.id ? 'active' : ''}`}
-                                            onClick={() => setClockFont(f.id)}
+                                            className={`font-preview-card ${zenClockStyle === f.id ? 'active' : ''}`}
+                                            onClick={() => setZenClockStyle(f.id)}
                                         >
                                             <div className={`font-sample ${f.class}`}>9:24</div>
                                             <span className="font-name">{f.name}</span>
@@ -427,16 +567,6 @@ export const Dashboard = ({
                                     </div>
                                 </div>
 
-                                <div className="feature-card" style={{ marginTop: '0.75rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '1rem' }}>
-                                    <div className="feature-info">
-                                        <h3>Auto Fullscreen</h3>
-                                        <p>Enter fullscreen automatically when Zen Mode starts.</p>
-                                    </div>
-                                    <div
-                                        className={`toggle-switch ${features.zenAutoFullscreen ? 'active' : ''}`}
-                                        onClick={() => setFeatures({ ...features, zenAutoFullscreen: !features.zenAutoFullscreen })}
-                                    ></div>
-                                </div>
 
                                 <div className="feature-card" style={{ marginTop: '0.75rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '1rem' }}>
                                     <div className="feature-info">
@@ -735,142 +865,104 @@ export const Dashboard = ({
                     {activeTab === 'account' && (
                         <div className="dashboard-section animate-fade-in" style={{ maxWidth: '500px', margin: '0 auto' }}>
                             <h2 className="flex-center" style={{ justifyContent: 'flex-start', gap: '0.5rem' }}>
-                                <User size={20} /> Account & Sync
+                                <User size={20} /> Account Settings
                             </h2>
                             <p style={{ marginBottom: '2rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>
-                                {user ? 'Your progress is being synced to the cloud.' : 'Sign in to sync your tasks, habits, and stats across devices.'}
+                                Configure your profile avatar, timezone, and regional preferences.
                             </p>
 
-                            <div className="setting-card" style={{ padding: '0', overflow: 'hidden', background: 'rgba(255,255,255,0.02)' }}>
-                                {!user ? (
-                                    <div style={{ padding: '2.5rem 2rem', textAlign: 'center' }}>
-                                        <div style={{ marginBottom: '1.5rem', opacity: 0.3 }}>
-                                            <Sparkles size={48} />
-                                        </div>
-                                        <h3 style={{ marginBottom: '0.5rem' }}>Sync Your Focus</h3>
-                                        <p style={{ fontSize: '0.85rem', opacity: 0.6, marginBottom: '2rem', lineHeight: 1.6 }}>
-                                            Enable cross-device sync and protect your data. We use a 30-day retention policy for detailed session data to keep things fast and private.
-                                        </p>
-                                        <button
-                                            className="google-signin-btn interactive-press"
-                                            onClick={handleGoogleLogin}
-                                            style={{
-                                                width: '100%',
-                                                padding: '0.75rem',
-                                                borderRadius: '0.75rem',
-                                                background: 'white',
-                                                color: '#1a1a1a',
-                                                fontWeight: 600,
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '0.75rem',
-                                                border: 'none',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/layout/google.svg" alt="" width="18" />
-                                            Sign in with Google
-                                        </button>
+                            {/* Premium Custom Avatar Selector */}
+                            <div className="setting-card" style={{ padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '1rem', marginBottom: '2rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Sparkles size={16} color="var(--color-accent)" /> Profile Avatar
+                                </h3>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+                                    <div style={{
+                                        width: 72,
+                                        height: 72,
+                                        borderRadius: '1.125rem',
+                                        background: 'rgba(0,0,0,0.4)',
+                                        border: '2px solid var(--color-accent)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        overflow: 'hidden',
+                                        position: 'relative'
+                                    }}>
+                                        {customAvatar ? (
+                                            <img src={customAvatar} alt="Avatar Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <User size={32} style={{ color: 'rgba(255,255,255,0.3)' }} />
+                                        )}
                                     </div>
-                                ) : (
-                                    <div style={{ padding: '2rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-                                            <img
-                                                src={user.photoURL || ''}
-                                                alt=""
-                                                style={{ width: 64, height: 64, borderRadius: '50%', border: '2px solid var(--color-accent)' }}
-                                            />
-                                            <div style={{ flex: 1 }}>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                                                    <h3 style={{ margin: 0 }}>{user.displayName}</h3>
-                                                    <span style={{
-                                                        fontSize: '0.65rem',
-                                                        fontWeight: 800,
-                                                        padding: '2px 8px',
-                                                        borderRadius: '1rem',
-                                                        background: 'rgba(16, 185, 129, 0.15)',
-                                                        color: '#10b981',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        gap: '4px'
-                                                    }}>
-                                                        <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} />
-                                                        SYNC ACTIVE
-                                                    </span>
-                                                </div>
-                                                <p style={{ fontSize: '0.8rem', opacity: 0.6, margin: '2px 0 0 0' }}>{user.email}</p>
-                                            </div>
+                                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: '200px' }}>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
                                             <button
-                                                className="logout-btn interactive-press"
-                                                onClick={handleLogout}
-                                                style={{ padding: '0.5rem', borderRadius: '0.5rem', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#ff6b6b' }}
-                                                title="Sign Out"
-                                            >
-                                                <LogOut size={18} />
-                                            </button>
-                                        </div>
-
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
-                                            <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '1rem' }}>
-                                                <div style={{ fontSize: '0.7rem', opacity: 0.5, textTransform: 'uppercase', fontWeight: 700, marginBottom: '4px' }}>Retention</div>
-                                                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>30 Days</div>
-                                            </div>
-                                            <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '1rem' }}>
-                                                <div style={{ fontSize: '0.7rem', opacity: 0.5, textTransform: 'uppercase', fontWeight: 700, marginBottom: '4px' }}>Status</div>
-                                                <div style={{
+                                                className="interactive-press"
+                                                onClick={() => document.getElementById('avatar-file-input')?.click()}
+                                                style={{
+                                                    padding: '0.5rem 1rem',
+                                                    borderRadius: '0.6rem',
+                                                    background: 'var(--color-accent)',
+                                                    color: 'white',
+                                                    border: 'none',
                                                     fontWeight: 600,
-                                                    fontSize: '0.9rem',
-                                                    color: syncStatus === 'error' ? '#ef4444' : (syncStatus === 'syncing' ? 'var(--color-accent)' : '#10b981')
-                                                }}>
-                                                    {syncStatus === 'syncing' ? 'Syncing...' : (syncStatus === 'error' ? 'Error' : 'Healthy')}
-                                                </div>
-                                            </div>
-                                            <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '1rem' }}>
-                                                <div style={{ fontSize: '0.7rem', opacity: 0.5, textTransform: 'uppercase', fontWeight: 700, marginBottom: '4px' }}>Updates</div>
-                                                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                                                    {lastSyncedAt ? 'Recent' : 'Real-time'}
-                                                </div>
-                                            </div>
+                                                    fontSize: '0.8rem',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                Choose Image
+                                            </button>
+                                            {customAvatar && (
+                                                <button
+                                                    className="interactive-press"
+                                                    onClick={() => setCustomAvatar(null)}
+                                                    style={{
+                                                        padding: '0.5rem 1rem',
+                                                        borderRadius: '0.6rem',
+                                                        background: 'rgba(255, 75, 75, 0.1)',
+                                                        color: '#ff4b4b',
+                                                        border: '1px solid rgba(255, 75, 75, 0.2)',
+                                                        fontWeight: 600,
+                                                        fontSize: '0.8rem',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                >
+                                                    Remove
+                                                </button>
+                                            )}
                                         </div>
-
-                                        <button
-                                            className="interactive-press"
-                                            onClick={triggerSync}
-                                            disabled={syncStatus === 'syncing'}
-                                            style={{
-                                                width: '100%',
-                                                padding: '0.75rem',
-                                                borderRadius: '0.75rem',
-                                                background: 'rgba(var(--color-accent-rgb), 0.1)',
-                                                border: '1px solid rgba(var(--color-accent-rgb), 0.2)',
-                                                color: 'var(--color-accent)',
-                                                fontWeight: 600,
-                                                fontSize: '0.85rem',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                gap: '0.5rem',
-                                                cursor: 'pointer'
+                                        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', margin: 0, lineHeight: 1.4 }}>
+                                            Upload a custom square avatar image (.png, .jpg, .webp). Max size 2MB.
+                                        </p>
+                                        <input
+                                            id="avatar-file-input"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    if (file.size > 2 * 1024 * 1024) {
+                                                        alert("Image size must be less than 2MB.");
+                                                        return;
+                                                    }
+                                                    const reader = new FileReader();
+                                                    reader.onload = (event) => {
+                                                        if (event.target?.result) {
+                                                            setCustomAvatar(event.target.result as string);
+                                                        }
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }
                                             }}
-                                        >
-                                            <RefreshCw size={16} className={syncStatus === 'syncing' ? 'animate-spin' : ''} />
-                                            {syncStatus === 'syncing' ? 'Syncing Data...' : 'Sync Now'}
-                                        </button>
+                                            style={{ display: 'none' }}
+                                        />
                                     </div>
-                                )}
-                                {authError && <p style={{ padding: '1rem', color: '#ff6b6b', background: 'rgba(255,107,107,0.1)', textAlign: 'center', margin: 0, fontSize: '0.8rem' }}>{authError}</p>}
-                            </div>
-
-                            <div className="info-box" style={{ marginTop: '2rem', padding: '1rem', borderRadius: '1rem', background: 'rgba(var(--color-accent-rgb), 0.05)', border: '1px solid rgba(var(--color-accent-rgb), 0.1)', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                                <Info size={18} color="var(--color-accent)" style={{ marginTop: '2px' }} />
-                                <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.7, lineHeight: 1.5 }}>
-                                    Your data privacy is important. Granular session logs and completed tasks are automatically removed after 30 days to keep your local and cloud storage lean.
-                                </p>
+                                </div>
                             </div>
 
                             {/* Premium Timezone Selection UI */}
-                            <div className="timezone-settings-container" style={{ marginTop: '3rem' }}>
+                            <div className="timezone-settings-container" style={{ marginTop: '1.5rem' }}>
                                 <h4 className="settings-subtitle">
                                     <Clock size={14} /> Timezone Settings
                                 </h4>
@@ -1012,14 +1104,14 @@ export const Dashboard = ({
                                     <div className="faq-card" style={{ padding: '1.2rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
                                         <div style={{ fontWeight: 800, fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--color-accent)' }}>How do I save my progress?</div>
                                         <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
-                                            Sign in with Google in the <strong>Account</strong> tab. This syncs your stats and streaks securely to the cloud.
+                                            Your stats, habits, and focus logs are automatically saved locally inside your browser's storage. No login is required.
                                         </p>
                                     </div>
 
                                     <div className="faq-card" style={{ padding: '1.2rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
                                         <div style={{ fontWeight: 800, fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--color-accent)' }}>Where are my custom quotes?</div>
                                         <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
-                                            Custom quotes are currently stored in your local browser. They are not yet synced to account, but we're working on it!
+                                            Custom quotes are securely stored in your local browser's storage.
                                         </p>
                                     </div>
                                 </div>
@@ -1047,10 +1139,25 @@ export const Dashboard = ({
                                 color: 'var(--color-accent)',
                                 border: '1px solid rgba(var(--color-accent-rgb), 0.2)'
                             }}>
-                                <Info size={32} />
+                                <BadgeInfo size={32} />
                             </div>
 
-                            <h2 style={{ marginBottom: '2rem', fontSize: '1.8rem' }}>About Study Timer</h2>
+                            <h2 style={{ marginBottom: '0.5rem', fontSize: '1.8rem' }}>About focora</h2>
+                            <div style={{
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                color: 'var(--color-accent)',
+                                background: 'rgba(var(--color-accent-rgb), 0.15)',
+                                padding: '4px 12px',
+                                borderRadius: '99px',
+                                width: 'fit-content',
+                                margin: '0 auto 2rem auto',
+                                border: '1px solid rgba(var(--color-accent-rgb), 0.25)',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em'
+                            }}>
+                                Version 2.0
+                            </div>
 
                             <div style={{
                                 background: 'rgba(255, 255, 255, 0.03)',
@@ -1065,7 +1172,7 @@ export const Dashboard = ({
                                 gap: '1.5rem'
                             }}>
                                 <p style={{ margin: 0 }}>
-                                    This is a personal study timer I built for my own deep work sessions.
+                                    This is a personal focus timer I built for my own deep work sessions.
                                 </p>
                                 <p style={{ margin: 0 }}>
                                     I’m sharing it publicly in case it helps someone else focus too.
@@ -1099,7 +1206,7 @@ export const Dashboard = ({
                                 </div>
                                 <div className="tooltip-content">
                                     <div className="social-icons">
-                                        <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("Check out this awesome Study Timer!")}&url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noopener noreferrer" className="social-icon twitter" title="Share on Twitter">
+                                        <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("Check out this awesome focus app, focora!")}&url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noopener noreferrer" className="social-icon twitter" title="Share on Twitter">
                                             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
                                                 <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
                                             </svg>
@@ -1120,7 +1227,7 @@ export const Dashboard = ({
 
                             <div style={{ marginTop: '3rem', opacity: 0.5, lineHeight: 1.4 }}>
                                 <div style={{ fontWeight: 900, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
-                                    Study Timer ·
+                                    focora ·
                                 </div>
                                 <div style={{ fontWeight: 900, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.8 }}>
                                     Crafted by Himanshu

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
     Image as ImageIcon, Plus, Star, Youtube, X,
-    Circle, Palette, Sparkles, Mountain, Coffee,
-    Layers, Video
+    Circle, Palette, Sparkles, Mountain,
+    Layers, Video, Home, Tv, Moon, Wind
 } from 'lucide-react';
 import { WALLPAPERS, type WallpaperConfig, type WallpaperCategory } from './WallpaperSelector';
 import { estimateBase64Size, hasEnoughSpace, formatBytes, getLocalStorageSize } from '../../utils/storageUtils';
@@ -24,16 +24,19 @@ interface WallpaperGalleryProps {
    Helpers
    ────────────────────────────────────────── */
 const CATEGORY_META: Record<WallpaperCategory, { icon: any; label: string }> = {
-    'Solid Colour': { icon: Circle,   label: 'Solid Colours' },
-    'Aura':         { icon: Sparkles, label: 'Aura' },
-    'Motion':       { icon: Layers,   label: 'Motion' },
-    'Scenery':      { icon: Mountain, label: 'Scenery' },
-    'Vibe':         { icon: Coffee,   label: 'Vibe' },
-    'Custom':       { icon: Palette,  label: 'Custom' },
+    'Solid Colour':   { icon: Circle,   label: 'Solid Colours' },
+    'Scenery':        { icon: Mountain, label: 'Scenery' },
+    'Cozy Spaces':    { icon: Home,     label: 'Cozy Spaces' },
+    'Anime & Cyber':  { icon: Tv,       label: 'Anime & Cyber' },
+    'Celestial':      { icon: Moon,     label: 'Celestial' },
+    'Abstract Flow':  { icon: Wind,     label: 'Abstract Flow' },
+    'Aura':           { icon: Sparkles, label: 'Aura' },
+    'Motion':         { icon: Layers,   label: 'Motion' },
+    'Custom':         { icon: Palette,  label: 'Custom' },
 };
 
 const CATEGORY_ORDER: WallpaperCategory[] = [
-    'Solid Colour', 'Scenery', 'Vibe', 'Aura', 'Motion', 'Custom'
+    'Solid Colour', 'Scenery', 'Cozy Spaces', 'Anime & Cyber', 'Celestial', 'Abstract Flow', 'Aura', 'Motion', 'Custom'
 ];
 
 const TONE_COLORS: Record<Exclude<ToneFilter, 'all'>, string> = {
@@ -142,27 +145,36 @@ export const WallpaperGallery = ({ currentId, wallpaper, onSelect }: WallpaperGa
     /* ── YouTube ── */
     const [youtubeUrl, setYoutubeUrl] = useState('');
 
-    const allWallpapers = [...WALLPAPERS, ...customWallpapers];
+    const allWallpapers = useMemo(() => [...WALLPAPERS, ...customWallpapers], [customWallpapers]);
 
-    /* ── Filter logic ── */
-    const passesFilter = (wp: WallpaperConfig): boolean => {
-        // Type filter
-        if (typeFilter === 'static' && isAnimated(wp)) return false;
-        if (typeFilter === 'animated' && !isAnimated(wp)) return false;
-        // Tone filter
-        if (toneFilter !== 'all' && !getTone(wp).includes(toneFilter)) return false;
-        return true;
-    };
+    /* ── Filter logic & Grouping (Memoized) ── */
+    const grouped = useMemo(() => {
+        const passesFilter = (wp: WallpaperConfig): boolean => {
+            // Type filter
+            if (typeFilter === 'static' && isAnimated(wp)) return false;
+            if (typeFilter === 'animated' && !isAnimated(wp)) return false;
+            // Tone filter
+            if (toneFilter !== 'all' && !getTone(wp).includes(toneFilter)) return false;
+            return true;
+        };
 
-    /* ── Group by category ── */
-    const grouped = CATEGORY_ORDER.reduce((acc, cat) => {
-        const items = allWallpapers.filter(wp => wp.category === cat && passesFilter(wp));
-        if (items.length > 0 || cat === 'Custom') acc[cat] = items;
-        return acc;
-    }, {} as Record<WallpaperCategory, WallpaperConfig[]>);
+        return CATEGORY_ORDER.reduce((acc, cat) => {
+            const items = allWallpapers.filter(wp => wp.category === cat && passesFilter(wp));
+            if (items.length > 0 || cat === 'Custom') acc[cat] = items;
+            return acc;
+        }, {} as Record<WallpaperCategory, WallpaperConfig[]>);
+    }, [allWallpapers, typeFilter, toneFilter]);
 
-    /* ── Favorites row ── */
-    const favWallpapers = allWallpapers.filter(wp => favorites.includes(wp.id) && passesFilter(wp));
+    /* ── Favorites row (Memoized) ── */
+    const favWallpapers = useMemo(() => {
+        const passesFilter = (wp: WallpaperConfig): boolean => {
+            if (typeFilter === 'static' && isAnimated(wp)) return false;
+            if (typeFilter === 'animated' && !isAnimated(wp)) return false;
+            if (toneFilter !== 'all' && !getTone(wp).includes(toneFilter)) return false;
+            return true;
+        };
+        return allWallpapers.filter(wp => favorites.includes(wp.id) && passesFilter(wp));
+    }, [allWallpapers, favorites, typeFilter, toneFilter]);
 
     /* ── Upload handlers ── */
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -311,7 +323,7 @@ export const WallpaperGallery = ({ currentId, wallpaper, onSelect }: WallpaperGa
         localStorage.setItem('custom-wallpapers-list', JSON.stringify(newList));
     };
 
-    const getHeroBg = () => {
+    const heroBg = useMemo(() => {
         if (wallpaper.type === 'solid') {
             return { kind: 'solid' as const, value: wallpaper.value };
         }
@@ -343,9 +355,7 @@ export const WallpaperGallery = ({ currentId, wallpaper, onSelect }: WallpaperGa
         // video / youtube
         const src = wallpaper.thumbnail || '';
         return { kind: 'image' as const, value: src };
-    };
-
-    const heroBg = getHeroBg();
+    }, [wallpaper]);
 
     /* ── Render a single thumbnail card ── */
     const renderThumb = (wp: WallpaperConfig) => {

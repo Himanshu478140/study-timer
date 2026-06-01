@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { FlipClock } from '../timer/FlipClock';
 import { SimpleFlip } from '../timer/SimpleFlip';
-import { Maximize, Minimize } from 'lucide-react';
+import { Maximize, Minimize, Play, Pause } from 'lucide-react';
 
 interface ZenModeProps {
     clockFont?: string;
@@ -11,10 +11,8 @@ interface ZenModeProps {
     onStart?: () => void;
     onPause?: () => void;
     onReset?: () => void;
-    onEnterFullscreen?: () => void;
     onToggleFullscreen?: () => void;
     isFullscreen?: boolean;
-    autoFullscreen?: boolean;
     timeFormat?: '12h' | '24h';
     modeName?: string;
 }
@@ -22,13 +20,24 @@ interface ZenModeProps {
 export const ZenMode = ({
     clockFont, zenModeType = 'clock',
     timeLeft = 0, status = 'idle', onStart, onPause, onReset,
-    onEnterFullscreen, onToggleFullscreen, isFullscreen, autoFullscreen,
+    onToggleFullscreen, isFullscreen,
     timeFormat = '24h', modeName
 }: ZenModeProps) => {
     const [time, setTime] = useState(new Date());
     const [showExit, setShowExit] = useState(false);
     const [isPortrait, setIsPortrait] = useState(false);
     const [scale, setScale] = useState(1);
+    const [isFocused, setIsFocused] = useState(false);
+    const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        setPrefersReducedMotion(mediaQuery.matches);
+        
+        const listener = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+        mediaQuery.addEventListener('change', listener);
+        return () => mediaQuery.removeEventListener('change', listener);
+    }, []);
 
     const updateLayout = useCallback(() => {
         const vw = window.innerWidth;
@@ -54,11 +63,6 @@ export const ZenMode = ({
         return () => window.removeEventListener('resize', updateLayout);
     }, [updateLayout]);
 
-    useEffect(() => {
-        if (autoFullscreen) {
-            onEnterFullscreen?.();
-        }
-    }, [onEnterFullscreen, autoFullscreen]);
 
     useEffect(() => {
         const timer = setInterval(() => setTime(new Date()), 1000);
@@ -88,22 +92,26 @@ export const ZenMode = ({
                 cursor: (showExit || status === 'completed') ? 'auto' : 'none',
                 userSelect: 'none'
             }}
-            onClick={() => {
-                if (zenModeType === 'timer' && status !== 'completed') {
-                    if (status === 'running') onPause?.();
-                    else onStart?.();
-                }
-            }}
             onMouseMove={() => setShowExit(true)}
             onMouseLeave={() => setShowExit(false)}
         >
-            <div style={{
-                transform: `scale(${scale})`,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                position: 'relative',
-            }}>
+            <div
+                onClick={(e) => {
+                    e.stopPropagation();
+                    if (zenModeType === 'timer' && status !== 'completed') {
+                        if (status === 'running') onPause?.();
+                        else onStart?.();
+                    }
+                }}
+                style={{
+                    transform: `scale(${scale})`,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    position: 'relative',
+                    cursor: zenModeType === 'timer' ? 'pointer' : 'default'
+                }}
+            >
                 {clockFont === 'simple-flip' ? (
                     <SimpleFlip value1={val1} value2={val2} vertical={isPortrait} />
                 ) : (
@@ -140,7 +148,7 @@ export const ZenMode = ({
                 alignItems: 'center',
                 gap: '0.5rem',
                 opacity: showExit ? 1 : 0,
-                transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+                transition: prefersReducedMotion ? 'none' : 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
                 pointerEvents: showExit ? 'auto' : 'none',
                 textAlign: 'center'
             }}>
@@ -156,16 +164,69 @@ export const ZenMode = ({
                         {modeName}
                     </div>
                 )}
-                <div style={{
-                    color: 'rgba(255,255,255,0.8)',
-                    fontSize: '1rem',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.2em',
-                    opacity: 0.6
-                }}>
-                    {status === 'running' ? 'Focusing...' : (status === 'completed' ? 'Session Complete' : 'Paused')}
-                </div>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (zenModeType === 'timer' && status !== 'completed') {
+                            if (status === 'running') onPause?.();
+                            else onStart?.();
+                        }
+                    }}
+                    style={{
+                        background: 'transparent',
+                        border: isFocused ? '1px solid rgba(255, 255, 255, 0.25)' : '1px solid transparent',
+                        color: 'rgba(255,255,255,0.8)',
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.2em',
+                        opacity: 0.6,
+                        cursor: zenModeType === 'timer' ? 'pointer' : 'default',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '0.5rem',
+                        transition: prefersReducedMotion ? 'none' : 'all 0.2s ease',
+                        outline: 'none',
+                        boxShadow: 'none'
+                    }}
+                    onMouseEnter={(e) => {
+                        if (zenModeType === 'timer' && status !== 'completed') {
+                            e.currentTarget.style.opacity = '1';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                        }
+                    }}
+                    onMouseLeave={(e) => {
+                        if (zenModeType === 'timer' && status !== 'completed') {
+                            e.currentTarget.style.opacity = '0.6';
+                            e.currentTarget.style.background = 'transparent';
+                        }
+                    }}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    role="button"
+                    tabIndex={zenModeType === 'timer' ? 0 : -1}
+                    aria-label={status === 'running' ? 'Pause Timer' : 'Start Timer'}
+                >
+                    {zenModeType === 'timer' ? (
+                        status === 'running' ? (
+                            <>
+                                <Pause size={14} fill="currentColor" />
+                                Pause
+                            </>
+                        ) : status === 'completed' ? (
+                            'Session Complete'
+                        ) : (
+                            <>
+                                <Play size={14} fill="currentColor" style={{ marginLeft: '1px' }} />
+                                Play
+                            </>
+                        )
+                    ) : (
+                        status === 'running' ? 'Focusing...' : (status === 'completed' ? 'Session Complete' : 'Paused')
+                    )}
+                </button>
             </div>
 
             {/* Toolbar Top Right */}

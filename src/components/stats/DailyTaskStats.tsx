@@ -20,15 +20,18 @@ export const DailyTaskStats = () => {
     sevenDaysAgo.setHours(0, 0, 0, 0);
 
     const completedWeekly = allTasks.filter((t: any) => {
-        if (!t.completed || !t.completedAt) return false;
-        const completedDate = new Date(t.completedAt);
+        if (!t.completed) return false;
+        const completedDate = t.completedAt ? new Date(t.completedAt) : new Date();
         return completedDate >= sevenDaysAgo;
-    }).sort((a: any, b: any) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())
-        .map((t: any) => ({
-            text: t.text,
-            timeSpent: t.timeSpent || 0,
-            date: new Date(t.completedAt)
-        }));
+    }).sort((a: any, b: any) => {
+        const aTime = a.completedAt ? new Date(a.completedAt).getTime() : 0;
+        const bTime = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+        return bTime - aTime;
+    }).map((t: any) => ({
+        text: t.text,
+        timeSpent: t.timeSpent || 0,
+        date: t.completedAt ? new Date(t.completedAt) : new Date()
+    }));
 
     return (
         <div className="daily-task-stats-block" style={{ marginTop: '2rem' }}>

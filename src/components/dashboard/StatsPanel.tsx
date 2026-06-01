@@ -14,15 +14,12 @@ interface StatsPanelProps {
 import { FocusScorePanel } from '../stats/FocusScorePanel';
 import { StreakCard } from '../stats/StreakCard';
 import { ConsistencyHeatmap } from '../stats/ConsistencyHeatmap';
-import { WeeklyTrendChart } from '../stats/WeeklyTrendChart';
-import { MonthlyTrendChart } from '../stats/MonthlyTrendChart';
+import { InteractiveFocusChart } from '../stats/InteractiveFocusChart';
 import { Minus, Plus } from 'lucide-react';
-import { useState } from 'react';
 import { DailyTaskStats } from '../stats/DailyTaskStats';
 import { LevelDisplay } from '../stats/LevelDisplay';
 
 export const StatsPanel = ({ stats: _userStats, focusStats, setDailyGoal }: StatsPanelProps) => {
-    const [activeSubTab, setActiveSubTab] = useState<'overview' | 'history'>('overview');
 
     return (
         <div style={{ paddingBottom: '2rem' }}>
@@ -81,30 +78,9 @@ export const StatsPanel = ({ stats: _userStats, focusStats, setDailyGoal }: Stat
             {/* Consistency Heatmap */}
             <ConsistencyHeatmap history={focusStats.history} />
 
-            {/* Filters Row */}
-            <div className="stat-filters" style={{ marginTop: '1.5rem' }}>
-                <button
-                    className={`stat-filter-btn ${activeSubTab === 'overview' ? 'active' : ''}`}
-                    onClick={() => setActiveSubTab('overview')}
-                >
-                    Overview
-                </button>
-                <button
-                    className={`stat-filter-btn ${activeSubTab === 'history' ? 'active' : ''}`}
-                    onClick={() => setActiveSubTab('history')}
-                >
-                    History
-                </button>
-            </div>
-
-
-            {/* Conditional Chart Rendering */}
-            <div style={{ marginTop: '1rem', animation: 'fadeIn 0.3s ease-out' }}>
-                {activeSubTab === 'overview' ? (
-                    <WeeklyTrendChart history={focusStats.history} />
-                ) : (
-                    <MonthlyTrendChart history={focusStats.history} />
-                )}
+            {/* Premium Stacked Area Focus Chart */}
+            <div style={{ marginTop: '1.5rem', animation: 'fadeIn 0.3s ease-out' }}>
+                <InteractiveFocusChart history={focusStats.history} />
             </div>
 
             {/* NEW Independent Block: Daily Tasks */}

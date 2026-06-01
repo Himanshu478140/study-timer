@@ -1,28 +1,30 @@
 .simple-flip-clock {
     display: flex;
+    gap: 0.75rem;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    perspective: 1000px;
     font-family: var(--font-mono, monospace);
 }
 
 .simple-flip-group {
     display: flex;
-    gap: 0.2rem;
+    gap: 0.4rem;
 }
 
 .simple-flip-digit {
     position: relative;
-    width: 0.8em;
-    height: 1.2em;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 4px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 4rem;
+    width: 120px;
+    height: 160px;
+    background-color: #1a1a1a;
+    border-radius: 12px;
+    font-size: 110px;
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 160px;
+    text-align: center;
+    color: #e0e0e0;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
 }
 
 .digit-container {
@@ -49,9 +51,12 @@
 }
 
 .simple-flip-separator {
-    font-size: 3rem;
+    font-size: 4rem;
     font-weight: 700;
-    opacity: 0.5;
+    color: var(--color-text-primary);
+    line-height: 1;
+    margin-top: -0.5rem;
+    opacity: 0.8;
 }
 
 @keyframes slide-up {
@@ -67,18 +72,29 @@
 /* Media Queries for sizing */
 @media (max-width: 768px) {
     .simple-flip-digit {
-        font-size: 2.5rem;
+        width: 80px;
+        height: 110px;
+        font-size: 70px;
+        line-height: 110px;
+        border-radius: 8px;
+    }
+
+    .simple-flip-clock {
+        gap: 0.5rem;
     }
 
     .simple-flip-separator {
-        font-size: 2rem;
+        font-size: 3rem;
     }
 }
 
 @media (min-width: 1200px) {
     .timer-display.fullscreen .simple-flip-digit {
-        font-size: 12vw;
-        border-radius: 12px;
+        width: 18vw;
+        height: 24vw;
+        font-size: 16vw;
+        line-height: 24vw;
+        border-radius: 1.2vw;
     }
 }
 

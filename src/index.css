@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Bebas+Neue&family=Caveat:wght@400;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Quicksand:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Bebas+Neue&family=Caveat:wght@400;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Quicksand:wght@300;400;700&display=swap');
 
 .brand-logo-text {
   font-size: 0.85rem;
@@ -117,6 +117,7 @@ html {
   font-family: var(--font-family);
   font-size: 16px;
   scroll-behavior: smooth;
+  scrollbar-width: none;
 }
 
 body {
@@ -131,6 +132,11 @@ body {
     color var(--transition-theme),
     background-color var(--transition-theme);
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* --- Custom Scrollbar --- */
+::-webkit-scrollbar {
+  display: none;
 }
 
 button {

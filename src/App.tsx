@@ -14,22 +14,18 @@ import { useCloudSync } from './context/CloudSyncContext';
 
 import { TimerDisplay } from './components/timer/TimerDisplay';
 import { TimerControls } from './components/timer/TimerControls';
-
 import { MiniTimer } from './components/timer/MiniTimer';
 import { type FocusMode } from './components/modes/ModeSelector';
 import { WallpaperSelector, WALLPAPERS, type WallpaperConfig } from './components/wallpaper/WallpaperSelector';
 import { WallpaperLayer } from './components/layout/WallpaperLayer';
-// import { FocusContainer } from './components/layout/FocusContainer'; // OLD LAYOUT
 import { AudioPanel } from './components/audio/AudioPanel';
-// import { SideWidgets } from './components/widgets/SideWidgets'; // OLD LAYOUT
-// import { RightWidgets } from './components/widgets/RightWidgets'; // OLD LAYOUT
 import { HomeView } from './components/home/HomeView';
 import { ZenMode } from './components/zen/ZenMode';
 import { type AppMode } from './components/layout/GlobalModeSwitcher';
 import { WeatherWidget } from './components/widgets/WeatherWidget';
 
 import { Dashboard } from './components/dashboard/Dashboard';
-import { Trophy, Zap, PictureInPicture2, Maximize, Minimize, User as UserIcon, Leaf, Home as HomeIcon, Sparkles, X, Brain, Clock, Coffee, Sliders, Pencil } from 'lucide-react';
+import { Trophy, Zap, PictureInPicture2, Maximize, Minimize, User as UserIcon, Leaf, X, Brain, Clock, Coffee, Sliders, Pencil, Settings, Hourglass, CloudSun } from 'lucide-react';
 import { Dock, DockIcon } from './components/ui/Dock';
 import { VerticalDockPanel } from './components/ui/VerticalDockPanel';
 import { StitchMenu } from './components/ui/StitchMenu';
@@ -84,6 +80,17 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
   const [isWallpaperOpen, setIsWallpaperOpen] = useState(false);
   const [isNotepadOpen, setIsNotepadOpen] = useState(false);
   const [dashboardTab, setDashboardTab] = useState<DashboardTab>('stats');
+  const [customAvatar, setCustomAvatar] = useState<string | null>(() => {
+    return localStorage.getItem('custom-avatar');
+  });
+
+  useEffect(() => {
+    if (customAvatar) {
+      localStorage.setItem('custom-avatar', customAvatar);
+    } else {
+      localStorage.removeItem('custom-avatar');
+    }
+  }, [customAvatar]);
   const graphIconRef = useRef<HTMLDivElement>(null);
   const habitIconRef = useRef<HTMLDivElement>(null);
   const calendarIconRef = useRef<HTMLDivElement>(null);
@@ -124,7 +131,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
         const panelHeight = notepadRef.current ? notepadRef.current.offsetHeight : 340;
         const viewportHeight = window.innerHeight;
         const margin = 20;
-        
+
         // 1. Calculate the max allowable unscaled height to fit inside the viewport visually
         const maxUnscaledHeight = (viewportHeight - 2 * margin) / scale;
         const maxH = Math.max(200, maxUnscaledHeight);
@@ -141,7 +148,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
         const maxTop = viewportHeight - currentHeight - offsetY - margin;
 
         const finalTop = Math.max(minTop, Math.min(maxTop, idealTop));
-        
+
         setNotepadYPos(`${finalTop}px`);
         setNotepadMaxHeight(`${maxH}px`);
         setIsNotepadPositioned(true);
@@ -151,14 +158,14 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
     if (isNotepadOpen) {
       updatePosition();
       window.addEventListener('resize', updatePosition);
-      
+
       const observer = new ResizeObserver(() => {
         requestAnimationFrame(updatePosition);
       });
       if (notepadRef.current) {
         observer.observe(notepadRef.current);
       }
-      
+
       return () => {
         window.removeEventListener('resize', updatePosition);
         observer.disconnect();
@@ -174,7 +181,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
     const handleClickOutside = (e: MouseEvent) => {
       const isOutsideNotepad = notepadRef.current && !notepadRef.current.contains(e.target as Node);
       const isNotNotepadTrigger = notepadIconRef.current && !notepadIconRef.current.contains(e.target as Node);
-      
+
       if (isOutsideNotepad && isNotNotepadTrigger) {
         setIsNotepadOpen(false);
       }
@@ -184,7 +191,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
   }, [isNotepadOpen]);
 
   // Task context for vertical strip
-  const { tasks, activeTaskId } = useFocusTask();
+  const { tasks, activeTaskId, addTaskTime } = useFocusTask();
 
   const { setThemeFromWallpaper, toggleTheme, themeMode } = useTheme(); // Destructure toggleTheme and themeMode
   const { level, xp, awardXP, notification } = useGamification();
@@ -193,7 +200,21 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
   const [appMode, setAppMode] = useState<AppMode>('focus');
 
   // --- NEW STATES FOR DASHBOARD CONFIG ---
-  const [clockFont, setClockFont] = useState('default');
+  const [clockFont, setClockFont] = useState(() => {
+    return localStorage.getItem('saved-clock-font') || 'default';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('saved-clock-font', clockFont);
+  }, [clockFont]);
+
+  const [zenClockStyle, setZenClockStyle] = useState(() => {
+    return localStorage.getItem('saved-zen-clock-style') || 'flip';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('saved-zen-clock-style', zenClockStyle);
+  }, [zenClockStyle]);
   const [timerConfig, setTimerConfig] = useState({
     pomodoro: 25,
     flow: 52,
@@ -201,7 +222,13 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
     shortBreak: 5,
     longBreak: 15,
     custom: 15,
-    customBreak: 5
+    customBreak: 5,
+    pomodoroBreakMode: 'auto' as 'auto' | 'fixed',
+    pomodoroBreakDuration: 5,
+    flowBreakMode: 'auto' as 'auto' | 'fixed',
+    flowBreakDuration: 17,
+    deepWorkBreakMode: 'auto' as 'auto' | 'fixed',
+    deepWorkBreakDuration: 15
   });
   const [features, setFeatures] = useState({
     ambientMode: false,
@@ -209,7 +236,6 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
     notifications: true,
     showQuoteInFullscreen: true,
     zenModeType: 'clock' as 'clock' | 'timer',
-    zenAutoFullscreen: false,
     zenTimeFormat: '24h' as '12h' | '24h',
     homeTimeFormat: '24h' as '12h' | '24h'
   });
@@ -386,6 +412,26 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
     }
   };
 
+  const getBreakTime = (m: string) => {
+    if (m === 'custom') return timerConfig.customBreak;
+    if (m === 'pomodoro') {
+      return (timerConfig.pomodoroBreakMode || 'auto') === 'auto'
+        ? timerConfig.shortBreak
+        : (timerConfig.pomodoroBreakDuration || 5);
+    }
+    if (m === 'flow') {
+      return (timerConfig.flowBreakMode || 'auto') === 'auto'
+        ? 17
+        : (timerConfig.flowBreakDuration || 17);
+    }
+    if (m === 'deep_work') {
+      return (timerConfig.deepWorkBreakMode || 'auto') === 'auto'
+        ? timerConfig.longBreak
+        : (timerConfig.deepWorkBreakDuration || 15);
+    }
+    return timerConfig.shortBreak;
+  };
+
   const lastCompletionTime = useRef<number>(0);
 
   const { timeLeft, status, start, pause, reset, setTimeLeft, setTimerStatus } = useTimer({
@@ -440,8 +486,12 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
 
       recordSession(mode, true, duration, false, undefined, tags);
 
+      if (activeTaskId) {
+        addTaskTime(activeTaskId, duration * 60 * 1000);
+      }
+
       // Break Prompt
-      const breakTime = mode === 'custom' ? timerConfig.customBreak : mode === 'pomodoro' ? timerConfig.shortBreak : mode === 'flow' ? 17 : timerConfig.longBreak;
+      const breakTime = getBreakTime(mode);
       setBreakPrompt({ show: true, duration: breakTime });
     }
   });
@@ -452,7 +502,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
       setPendingSession(null);
 
       // Auto-suggest break after save
-      const breakTime = pendingSession.mode === 'pomodoro' ? 5 : pendingSession.mode === 'flow' ? 17 : 20;
+      const breakTime = getBreakTime(pendingSession.mode);
       setBreakPrompt({ show: true, duration: breakTime });
     }
     setShowQualityModal(false);
@@ -519,14 +569,6 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
 
       <WallpaperLayer config={wallpaper} />
 
-
-
-      {/* OLD LAYOUT: Branding credit was here. Now in stitch-header. See git history to restore. */}
-
-      {/* OLD LAYOUT: SideWidgets was here. See git history to restore. */}
-
-      {/* OLD LAYOUT: RightWidgets was here. See git history to restore. */}
-
       {/* Dashboard Overlay */}
       {isDashboardOpen && (
         <Dashboard
@@ -554,6 +596,10 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
           timezone={timezone}
           setTimezone={setTimezone}
           initialTab={dashboardTab}
+          customAvatar={customAvatar}
+          setCustomAvatar={setCustomAvatar}
+          zenClockStyle={zenClockStyle}
+          setZenClockStyle={setZenClockStyle}
         />
       )}
 
@@ -632,14 +678,31 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
             gap: '1rem',
             zIndex: 50
           }}>
-            <span className="brand-logo-text" style={{
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.12em',
-              color: 'var(--color-text-secondary)',
-              opacity: appMode === 'zen' ? 0 : 0.7,
+            <div className="brand-logo-text" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.15rem',
+              alignItems: 'flex-end',
+              opacity: appMode === 'zen' ? 0 : 0.95,
               transition: 'opacity 0.5s ease',
-            }}>Study Timer</span>
+            }}>
+              <span style={{
+                fontFamily: "'Outfit', sans-serif",
+                fontWeight: 700,
+                fontSize: '2.45rem',
+                letterSpacing: '0.01em',
+                color: '#ffffff',
+                lineHeight: 1.1
+              }}>focora</span>
+              <span style={{
+                fontFamily: "'Outfit', sans-serif",
+                fontWeight: 500,
+                fontSize: '0.625rem',
+                letterSpacing: '0.05em',
+                color: 'rgba(255, 255, 255, 0.45)',
+                lineHeight: 1.1
+              }}>by HIMANSHU</span>
+            </div>
 
             {appMode === 'home' && (
               <WeatherWidget />
@@ -654,17 +717,15 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
       <main className="focus-content">
         {appMode === 'zen' && (
           <ZenMode
-            clockFont={clockFont}
+            clockFont={zenClockStyle}
             zenModeType={features.zenModeType}
             timeLeft={timeLeft}
             status={status}
             onStart={handleStart}
             onPause={pause}
             onReset={reset}
-            onEnterFullscreen={enterFullscreen}
             onToggleFullscreen={handleToggleFullscreen}
             isFullscreen={isFullscreen}
-            autoFullscreen={features.zenAutoFullscreen}
             timeFormat={features.zenTimeFormat}
             modeName={isBreak ? "• Taking Break" : "• " + (tasks.find(t => t.id === activeTaskId)?.text || 'Ready to Focus?')}
           />
@@ -683,11 +744,11 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
             <HomeView clockFont={clockFont} timeFormat={features.homeTimeFormat} />
           ) : appMode === 'zen' ? null : (
             <section className="stitch-timer-section">
-              <div 
-                style={{ 
+              <div
+                style={{
                   display: isFocusActive ? 'none' : 'flex',
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   gap: '12px',
                   opacity: isFocusActive ? 0 : 1,
                   transition: 'opacity 0.3s',
@@ -781,9 +842,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
                   onPause={() => { pause(); }}
                   onReset={handleReset}
                   onBreak={() => {
-                    setTimeLeft(5 * 60);
-                    setIsBreak(true);
-                    handleStart();
+                    setBreakPrompt({ show: true, duration: getBreakTime(mode) });
                   }}
                   allowReset
                 />
@@ -868,7 +927,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
                   isActive={appMode === 'focus'}
                   onClick={() => handleAppModeChange('focus')}
                 >
-                  <Leaf size={20} />
+                  <Hourglass size={20} />
                 </DockIcon>
 
                 <DockIcon
@@ -877,7 +936,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
                   isActive={appMode === 'home'}
                   onClick={() => handleAppModeChange('home')}
                 >
-                  <HomeIcon size={20} />
+                  <CloudSun size={20} />
                 </DockIcon>
 
                 <DockIcon
@@ -886,7 +945,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
                   isActive={appMode === 'zen'}
                   onClick={() => handleAppModeChange('zen')}
                 >
-                  <Sparkles size={20} />
+                  <Leaf size={20} />
                 </DockIcon>
               </>
             )}
@@ -1014,7 +1073,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
 
           {/* Avatar Button — always visible, toggles right-side Control Center panel */}
           <div
-            ref={avatarRef}
+            ref={appMode === 'zen' ? null : avatarRef}
             className={`vdock-avatar ${isDockExpanded ? 'expanded' : ''}`}
             onClick={() => setIsDockExpanded(!isDockExpanded)}
             role="button"
@@ -1022,14 +1081,8 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
             aria-label={isDockExpanded ? 'Close Control Center' : 'Open Control Center'}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsDockExpanded(!isDockExpanded); } }}
           >
-            {user ? (
-              user.photoURL ? (
-                <img src={user.photoURL} alt={user.displayName || 'User'} />
-              ) : (
-                <div className="user-avatar-placeholder">
-                  {(user.displayName?.[0] || user.email?.[0] || '?').toUpperCase()}
-                </div>
-              )
+            {customAvatar ? (
+              <img src={customAvatar} alt="User Avatar" />
             ) : (
               <UserIcon size={16} style={{ color: 'rgba(255,255,255,0.5)' }} />
             )}
@@ -1037,6 +1090,48 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
           </div>
         </div>
       </div>
+
+      {/* Zen Mode Minimal Settings Trigger */}
+      {appMode === 'zen' && (
+        <div
+          ref={appMode === 'zen' ? avatarRef : null}
+          onClick={(e) => { e.stopPropagation(); setIsDockExpanded(!isDockExpanded); }}
+          style={{
+            position: 'fixed',
+            top: '2rem',
+            left: '2rem',
+            width: '2.5rem',
+            height: '2.5rem',
+            borderRadius: '50%',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            zIndex: 10000,
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            opacity: 0.35,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = '0.9';
+            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+            e.currentTarget.style.transform = 'scale(1.08)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = '0.35';
+            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+            e.currentTarget.style.transform = 'none';
+          }}
+          className="interactive-press zen-settings-btn"
+          role="button"
+          tabIndex={0}
+          aria-label="Toggle Control Center"
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsDockExpanded(!isDockExpanded); } }}
+        >
+          <Settings size={16} style={{ color: 'rgba(255,255,255,0.6)' }} />
+        </div>
+      )}
 
       <StitchMenu
         isOpen={isStitchMenuOpen}
@@ -1134,7 +1229,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
         mode={mode}
         completedSessionsToday={completedSessionsToday}
         notes={notes}
-        onOpenDashboard={() => { setDashboardTab('themes'); setIsDashboardOpen(true); }}
+        onOpenDashboard={() => { setDashboardTab('clock'); setIsDashboardOpen(true); }}
         onToggleGraph={() => setIsGraphPanelOpen(!isGraphPanelOpen)}
         onToggleSounds={() => setIsAudioPanelOpen(!isAudioPanelOpen)}
         onToggleNotepad={() => setIsNotepadOpen(!isNotepadOpen)}

@@ -24,7 +24,6 @@ export type AmbientSound =
     // Binaural Beats
     | 'binaural_alpha'
     | 'binaural_theta'
-    | 'binaural_delta'
     | 'binaural_gamma'
     | 'binaural_beta';
 
@@ -68,7 +67,6 @@ const SOUND_URLS = {
     // Binaural Beats
     binaural_alpha: '/audio/binaural_alpha.mp3',
     binaural_theta: '/audio/binaural_theta.mp3',
-    binaural_delta: '/audio/binaural_delta.mp3',
     binaural_gamma: '/audio/binaural_gamma.mp3',
     binaural_beta: '/audio/binaural_beta.mp3'
 };

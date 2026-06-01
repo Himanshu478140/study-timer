@@ -156,7 +156,6 @@ export const AudioPanel = ({
         // Binaural
         { id: 'binaural_alpha', label: 'Alpha (Relax)', icon: Brain, category: 'Binaural' },
         { id: 'binaural_theta', label: 'Theta (Meditate)', icon: Brain, category: 'Binaural' },
-        { id: 'binaural_delta', label: 'Delta (Sleep)', icon: Brain, category: 'Binaural' },
         { id: 'binaural_gamma', label: 'Gamma (Focus)', icon: Brain, category: 'Binaural' },
         { id: 'binaural_beta', label: 'Beta (Alert)', icon: Brain, category: 'Binaural' }
     ];

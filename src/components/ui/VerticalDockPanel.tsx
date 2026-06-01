@@ -2,9 +2,10 @@ import React, { useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    LayoutGrid, Timer as TimerIcon, BarChart3, Music,
-    StickyNote, Calendar as CalendarIcon, Target, ListTodo
+    Settings, Timer as TimerIcon, ChartArea, AudioLines,
+    NotepadText, CalendarDays as CalendarIcon, CircleCheckBig, ListTodo
 } from 'lucide-react';
+
 
 interface VerticalDockPanelProps {
     isOpen: boolean;
@@ -107,14 +108,15 @@ export const VerticalDockPanel = ({
             const isOutsidePanel = panelRef.current && !panelRef.current.contains(e.target as Node);
             const isNotTrigger = triggerRef?.current && !triggerRef.current.contains(e.target as Node);
             
-            // Do not close if clicking inside any floating selector panels
+            // Do not close if clicking inside any floating selector panels or modals
             const target = e.target as HTMLElement | null;
             const isSelectorPanel = target && (
                 target.closest('.task-selector-panel-mobile') || 
                 target.closest('.mode-selector-panel') || 
                 target.closest('.calendar-selector-panel') ||
                 target.closest('.notepad-popup') ||
-                target.closest('.audio-panel')
+                target.closest('.audio-panel') ||
+                target.closest('.add-event-modal-container')
             );
             
             if (isOutsidePanel && isNotTrigger && !isSelectorPanel) {
@@ -136,7 +138,7 @@ export const VerticalDockPanel = ({
 
     const utilitiesList = [
         {
-            icon: <LayoutGrid size={22} />,
+            icon: <Settings size={22} />,
             title: 'Main Dashboard',
             subtitle: 'Stitch central control hub',
             onClick: () => { onOpenDashboard(); onClose(); },
@@ -157,21 +159,21 @@ export const VerticalDockPanel = ({
             isActive: isTaskOpen
         },
         {
-            icon: <BarChart3 size={22} />,
+            icon: <ChartArea size={22} />,
             title: 'Analytics & Trends',
             subtitle: 'XP progress & focus patterns',
             onClick: () => { onToggleGraph(); },
             isActive: isGraphOpen
         },
         {
-            icon: <Music size={22} />,
+            icon: <AudioLines size={22} />,
             title: 'Focus Sounds',
             subtitle: 'Play atmospheric background noise',
             onClick: () => { onToggleSounds(); },
             isActive: isAudioOpen
         },
         {
-            icon: <StickyNote size={22} />,
+            icon: <NotepadText size={22} />,
             title: 'Scratch Note',
             subtitle: notesSummary,
             onClick: () => { onToggleNotepad(); },
@@ -185,7 +187,7 @@ export const VerticalDockPanel = ({
             isActive: isCalendarOpen
         },
         {
-            icon: <Target size={22} />,
+            icon: <CircleCheckBig size={22} />,
             title: 'Daily Habits',
             subtitle: 'Log and review daily targets',
             onClick: () => { onToggleHabits(); },

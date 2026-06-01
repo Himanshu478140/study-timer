@@ -12,71 +12,8 @@
     transition: opacity 1s ease;
 }
 
-/* Aurora Effect */
-.gradient-aurora {
-    background: linear-gradient(-45deg, #0f172a, #1e1b4b, #312e81, #1e1b4b);
-    animation: gradientShift 10s ease infinite;
-}
 
-/* Midnight Bloom */
-.gradient-midnight {
-    background: linear-gradient(-45deg, #09090b, #18181b, #27272a, #09090b);
-    animation: gradientShift 12s ease infinite;
-}
 
-/* Ocean Depths */
-.gradient-ocean {
-    background: linear-gradient(-45deg, #0c4a6e, #075985, #0369a1, #0c4a6e);
-    animation: gradientShift 10s ease infinite;
-}
-
-/* Sunset Glow */
-.gradient-sunset {
-    background: linear-gradient(-45deg, #4c1d95, #7c3aed, #6d28d9, #4c1d95);
-    animation: gradientShift 8s ease infinite;
-}
-
-/* Cyberpunk Neon */
-.gradient-cyberpunk {
-    background: linear-gradient(-45deg, #701a75, #4a044e, #1e1b4b, #701a75);
-    animation: gradientShift 7s ease infinite;
-}
-
-/* Cosmic Nebula */
-.gradient-nebula {
-    background: linear-gradient(-45deg, #2e1065, #4c1d95, #581c87, #2e1065);
-    animation: gradientShift 15s ease infinite;
-}
-
-/* Misty Forest */
-.gradient-forest {
-    background: linear-gradient(-45deg, #064e3b, #065f46, #047857, #064e3b);
-    animation: gradientShift 12s ease infinite;
-}
-
-/* Flocus Mesh Gradient */
-.gradient-flocus {
-    background: #4158D0;
-    background-image:
-        radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
-        radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
-        radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%),
-        radial-gradient(at 0% 50%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
-        radial-gradient(at 50% 50%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
-        radial-gradient(at 100% 50%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
-        radial-gradient(at 0% 100%, hsla(339, 49%, 30%, 1) 0, transparent 50%),
-        radial-gradient(at 50% 100%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
-        radial-gradient(at 100% 100%, hsla(253, 16%, 7%, 1) 0, transparent 50%);
-    background:
-        radial-gradient(circle at 0% 0%, #3b0764 0%, transparent 50%),
-        radial-gradient(circle at 100% 0%, #1e1b4b 0%, transparent 50%),
-        radial-gradient(circle at 100% 100%, #701a75 0%, transparent 50%),
-        radial-gradient(circle at 0% 100%, #4c1d95 0%, transparent 50%),
-        radial-gradient(circle at 50% 50%, #9d174d 0%, transparent 50%);
-    background-color: #1e1b4b;
-    background-size: 200% 200%;
-    animation: meshShift 15s ease infinite;
-}
 
 /* Aurora Borealis (Northern Lights) */
 .gradient-aurora-borealis {
@@ -163,55 +100,6 @@
     }
 }
 
-@keyframes meshShift {
-    0% {
-        background-position: 0% 0%;
-    }
-
-    25% {
-        background-position: 100% 0%;
-    }
-
-    50% {
-        background-position: 100% 100%;
-    }
-
-    75% {
-        background-position: 0% 100%;
-    }
-
-    100% {
-        background-position: 0% 0%;
-    }
-}
-
-@keyframes gradientShift {
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
-/* Northern Soul (Aurora Interaction variant) */
-.gradient-northern-soul {
-    background: linear-gradient(-45deg, #064e3b, #1e1b4b, #3b0764, #065f46);
-    background-size: 400% 400%;
-    animation: gradientShift 20s ease infinite;
-}
-
-/* Cosmic Candy */
-.gradient-cosmic-candy {
-    background: linear-gradient(45deg, #701a75, #1e1b4b, #4338ca, #be185d);
-    background-size: 400% 400%;
-    animation: gradientShift 15s ease infinite alternate;
-}
 
 /* Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
@@ -220,4 +108,3 @@
         background-position: center !important;
     }
 }
-

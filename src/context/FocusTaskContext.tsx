@@ -28,6 +28,7 @@ interface FocusTaskContextType {
     removeTask: (id: string) => void;
     clearCompleted: () => void;
     reorderTasks: (newTasks: FocusTask[]) => void;
+    addTaskTime: (id: string, ms: number) => void;
 }
 
 const FocusTaskContext = createContext<FocusTaskContextType | undefined>(undefined);
@@ -102,27 +103,6 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
     }, [activeTaskId]);
 
     const handleSetActiveTask = (newId: string | null) => {
-        const now = Date.now();
-        setTasks(prev => {
-            const updated = prev.map(t => {
-                if (t.id === activeTaskId && t.lastActiveStart) {
-                    const updatedTask = {
-                        ...t,
-                        timeSpent: (t.timeSpent || 0) + (now - t.lastActiveStart),
-                        lastActiveStart: undefined
-                    };
-                    if (user) syncCollectionItem(user.uid, 'tasks', t.id, updatedTask);
-                    return updatedTask;
-                }
-                if (t.id === newId) {
-                    const updatedTask = { ...t, lastActiveStart: now };
-                    if (user) syncCollectionItem(user.uid, 'tasks', t.id, updatedTask);
-                    return updatedTask;
-                }
-                return t;
-            });
-            return updated;
-        });
         setActiveTaskId(newId);
     };
 
@@ -148,18 +128,24 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
         setTasks(prev => prev.map(t => {
             if (t.id === id) {
                 const isNowCompleted = !t.completed;
-                const now = Date.now();
-                let additionalTime = 0;
-                if (isNowCompleted && t.id === activeTaskId && t.lastActiveStart) {
-                    additionalTime = now - t.lastActiveStart;
-                }
-
                 const updatedTask = {
                     ...t,
                     completed: isNowCompleted,
-                    completedAt: isNowCompleted ? new Date().toISOString() : null,
-                    timeSpent: (t.timeSpent || 0) + additionalTime,
-                    lastActiveStart: undefined
+                    completedAt: isNowCompleted ? new Date().toISOString() : null
+                };
+                if (user) syncCollectionItem(user.uid, 'tasks', id, updatedTask);
+                return updatedTask;
+            }
+            return t;
+        }));
+    };
+
+    const addTaskTime = (id: string, ms: number) => {
+        setTasks(prev => prev.map(t => {
+            if (t.id === id) {
+                const updatedTask = {
+                    ...t,
+                    timeSpent: (t.timeSpent || 0) + ms
                 };
                 if (user) syncCollectionItem(user.uid, 'tasks', id, updatedTask);
                 return updatedTask;
@@ -211,7 +197,8 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
             toggleTask,
             removeTask,
             clearCompleted,
-            reorderTasks
+            reorderTasks,
+            addTaskTime
         }}>
             {children}
         </FocusTaskContext.Provider>

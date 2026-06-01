@@ -1,6 +1,5 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { auth } from '../lib/firebase';
-import { onAuthStateChanged, type User } from 'firebase/auth';
+import { createContext, useContext, useState, type ReactNode } from 'react';
+import { type User } from 'firebase/auth';
 
 export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
 
@@ -17,38 +16,17 @@ interface CloudSyncContextType {
 const CloudSyncContext = createContext<CloudSyncContextType | undefined>(undefined);
 
 export const CloudSyncProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
     const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
     const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser);
-            setLoading(false);
-            console.log("CloudSync: User state changed", currentUser?.email);
-        });
-        return () => unsubscribe();
-    }, []);
-
     const triggerSync = async () => {
-        if (!user) return;
-        setSyncStatus('syncing');
-        // This will be coordinated with other contexts
-        // For now, it just signals a sync intent
-        try {
-            // Mock delay or wait for context signals
-            setSyncStatus('synced');
-            setLastSyncedAt(new Date());
-        } catch (e) {
-            setSyncStatus('error');
-        }
+        // No-op since cloud sync is disabled
     };
 
     return (
         <CloudSyncContext.Provider value={{
-            user,
-            loading,
+            user: null,
+            loading: false,
             syncStatus,
             setSyncStatus,
             lastSyncedAt,

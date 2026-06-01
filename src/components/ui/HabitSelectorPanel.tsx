@@ -1,8 +1,52 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Check, Trash2, X, Target } from 'lucide-react';
-import { useHabits } from '../../hooks/useHabits';
+import { Plus, Check, Trash2, X, Zap, Flame, RefreshCw, CalendarDays, Dumbbell, Sprout, BookOpen, Palette, ChevronDown } from 'lucide-react';
+import { useHabits, type DailyHabit } from '../../hooks/useHabits';
+import '../widgets/widgets.css';
+
+// Emoji icons for habit cards (cycles through these)
+const HABIT_ICONS = ['🧘', '📖', '💧', '🏃', '✍️', '🎯', '💪', '🧠', '🎨', '🌿'];
+
+
+
+const ICON_TO_EMOJI: Record<string, string> = {
+    dumbbell: '🏋️',
+    sprout: '🌱',
+    book: '📖',
+    palette: '🎨'
+};
+
+const getHabitFrequencyLabel = (habit: DailyHabit) => {
+    const freq = habit.frequency ?? 'daily';
+    const activeDays = habit.activeDays ?? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    if (freq === 'daily') return 'Daily';
+    if (freq === 'weekdays') return 'Weekdays';
+    if (freq === 'weekly') return 'Weekly';
+
+    if (freq === 'custom') {
+        const allDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+        const weekend = ['Sat', 'Sun'];
+
+        const isAll = allDays.every(d => activeDays.includes(d));
+        if (isAll) return 'Daily';
+
+        const isWeekdaysOnly = weekdays.length === activeDays.length && weekdays.every(d => activeDays.includes(d));
+        if (isWeekdaysOnly) return 'Weekdays';
+
+        const isWeekendOnly = weekend.length === activeDays.length && weekend.every(d => activeDays.includes(d));
+        if (isWeekendOnly) return 'Weekends';
+
+        if (activeDays.length === 0) return 'None';
+
+        const ordered = allDays.filter(d => activeDays.includes(d));
+        return ordered.join(', ');
+    }
+
+    return 'Daily';
+};
 
 interface HabitSelectorPanelProps {
     isOpen: boolean;
@@ -14,9 +58,32 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
     const { habits, addHabit, toggleHabit, deleteHabit } = useHabits();
     const [isAdding, setIsAdding] = useState(false);
     const [newHabitName, setNewHabitName] = useState('');
-    const [selectedColor, setSelectedColor] = useState('#a855f7');
-    const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
-    
+    const [selectedIcon, setSelectedIcon] = useState<'dumbbell' | 'sprout' | 'book' | 'palette'>('dumbbell');
+    const [habitGoal, setHabitGoal] = useState('');
+    const [frequency, setFrequency] = useState<'daily' | 'weekdays' | 'weekly' | 'custom'>('daily');
+    const [selectedDays, setSelectedDays] = useState<Record<string, boolean>>({
+        Mon: true,
+        Tue: true,
+        Wed: true,
+        Thu: true,
+        Fri: true,
+        Sat: true,
+        Sun: true
+    });
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!isDropdownOpen) return;
+        const handleClickOutside = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isDropdownOpen]);
+
     const panelRef = useRef<HTMLDivElement>(null);
     const [yPos, setYPos] = useState('50%');
     const [maxHeight, setMaxHeight] = useState('calc(100vh - 40px)');
@@ -25,6 +92,8 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
     const [dimensions, setDimensions] = useState({
         scale: Math.max(0.5, Math.min(Math.min(window.innerHeight / 633, window.innerWidth / 850), 1.8))
     });
+
+    const today = new Date().toISOString().split('T')[0];
 
     useEffect(() => {
         const handleResize = () => {
@@ -47,24 +116,16 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
                 const panelHeight = panelRef.current.offsetHeight;
                 const viewportHeight = window.innerHeight;
                 const margin = 20;
-                
-                // 1. Calculate the max allowable unscaled height to fit inside the viewport visually
+
                 const maxUnscaledHeight = (viewportHeight - 2 * margin) / scale;
                 const maxH = Math.max(200, maxUnscaledHeight);
-
-                // 2. Compute offsetY shift due to scaling around 'right center' origin
                 const currentHeight = Math.min(panelHeight, maxH);
                 const offsetY = ((scale - 1) * currentHeight) / 2;
-
-                // 3. Calculate idealTop (unscaled) centered around trigger
                 let idealTop = triggerCenterY - currentHeight / 2;
-
-                // 4. Clamped boundaries for unscaled top to keep visual top/bottom in viewport
                 const minTop = margin + offsetY;
                 const maxTop = viewportHeight - currentHeight - offsetY - margin;
-
                 const finalTop = Math.max(minTop, Math.min(maxTop, idealTop));
-                
+
                 setYPos(`${finalTop}px`);
                 setMaxHeight(`${maxH}px`);
                 setIsPositioned(true);
@@ -73,19 +134,13 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
 
         if (isOpen) {
             updatePosition();
-            
-            // Recalculate on window resize
             window.addEventListener('resize', updatePosition);
-            
-            // Recalculate if panel height changes (e.g. when 'Add' form opens)
             const observer = new ResizeObserver(() => {
                 requestAnimationFrame(updatePosition);
             });
-            
             if (panelRef.current) {
                 observer.observe(panelRef.current);
             }
-            
             return () => {
                 window.removeEventListener('resize', updatePosition);
                 observer.disconnect();
@@ -109,62 +164,117 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isOpen, onClose, triggerRef]);
 
-    // Logic: Get Current Week
+    // --- Week Days (Mon-Sun) ---
     const weekDays = useMemo(() => {
         const d = new Date();
         const day = d.getDay();
         const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-        const monday = new Date(d.setDate(diff));
+        const monday = new Date(d);
+        monday.setDate(diff);
 
+        const dayNames = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
         return Array.from({ length: 7 }, (_, i) => {
             const date = new Date(monday);
             date.setDate(date.getDate() + i);
             return {
                 dateStr: date.toISOString().split('T')[0],
-                dayName: date.toLocaleDateString('en-US', { weekday: 'short' })[0], // S, M, T...
-                dayNum: date.getDate()
+                dayName: dayNames[i],
+                isToday: date.toISOString().split('T')[0] === today
             };
         });
-    }, []);
+    }, [today]);
 
-    // Logic: Get Current Month Days
-    const monthDays = useMemo(() => {
-        const date = new Date();
-        const year = date.getFullYear();
-        const month = date.getMonth();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
+    // --- Heatmap Data (last 12 weeks = 84 days) ---
+    const heatmapData = useMemo(() => {
+        const cells: { date: string; level: number }[] = [];
+        const now = new Date();
 
-        return Array.from({ length: daysInMonth }, (_, i) => {
-            const d = new Date(year, month, i + 1);
-            return {
-                dateStr: d.toISOString().split('T')[0],
-                dayNum: i + 1,
-                dayName: d.toLocaleDateString('en-US', { weekday: 'short' })
-            };
-        });
-    }, []);
+        for (let i = 83; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+
+            const completedCount = habits.reduce((acc, h) =>
+                acc + (h.completedDates.includes(dateStr) ? 1 : 0), 0
+            );
+
+            let level = 0;
+            if (completedCount >= 4) level = 4;
+            else if (completedCount === 3) level = 3;
+            else if (completedCount === 2) level = 2;
+            else if (completedCount === 1) level = 1;
+
+            cells.push({ date: dateStr, level });
+        }
+
+        return cells;
+    }, [habits]);
+
+    // --- Computed Stats ---
+    const stats = useMemo(() => {
+        let streak = 0;
+        const d = new Date();
+        for (let i = 0; i < 365; i++) {
+            const dateStr = d.toISOString().split('T')[0];
+            const anyDone = habits.some(h => h.completedDates.includes(dateStr));
+            if (anyDone) {
+                streak++;
+                d.setDate(d.getDate() - 1);
+            } else {
+                break;
+            }
+        }
+
+        const todayCompleted = habits.filter(h => h.completedDates.includes(today)).length;
+        const completionRate = habits.length > 0 ? Math.round((todayCompleted / habits.length) * 100) : 0;
+
+        const allDates = new Set<string>();
+        habits.forEach(h => h.completedDates.forEach(d => allDates.add(d)));
+        const totalDaysActive = allDates.size;
+
+        return { streak, completionRate, totalDaysActive };
+    }, [habits, today]);
+
+    const isDayFullyCompleted = (dateStr: string) => {
+        if (habits.length === 0) return false;
+        return habits.every(h => h.completedDates.includes(dateStr));
+    };
+
+    const isDayPartiallyCompleted = (dateStr: string) => {
+        return habits.some(h => h.completedDates.includes(dateStr));
+    };
 
     const handleAddHabit = (e: React.FormEvent) => {
         e.preventDefault();
         if (newHabitName.trim()) {
-            addHabit(newHabitName, selectedColor);
+            const emoji = ICON_TO_EMOJI[selectedIcon] || '🧘';
+            let activeDaysList: string[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            if (frequency === 'custom') {
+                activeDaysList = Object.keys(selectedDays).filter(d => selectedDays[d]);
+            } else if (frequency === 'weekdays') {
+                activeDaysList = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+            }
+            addHabit(newHabitName.trim(), 'var(--color-accent)', emoji, habitGoal.trim(), frequency, activeDaysList);
             setNewHabitName('');
+            setHabitGoal('');
+            setSelectedIcon('dumbbell');
+            setFrequency('daily');
+            setIsDropdownOpen(false);
+            setSelectedDays({
+                Mon: true,
+                Tue: true,
+                Wed: true,
+                Thu: true,
+                Fri: true,
+                Sat: true,
+                Sun: true
+            });
             setIsAdding(false);
         }
     };
 
-    const neonColors = [
-        { name: 'Purple', value: '#a855f7' },
-        { name: 'Blue', value: '#3b82f6' },
-        { name: 'Green', value: '#22c55e' },
-        { name: 'Orange', value: '#f97316' },
-        { name: 'Pink', value: '#ec4899' },
-    ];
-
-    const getProgress = (habit: any) => {
-        const targetDays = viewMode === 'week' ? weekDays : monthDays;
-        const completedCount = targetDays.filter(d => habit.completedDates.includes(d.dateStr)).length;
-        return Math.round((completedCount / targetDays.length) * 100);
+    const handleToggleToday = (habitId: string) => {
+        toggleHabit(habitId, today);
     };
 
     const content = (
@@ -181,11 +291,11 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
                         position: 'fixed',
                         right: `${92 * scale}px`,
                         top: yPos,
-                        width: 'var(--panel-width, 420px)',
+                        width: 'var(--panel-width, 520px)',
                         maxWidth: 'calc(100vw - 40px)',
                         borderRadius: '2rem',
                         border: '1px solid rgba(255, 255, 255, 0.06)',
-                        padding: '24px',
+                        padding: '0',
                         zIndex: 9999,
                         background: 'rgba(0, 0, 0, 0.95)',
                         backdropFilter: 'none',
@@ -194,213 +304,383 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
                         color: 'white',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '20px',
                         maxHeight: maxHeight,
-                        overflowY: 'auto',
+                        overflowY: isAdding ? 'visible' : 'auto',
                         transformOrigin: 'right center',
                         visibility: isPositioned ? 'visible' : 'hidden'
                     }}
                 >
-                    {/* Header */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexShrink: 0 }}>
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                                <Target size={14} color="#a855f7" />
-                                <h3 style={{ 
-                                    fontSize: '10px', 
-                                    fontWeight: 'bold', 
-                                    letterSpacing: '0.2em', 
-                                    textTransform: 'uppercase', 
-                                    color: 'rgba(255, 255, 255, 0.4)' 
-                                }}>Consistency</h3>
+                    {/* Inner container with padding & gap */}
+                    <section
+                        className="ht-container"
+                        style={{
+                            background: 'transparent',
+                            backdropFilter: 'none',
+                            WebkitBackdropFilter: 'none',
+                            boxShadow: 'none',
+                            border: 'none',
+                            height: 'auto',
+                            minHeight: isAdding ? '26.25rem' : 'auto',
+                            transition: 'min-height 0.25s ease'
+                        }}
+                        aria-label="Habit Tracker"
+                    >
+                        {/* Close Button */}
+                        <button
+                            className="ht-close-btn"
+                            onClick={onClose}
+                            aria-label="Close habit tracker"
+                        >
+                            <X size={16} />
+                        </button>
+
+                        {/* ===== DAY SELECTOR BAR ===== */}
+                        <nav className="ht-day-bar" aria-label="Week days">
+                            {weekDays.map(day => {
+                                const fullyDone = isDayFullyCompleted(day.dateStr);
+                                const partiallyDone = isDayPartiallyCompleted(day.dateStr);
+
+                                return (
+                                    <div
+                                        key={day.dateStr}
+                                        className={`ht-day-item ${day.isToday ? 'ht-day-item--today' : ''} ${partiallyDone ? 'ht-day-item--completed' : ''}`}
+                                        tabIndex={0}
+                                        aria-label={`${day.dayName}${day.isToday ? ' (today)' : ''}${fullyDone ? ' - all habits complete' : ''}`}
+                                    >
+                                        <span className="ht-day-item__label">{day.dayName}</span>
+                                        <span className="ht-day-item__icon">
+                                            {day.isToday ? (
+                                                <Zap size={11} strokeWidth={2.5} />
+                                            ) : fullyDone ? (
+                                                <Check size={11} strokeWidth={3} />
+                                            ) : partiallyDone ? (
+                                                <Check size={9} strokeWidth={2} style={{ opacity: 0.5 }} />
+                                            ) : null}
+                                        </span>
+                                    </div>
+                                );
+                            })}
+                        </nav>
+
+                        {/* ===== STATS + HEATMAP ROW ===== */}
+                        <div className="ht-stats-heatmap-row">
+                            {/* Stats Column */}
+                            <div className="ht-stats-column" role="group" aria-label="Habit statistics">
+                                <article className="ht-stat-card">
+                                    <span className="ht-stat-card__label">Current Streak</span>
+                                    <span className="ht-stat-card__value">{stats.streak} Days</span>
+                                    <span className="ht-stat-card__icon"><Flame size={16} /></span>
+                                </article>
+                                <article className="ht-stat-card">
+                                    <span className="ht-stat-card__label">Completion Rate</span>
+                                    <span className="ht-stat-card__value">{stats.completionRate}%</span>
+                                    <span className="ht-stat-card__icon"><RefreshCw size={14} /></span>
+                                </article>
+                                <article className="ht-stat-card">
+                                    <span className="ht-stat-card__label">Total Days Active</span>
+                                    <span className="ht-stat-card__value">{stats.totalDaysActive}</span>
+                                    <span className="ht-stat-card__icon"><CalendarDays size={14} /></span>
+                                </article>
                             </div>
-                            <h2 style={{ 
-                                fontSize: '24px', 
-                                fontFamily: "'Noto Serif', serif", 
-                                fontStyle: 'italic', 
-                                margin: 0
-                            }}>Habit Tracker</h2>
+
+                            {/* Heatmap */}
+                            <div className="ht-heatmap-container" aria-label="Activity heatmap">
+                                <header className="ht-heatmap-header">
+                                    <h3 className="ht-heatmap-title">Monthly Heatmap</h3>
+                                    <div className="ht-heatmap-legend">
+                                        <span>Less</span>
+                                        <span className="ht-heatmap-legend__cell" style={{ background: 'rgba(var(--color-accent-rgb, 74, 124, 89), 0.08)' }} />
+                                        <span className="ht-heatmap-legend__cell" style={{ background: 'rgba(var(--color-accent-rgb, 74, 124, 89), 0.25)' }} />
+                                        <span className="ht-heatmap-legend__cell" style={{ background: 'rgba(var(--color-accent-rgb, 74, 124, 89), 0.5)' }} />
+                                        <span className="ht-heatmap-legend__cell" style={{ background: 'rgba(var(--color-accent-rgb, 74, 124, 89), 0.9)' }} />
+                                        <span>More</span>
+                                    </div>
+                                </header>
+                                <div className="ht-heatmap-grid" role="img" aria-label="Habit activity over the last 12 weeks">
+                                    {heatmapData.map((cell, i) => (
+                                        <div
+                                            key={i}
+                                            className={`ht-heatmap-cell ${cell.level > 0 ? `ht-heatmap-cell--l${cell.level}` : ''}`}
+                                            title={`${cell.date}: ${cell.level} habit${cell.level !== 1 ? 's' : ''} completed`}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
                         </div>
-                        <button
-                            onClick={() => setIsAdding(!isAdding)}
-                            style={{
-                                background: isAdding ? 'rgba(255,255,255,0.1)' : 'white',
-                                color: isAdding ? 'white' : 'black',
-                                border: 'none',
-                                borderRadius: '12px',
-                                padding: '8px 12px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                fontSize: '12px',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                        >
-                            {isAdding ? <X size={14} /> : <Plus size={14} />}
-                            {isAdding ? 'Cancel' : 'Add'}
-                        </button>
-                    </div>
 
-                    {/* View Toggle */}
-                    <div style={{
-                        display: 'flex',
-                        background: 'rgba(255,255,255,0.05)',
-                        padding: '4px',
-                        borderRadius: '12px',
-                        border: '1px solid rgba(255,255,255,0.05)',
-                        position: 'relative',
-                        width: 'fit-content',
-                        flexShrink: 0
-                    }}>
-                        <button
-                            onClick={() => setViewMode('week')}
-                            style={{
-                                padding: '6px 16px',
-                                borderRadius: '8px',
-                                background: viewMode === 'week' ? 'rgba(255,255,255,0.1)' : 'transparent',
-                                color: viewMode === 'week' ? 'white' : 'rgba(255,255,255,0.4)',
-                                border: 'none',
-                                fontSize: '12px',
-                                fontWeight: '600',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Weekly
-                        </button>
-                        <button
-                            onClick={() => setViewMode('month')}
-                            style={{
-                                padding: '6px 16px',
-                                borderRadius: '8px',
-                                background: viewMode === 'month' ? 'rgba(255,255,255,0.1)' : 'transparent',
-                                color: viewMode === 'month' ? 'white' : 'rgba(255,255,255,0.4)',
-                                border: 'none',
-                                fontSize: '12px',
-                                fontWeight: '600',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Monthly
-                        </button>
-                    </div>
+                        {/* ===== SECTION HEADER ===== */}
+                        <header className="ht-section-header">
+                            <h2 className="ht-section-title">Current Habits</h2>
+                        </header>
 
-                    {/* Add Habit Form */}
-                    <AnimatePresence>
+
+
+                        {/* ===== HABITS GRID ===== */}
+                        <div className="ht-habits-grid">
+                            {habits.map((habit, index) => {
+                                const isDone = habit.completedDates.includes(today);
+                                const icon = habit.icon ?? HABIT_ICONS[index % HABIT_ICONS.length];
+
+                                return (
+                                    <article key={habit.id} className="ht-habit-card">
+                                        {/* Delete button (appears on hover) */}
+                                        <button
+                                            className="ht-habit-card__delete"
+                                            onClick={() => deleteHabit(habit.id)}
+                                            aria-label={`Delete ${habit.name}`}
+                                        >
+                                            <Trash2 size={10} />
+                                        </button>
+
+                                        {/* Icon */}
+                                        <div
+                                            className="ht-habit-card__icon"
+                                            style={{ background: `${habit.color}25` }}
+                                        >
+                                            {icon}
+                                        </div>
+
+                                        {/* Info */}
+                                        <div className="ht-habit-card__info">
+                                            <span className="ht-habit-card__name">{habit.name}</span>
+                                            <span className="ht-habit-card__meta">
+                                                {getHabitFrequencyLabel(habit)}
+                                                {habit.goal ? ` • ${habit.goal}` : ''}
+                                            </span>
+                                        </div>
+
+                                        {/* Toggle */}
+                                        <button
+                                            className={`ht-habit-toggle ${isDone ? 'ht-habit-toggle--done' : ''}`}
+                                            onClick={() => handleToggleToday(habit.id)}
+                                            aria-label={`Mark ${habit.name} as ${isDone ? 'incomplete' : 'complete'}`}
+                                            aria-pressed={isDone}
+                                        >
+                                            {isDone && <Check size={14} color="white" strokeWidth={3} />}
+                                        </button>
+                                    </article>
+                                );
+                            })}
+
+                        </div>
+
+                        {/* ===== ADD FORM (conditional mini-popup rendered at bottom to float on top of everything) ===== */}
                         {isAdding && (
-                            <motion.form
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                onSubmit={handleAddHabit}
-                                style={{ overflow: 'hidden', flexShrink: 0 }}
-                            >
-                                <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '1.25rem', padding: '16px' }}>
+                            <form className="ht-popup" onSubmit={handleAddHabit}>
+                                <div className="ht-popup-header">
+                                    <h3 className="ht-popup-title">New Habit</h3>
+                                    <button
+                                        type="button"
+                                        className="ht-popup-close"
+                                        onClick={() => setIsAdding(false)}
+                                        aria-label="Close"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </div>
+
+                                <div className="ht-popup-field">
+                                    <label className="ht-popup-label" htmlFor="panel-habit-name">Habit Name</label>
                                     <input
-                                        autoFocus
-                                        placeholder="Habit name..."
+                                        id="panel-habit-name"
+                                        className="ht-popup-input"
+                                        type="text"
+                                        placeholder="e.g., Morning Yoga"
                                         value={newHabitName}
                                         onChange={e => setNewHabitName(e.target.value)}
-                                        style={{
-                                            width: '100%',
-                                            background: 'rgba(0,0,0,0.2)',
-                                            border: '1px solid rgba(255,255,255,0.1)',
-                                            borderRadius: '10px',
-                                            padding: '12px',
-                                            color: 'white',
-                                            marginBottom: '12px'
-                                        }}
+                                        autoFocus
+                                        required
                                     />
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            {neonColors.map(c => (
-                                                <div
-                                                    key={c.value}
-                                                    onClick={() => setSelectedColor(c.value)}
-                                                    style={{
-                                                        width: '20px', height: '20px', borderRadius: '50%',
-                                                        background: c.value, cursor: 'pointer',
-                                                        border: selectedColor === c.value ? '2px solid white' : '2px solid transparent',
-                                                        boxShadow: selectedColor === c.value ? `0 0 10px ${c.value}` : 'none'
-                                                    }}
-                                                />
-                                            ))}
-                                        </div>
-                                        <button type="submit" style={{ background: 'white', color: 'black', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '12px', fontWeight: 'bold' }}>Create</button>
+                                </div>
+
+                                <div className="ht-popup-field">
+                                    <span className="ht-popup-label">Icon</span>
+                                    <div className="ht-popup-icon-row" role="radiogroup" aria-label="Select icon">
+                                        <button
+                                            type="button"
+                                            className={`ht-popup-icon-btn ${selectedIcon === 'dumbbell' ? 'ht-popup-icon-btn--active' : ''}`}
+                                            onClick={() => setSelectedIcon('dumbbell')}
+                                            aria-label="Dumbbell icon"
+                                            role="radio"
+                                            aria-checked={selectedIcon === 'dumbbell'}
+                                        >
+                                            <Dumbbell size={16} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`ht-popup-icon-btn ${selectedIcon === 'sprout' ? 'ht-popup-icon-btn--active' : ''}`}
+                                            onClick={() => setSelectedIcon('sprout')}
+                                            aria-label="Sprout icon"
+                                            role="radio"
+                                            aria-checked={selectedIcon === 'sprout'}
+                                        >
+                                            <Sprout size={16} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`ht-popup-icon-btn ${selectedIcon === 'book' ? 'ht-popup-icon-btn--active' : ''}`}
+                                            onClick={() => setSelectedIcon('book')}
+                                            aria-label="Book icon"
+                                            role="radio"
+                                            aria-checked={selectedIcon === 'book'}
+                                        >
+                                            <BookOpen size={16} />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`ht-popup-icon-btn ${selectedIcon === 'palette' ? 'ht-popup-icon-btn--active' : ''}`}
+                                            onClick={() => setSelectedIcon('palette')}
+                                            aria-label="Palette icon"
+                                            role="radio"
+                                            aria-checked={selectedIcon === 'palette'}
+                                        >
+                                            <Palette size={16} />
+                                        </button>
                                     </div>
                                 </div>
-                            </motion.form>
-                        )}
-                    </AnimatePresence>
 
-                    {/* Habits List */}
-                    <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }} className="custom-scrollbar">
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            {habits.map(habit => {
-                                const progress = getProgress(habit);
-                                return (
-                                    <div key={habit.id} style={{
-                                        background: 'rgba(255,255,255,0.02)',
-                                        borderRadius: '1.25rem',
-                                        padding: '16px',
-                                        border: '1px solid rgba(255,255,255,0.05)',
-                                        borderLeft: `4px solid ${habit.color}`
-                                    }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                                            <span style={{ fontWeight: '600', fontSize: '14px' }}>{habit.name}</span>
-                                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold' }}>{progress}%</span>
-                                                <Trash2 size={12} style={{ cursor: 'pointer', opacity: 0.3 }} onClick={() => deleteHabit(habit.id)} />
-                                            </div>
+                                <div className="ht-popup-cols">
+                                    <div className="ht-popup-field" style={{ zIndex: 110 }}>
+                                        <label className="ht-popup-label" id="panel-frequency-label">Frequency</label>
+                                        <div className="ht-popup-select-container" ref={dropdownRef}>
+                                            <button
+                                                type="button"
+                                                className={`ht-popup-select-trigger ${isDropdownOpen ? 'ht-popup-select-trigger--active' : ''}`}
+                                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                                aria-haspopup="listbox"
+                                                aria-expanded={isDropdownOpen}
+                                                aria-labelledby="panel-frequency-label"
+                                            >
+                                                <span>{frequency.charAt(0).toUpperCase() + frequency.slice(1)}</span>
+                                                <ChevronDown className="ht-popup-select-trigger__arrow" size={16} />
+                                            </button>
+
+                                            <AnimatePresence>
+                                                {isDropdownOpen && (
+                                                    <motion.div
+                                                        className="ht-popup-select-dropdown"
+                                                        initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                                                        animate={{ opacity: 1, y: 4, scale: 1 }}
+                                                        exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                                                        transition={{ duration: 0.15, ease: 'easeOut' }}
+                                                        role="listbox"
+                                                    >
+                                                        {[
+                                                            { value: 'daily', label: 'Daily' },
+                                                            { value: 'weekdays', label: 'Weekdays' },
+                                                            { value: 'weekly', label: 'Weekly' },
+                                                            { value: 'custom', label: 'Custom' }
+                                                        ].map(opt => {
+                                                            const isSelected = frequency === opt.value;
+                                                            return (
+                                                                <button
+                                                                    key={opt.value}
+                                                                    type="button"
+                                                                    className={`ht-popup-select-option ${isSelected ? 'ht-popup-select-option--active' : ''}`}
+                                                                    onClick={() => {
+                                                                        setFrequency(opt.value as any);
+                                                                        setIsDropdownOpen(false);
+                                                                    }}
+                                                                    role="option"
+                                                                    aria-selected={isSelected}
+                                                                >
+                                                                    <span>{opt.label}</span>
+                                                                    {isSelected && <Check size={14} className="ht-popup-select-option__check" strokeWidth={3} />}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
                                         </div>
-
-                                        {viewMode === 'week' ? (
-                                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                {weekDays.map(d => {
-                                                    const isDone = habit.completedDates.includes(d.dateStr);
-                                                    return (
-                                                        <div key={d.dateStr} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                                                            <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', fontWeight: 'bold' }}>{d.dayName}</span>
-                                                            <div
-                                                                onClick={() => toggleHabit(habit.id, d.dateStr)}
-                                                                style={{
-                                                                    width: '28px', height: '28px', borderRadius: '50%',
-                                                                    background: isDone ? habit.color : 'rgba(255,255,255,0.05)',
-                                                                    border: '1px solid rgba(255,255,255,0.1)',
-                                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                                    cursor: 'pointer', transition: 'all 0.2s'
-                                                                }}
-                                                            >
-                                                                {isDone && <Check size={14} color="black" strokeWidth={3} />}
-                                                            </div>
-                                                        </div>
-                                                    )
-                                                })}
-                                            </div>
-                                        ) : (
-                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                                                {monthDays.map(d => {
-                                                    const isDone = habit.completedDates.includes(d.dateStr);
-                                                    return (
-                                                        <div
-                                                            key={d.dateStr}
-                                                            onClick={() => toggleHabit(habit.id, d.dateStr)}
-                                                            style={{
-                                                                width: '10px', height: '10px', borderRadius: '2px',
-                                                                background: isDone ? habit.color : 'rgba(255,255,255,0.05)',
-                                                                cursor: 'pointer'
-                                                            }}
-                                                        />
-                                                    )
-                                                })}
-                                            </div>
-                                        )}
                                     </div>
-                                )
-                            })}
-                        </div>
-                    </div>
+                                    <div className="ht-popup-field">
+                                        <label className="ht-popup-label" htmlFor="panel-habit-goal">Goal</label>
+                                        <input
+                                            id="panel-habit-goal"
+                                            className="ht-popup-input"
+                                            type="text"
+                                            placeholder="e.g., 30 mins"
+                                            value={habitGoal}
+                                            onChange={e => setHabitGoal(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                {frequency === 'custom' && (
+                                    <div className="ht-popup-day-row">
+                                        <span className="ht-popup-day-label">DAYS</span>
+                                        <div className="ht-popup-day-chips" role="group" aria-label="Select active days">
+                                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => {
+                                                const isActive = selectedDays[day];
+                                                const letter = day.charAt(0);
+                                                return (
+                                                    <button
+                                                        key={day}
+                                                        type="button"
+                                                        className={`ht-popup-day-btn ${isActive ? 'ht-popup-day-btn--active' : ''}`}
+                                                        onClick={() => {
+                                                            setSelectedDays(prev => ({
+                                                                ...prev,
+                                                                [day]: !prev[day]
+                                                            }));
+                                                        }}
+                                                        aria-pressed={isActive}
+                                                        aria-label={`Toggle ${day}`}
+                                                    >
+                                                        {letter}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="ht-popup-footer">
+                                    <button
+                                        type="button"
+                                        className="ht-popup-btn--cancel"
+                                        onClick={() => {
+                                            setIsAdding(false);
+                                            setNewHabitName('');
+                                            setHabitGoal('');
+                                            setFrequency('daily');
+                                            setIsDropdownOpen(false);
+                                            setSelectedDays({
+                                                Mon: true,
+                                                Tue: true,
+                                                Wed: true,
+                                                Thu: true,
+                                                Fri: true,
+                                                Sat: true,
+                                                Sun: true
+                                            });
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button type="submit" className="ht-popup-btn--submit">
+                                        Add Habit
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+
+                        {/* ===== FAB ===== */}
+                        <button
+                            className="ht-fab"
+                            onClick={() => setIsAdding(!isAdding)}
+                            aria-label={isAdding ? "Close habit popup" : "Add new habit"}
+                            style={{
+                                transform: isAdding ? 'rotate(45deg)' : 'none',
+                                background: isAdding ? 'rgba(255,255,255,0.1)' : 'var(--ht-accent)',
+                                color: isAdding ? 'var(--ht-text-primary)' : 'white',
+                                boxShadow: isAdding ? 'none' : '0 4px 16px rgba(var(--ht-accent-rgb), 0.4), 0 2px 4px rgba(0, 0, 0, 0.2)'
+                            }}
+                        >
+                            <Plus size={18} strokeWidth={2.5} />
+                        </button>
+                    </section>
                 </motion.div>
             )}
         </AnimatePresence>

@@ -63,49 +63,24 @@ export const HomeView = ({ clockFont, timeFormat = '24h' }: { clockFont?: string
                 </TypingAnimation>
             </div>
 
-            <div className="clock-glass" style={{ marginTop: '1rem', backdropFilter: 'none', WebkitBackdropFilter: 'none' }}>
-                <div
-                    className={`home-clock font-${(clockFont === 'flip' || clockFont === 'simple-flip') ? 'default' : clockFont}`}
-                    style={{
-                        fontSize: isPortrait
-                            ? 'clamp(6rem, 25vw, 12rem)'
-                            : 'clamp(5rem, 12vw, 10rem)',
-                        lineHeight: 1,
-                        color: 'var(--color-text-primary)',
-                        transition: 'all var(--transition-theme)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem'
-                    }}
-                >
-                        <span>{timeString.replace(/\s?[AP]M/i, '')}</span>
-                        {timeFormat === '12h' && (
-                            <div style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                marginLeft: '1rem',
-                                borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
-                                paddingLeft: '1rem'
-                            }}>
-                                <span style={{
-                                    fontSize: '0.15em',
-                                    textTransform: 'uppercase',
-                                    opacity: time.getHours() < 12 ? 1 : 0.2,
-                                    fontWeight: 800,
-                                    color: time.getHours() < 12 ? 'var(--color-accent)' : 'inherit'
-                                }}>AM</span>
-                                <span style={{
-                                    fontSize: '0.15em',
-                                    textTransform: 'uppercase',
-                                    opacity: time.getHours() >= 12 ? 1 : 0.2,
-                                    fontWeight: 800,
-                                    color: time.getHours() >= 12 ? 'var(--color-accent)' : 'inherit'
-                                }}>PM</span>
-                            </div>
-                        )}
-                    </div>
-                </div>
+            <div
+                className={`home-clock font-${(clockFont === 'flip' || clockFont === 'simple-flip') ? 'default' : clockFont}`}
+                style={{
+                    fontSize: isPortrait
+                        ? 'clamp(9rem, 32vw, 18rem)'
+                        : 'clamp(8rem, 18vw, 15rem)',
+                    lineHeight: 1,
+                    color: 'var(--color-text-primary)',
+                    transition: 'all var(--transition-theme)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    marginTop: '1rem'
+                }}
+            >
+                <span>{timeString.replace(/\s?[AP]M/i, '')}</span>
+            </div>
         </div>
     );
 };

@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
     Image as ImageIcon, X, Info, HardDrive, Youtube, Plus,
     Stars, Sparkles, Flame, Bug,
-    Mountain, Map
+    Mountain
 } from 'lucide-react';
 import './wallpaper.css';
 import { getLocalStorageSize, formatBytes, estimateBase64Size, hasEnoughSpace, getStorageUsagePercent } from '../../utils/storageUtils';
 
-export type WallpaperCategory = 'Solid Colour' | 'Vibe' | 'Scenery' | 'Aura' | 'Motion' | 'Custom';
+export type WallpaperCategory = 'Solid Colour' | 'Scenery' | 'Cozy Spaces' | 'Anime & Cyber' | 'Celestial' | 'Abstract Flow' | 'Aura' | 'Motion' | 'Custom';
 
 export interface WallpaperConfig {
     id: string;
@@ -35,11 +35,34 @@ export interface WallpaperConfig {
 const natureImg = new URL('../../assets/wallpapers/nature.png', import.meta.url).href;
 const sunsetImg = new URL('../../assets/wallpapers/sunset.png', import.meta.url).href;
 const mountainsImg = new URL('../../assets/wallpapers/mountains.png', import.meta.url).href;
-const coffeeImg = new URL('../../assets/wallpapers/coffee.png', import.meta.url).href;
-const neonImg = new URL('../../assets/wallpapers/neon.png', import.meta.url).href;
 const spaceImg = new URL('../../assets/wallpapers/space.png', import.meta.url).href;
 
+// Newly Added Wallpaper Assets
+const amberDunesImg = new URL('../../assets/wallpapers/Amber Dunes.webp', import.meta.url).href;
+const auroraBloomImg = new URL('../../assets/wallpapers/Aurora Bloom.webp', import.meta.url).href;
+const bambooCathedralImg = new URL('../../assets/wallpapers/Bamboo Cathedral.webp', import.meta.url).href;
+const celestialSkyKingdomImg = new URL('../../assets/wallpapers/Celestial Sky Kingdom.webp', import.meta.url).href;
+const cosmicHavenImg = new URL('../../assets/wallpapers/Cosmic Haven.webp', import.meta.url).href;
+const cyberRainDistrictImg = new URL('../../assets/wallpapers/Cyber Rain District.webp', import.meta.url).href;
+const emeraldCanopyImg = new URL('../../assets/wallpapers/Emerald Canopy.webp', import.meta.url).href;
+const emeraldValleyDreamsImg = new URL('../../assets/wallpapers/Emerald Valley Dreams.webp', import.meta.url).href;
+const enchantedPineForestImg = new URL('../../assets/wallpapers/Enchanted Pine Forest.webp', import.meta.url).href;
+const goldenCityHorizonImg = new URL('../../assets/wallpapers/Golden City Horizon.webp', import.meta.url).href;
+const lastTrainHomeImg = new URL('../../assets/wallpapers/Last Train Home.webp', import.meta.url).href;
+const midnightHarborImg = new URL('../../assets/wallpapers/Midnight Harbor.webp', import.meta.url).href;
+const midnightStudyRetreatImg = new URL('../../assets/wallpapers/Midnight Study Retreat.webp', import.meta.url).href;
+const mountainRailwayJourneyImg = new URL('../../assets/wallpapers/Mountain Railway Journey.webp', import.meta.url).href;
+const nebulaVeilImg = new URL('../../assets/wallpapers/Nebula Veil.webp', import.meta.url).href;
+const neonGridNexusImg = new URL('../../assets/wallpapers/Neon Grid Nexus.webp', import.meta.url).href;
+const neonHorizonImg = new URL('../../assets/wallpapers/Neon Horizon.webp', import.meta.url).href;
+const oceanSurgeImg = new URL('../../assets/wallpapers/Ocean Surge.webp', import.meta.url).href;
+const starlightObservatoryImg = new URL('../../assets/wallpapers/Starlight Observatory.webp', import.meta.url).href;
+const sunlitSakuraVistaImg = new URL('../../assets/wallpapers/Sunlit Sakura Vista.webp', import.meta.url).href;
+const twilightToriiForestImg = new URL('../../assets/wallpapers/Twilight Torii Forest.webp', import.meta.url).href;
+const zenRippleGardenImg = new URL('../../assets/wallpapers/Zen Ripple Garden.webp', import.meta.url).href;
+
 export const WALLPAPERS: WallpaperConfig[] = [
+    // ─── SOLID COLOURS ───
     {
         id: 'dark-solid',
         type: 'solid',
@@ -50,7 +73,34 @@ export const WALLPAPERS: WallpaperConfig[] = [
         overlayOpacity: 0
     },
     {
-        id: 'midnight-blue',
+        id: 'deep-ocean',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#0f172a', // Slate 900
+        textColorTheme: 'light',
+        accentColor: '#06b6d4', // Cyan 500
+        overlayOpacity: 0
+    },
+    {
+        id: 'slate-solid',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#1e293b',
+        textColorTheme: 'light',
+        accentColor: '#38bdf8', // Sky
+        overlayOpacity: 0
+    },
+    {
+        id: 'nord-storm-solid',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#2e3440',
+        textColorTheme: 'light',
+        accentColor: '#88c0d0', // Nord Blue
+        overlayOpacity: 0
+    },
+    {
+        id: 'midnight-blue-solid',
         type: 'solid',
         category: 'Solid Colour',
         value: '#1e1b4b',
@@ -59,7 +109,70 @@ export const WALLPAPERS: WallpaperConfig[] = [
         overlayOpacity: 0
     },
     {
-        id: 'forest-green',
+        id: 'dusty-lavender',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#5c5470', // Deep Muted Lavender
+        textColorTheme: 'light',
+        accentColor: '#f472b6', // Pink 400
+        overlayOpacity: 0
+    },
+    {
+        id: 'crimson-velvet-solid',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#4c0519',
+        textColorTheme: 'light',
+        accentColor: '#fb7185', // Rose
+        overlayOpacity: 0
+    },
+    {
+        id: 'spiced-chili',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#b91c1c', // Red 700
+        textColorTheme: 'light',
+        accentColor: '#f97316', // Bright Orange 500
+        overlayOpacity: 0
+    },
+    {
+        id: 'espresso-mocha-solid',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#271c19',
+        textColorTheme: 'light',
+        accentColor: '#fb923c', // Orange
+        overlayOpacity: 0
+    },
+    {
+        id: 'terracotta-clay-solid',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#7c2d12',
+        textColorTheme: 'light',
+        accentColor: '#fdba74', // Peach
+        overlayOpacity: 0
+    },
+    {
+        id: 'sage-calm-solid',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#14201e',
+        textColorTheme: 'light',
+        accentColor: '#a7f3d0', // Mint
+        overlayOpacity: 0
+    },
+    {
+        id: 'ocean-teal-solid',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#042f2e',
+        textColorTheme: 'light',
+        accentColor: '#2dd4bf', // Teal
+        overlayOpacity: 0
+    },
+    {
+        id: 'forest-green-solid',
         type: 'solid',
         category: 'Solid Colour',
         value: '#064e3b',
@@ -67,7 +180,63 @@ export const WALLPAPERS: WallpaperConfig[] = [
         accentColor: '#34d399', // Emerald
         overlayOpacity: 0
     },
+    {
+        id: 'fresh-sage',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#3b6e50', // Mid-tone Sage Green
+        textColorTheme: 'light',
+        accentColor: '#4ade80', // Mint Green 400
+        overlayOpacity: 0
+    },
+    {
+        id: 'ocean-breeze',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#2a5c7a', // Muted Ocean Blue
+        textColorTheme: 'light',
+        accentColor: '#38bdf8', // Sky Blue 400
+        overlayOpacity: 0
+    },
+    {
+        id: 'vintage-teal',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#2d6a7a', // Mid-tone Teal
+        textColorTheme: 'light',
+        accentColor: '#22d3ee', // Bright Cyan 400
+        overlayOpacity: 0
+    },
+    {
+        id: 'dusty-rose',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#884a55', // Smoky Rose
+        textColorTheme: 'light',
+        accentColor: '#fda4af', // Rose 300
+        overlayOpacity: 0
+    },
+    {
+        id: 'desert-rose',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#965a6c', // Muted Mauve/Rose
+        textColorTheme: 'light',
+        accentColor: '#fbcfe8', // Pink 200
+        overlayOpacity: 0
+    },
+    {
+        id: 'retro-bubblegum',
+        type: 'solid',
+        category: 'Solid Colour',
+        value: '#be5a83', // Deep Bubblegum Pink
+        textColorTheme: 'light',
+        accentColor: '#e9d5ff', // Purple 200
+        overlayOpacity: 0
+    },
+    
 
+    // ─── SCENERY ───
     {
         id: 'nature-calm',
         type: 'image',
@@ -77,6 +246,76 @@ export const WALLPAPERS: WallpaperConfig[] = [
         textColorTheme: 'light',
         accentColor: '#84cc16', // Lime/Nature
         overlayOpacity: 0.3
+    },
+    {
+        id: 'bamboo-cathedral',
+        type: 'image',
+        category: 'Scenery',
+        value: `url(${bambooCathedralImg})`,
+        thumbnail: bambooCathedralImg,
+        textColorTheme: 'light',
+        accentColor: '#10b981',
+        overlayOpacity: 0.2
+    },
+    {
+        id: 'emerald-canopy',
+        type: 'image',
+        category: 'Scenery',
+        value: `url(${emeraldCanopyImg})`,
+        thumbnail: emeraldCanopyImg,
+        textColorTheme: 'light',
+        accentColor: '#22c55e',
+        overlayOpacity: 0.2
+    },
+    {
+        id: 'emerald-valley-dreams',
+        type: 'image',
+        category: 'Scenery',
+        value: `url(${emeraldValleyDreamsImg})`,
+        thumbnail: emeraldValleyDreamsImg,
+        textColorTheme: 'light',
+        accentColor: '#4ade80',
+        overlayOpacity: 0.15
+    },
+    {
+        id: 'enchanted-pine-forest',
+        type: 'image',
+        category: 'Scenery',
+        value: `url(${enchantedPineForestImg})`,
+        thumbnail: enchantedPineForestImg,
+        textColorTheme: 'light',
+        accentColor: '#2dd4bf',
+        overlayOpacity: 0.2
+    },
+    {
+        id: 'mountain-railway-journey',
+        type: 'image',
+        category: 'Scenery',
+        value: `url(${mountainRailwayJourneyImg})`,
+        thumbnail: mountainRailwayJourneyImg,
+        textColorTheme: 'light',
+        accentColor: '#06b6d4',
+        overlayOpacity: 0.2
+    },
+    {
+        id: 'sunlit-sakura-vista',
+        type: 'image',
+        category: 'Scenery',
+        value: `url(${sunlitSakuraVistaImg})`,
+        thumbnail: sunlitSakuraVistaImg,
+        textColorTheme: 'dark',
+        accentColor: '#db2777',
+        overlayOpacity: 0.1
+    },
+    {
+        id: 'twilight-torii-forest',
+        type: 'image',
+        category: 'Scenery',
+        value: `url(${twilightToriiForestImg})`,
+        thumbnail: twilightToriiForestImg,
+        textColorTheme: 'light',
+        accentColor: '#ef4444',
+        overlayOpacity: 0.2
     },
     {
         id: 'sunset-horizon',
@@ -99,49 +338,106 @@ export const WALLPAPERS: WallpaperConfig[] = [
         overlayOpacity: 0.2
     },
     {
-        id: 'nature-forest-path',
+        id: 'amber-dunes',
         type: 'image',
         category: 'Scenery',
-        value: 'url(https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=60&w=1600)',
-        thumbnail: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80&w=400',
+        value: `url(${amberDunesImg})`,
+        thumbnail: amberDunesImg,
         textColorTheme: 'light',
-        accentColor: '#22c55e',
-        overlayOpacity: 0.2
+        accentColor: '#f59e0b', // Amber-500
+        overlayOpacity: 0.15
     },
     {
-        id: 'nature-mountain-peak',
+        id: 'midnight-harbor',
         type: 'image',
         category: 'Scenery',
-        value: 'url(https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=60&w=1600)',
-        thumbnail: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=400',
+        value: `url(${midnightHarborImg})`,
+        thumbnail: midnightHarborImg,
         textColorTheme: 'light',
-        accentColor: '#0ea5e9',
+        accentColor: '#38bdf8', // Sky-400
+        overlayOpacity: 0.25
+    },
+
+    // ─── COZY SPACES ───
+    {
+        id: 'midnight-study-retreat',
+        type: 'image',
+        category: 'Cozy Spaces',
+        value: `url(${midnightStudyRetreatImg})`,
+        thumbnail: midnightStudyRetreatImg,
+        textColorTheme: 'light',
+        accentColor: '#6366f1',
         overlayOpacity: 0.2
     },
     {
-        id: 'cozy-coffee',
+        id: 'last-train-home',
         type: 'image',
-        category: 'Vibe',
-        value: `url(${coffeeImg})`,
-        thumbnail: coffeeImg,
-        textColorTheme: 'dark',
-        accentColor: '#d97706',
-        overlayOpacity: 0.1
-    },
-    {
-        id: 'neon-city',
-        type: 'image',
-        category: 'Vibe',
-        value: `url(${neonImg})`,
-        thumbnail: neonImg,
+        category: 'Cozy Spaces',
+        value: `url(${lastTrainHomeImg})`,
+        thumbnail: lastTrainHomeImg,
         textColorTheme: 'light',
-        accentColor: '#d946ef',
+        accentColor: '#818cf8',
         overlayOpacity: 0.2
     },
+    {
+        id: 'cosmic-haven',
+        type: 'image',
+        category: 'Cozy Spaces',
+        value: `url(${cosmicHavenImg})`,
+        thumbnail: cosmicHavenImg,
+        textColorTheme: 'light',
+        accentColor: '#c084fc', // Purple-400
+        overlayOpacity: 0.15
+    },
+
+    // ─── ANIME & CYBER ───
+    {
+        id: 'cyber-rain-district',
+        type: 'image',
+        category: 'Anime & Cyber',
+        value: `url(${cyberRainDistrictImg})`,
+        thumbnail: cyberRainDistrictImg,
+        textColorTheme: 'light',
+        accentColor: '#ec4899',
+        overlayOpacity: 0.2
+    },
+    {
+        id: 'neon-grid-nexus',
+        type: 'image',
+        category: 'Anime & Cyber',
+        value: `url(${neonGridNexusImg})`,
+        thumbnail: neonGridNexusImg,
+        textColorTheme: 'light',
+        accentColor: '#a855f7',
+        overlayOpacity: 0.15
+    },
+    {
+        id: 'golden-city-horizon',
+        type: 'image',
+        category: 'Anime & Cyber',
+        value: `url(${goldenCityHorizonImg})`,
+        thumbnail: goldenCityHorizonImg,
+        textColorTheme: 'light',
+        accentColor: '#eab308',
+        overlayOpacity: 0.2
+    },
+    {
+        id: 'neon-horizon',
+        type: 'image',
+        category: 'Anime & Cyber',
+        value: `url(${neonHorizonImg})`,
+        thumbnail: neonHorizonImg,
+        textColorTheme: 'light',
+        accentColor: '#38bdf8', // Sky-400
+        overlayOpacity: 0.2
+    },
+
+
+    // ─── CELESTIAL ───
     {
         id: 'deep-space',
         type: 'image',
-        category: 'Vibe',
+        category: 'Celestial',
         value: `url(${spaceImg})`,
         thumbnail: spaceImg,
         textColorTheme: 'light',
@@ -149,37 +445,79 @@ export const WALLPAPERS: WallpaperConfig[] = [
         overlayOpacity: 0.1
     },
     {
-        id: 'abstract-silk-dark',
+        id: 'celestial-sky-kingdom',
         type: 'image',
-        category: 'Vibe',
-        value: 'url(https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=60&w=1600)',
-        thumbnail: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=400',
+        category: 'Celestial',
+        value: `url(${celestialSkyKingdomImg})`,
+        thumbnail: celestialSkyKingdomImg,
+        textColorTheme: 'dark',
+        accentColor: '#6366f1',
+        overlayOpacity: 0.15
+    },
+    {
+        id: 'starlight-observatory',
+        type: 'image',
+        category: 'Celestial',
+        value: `url(${starlightObservatoryImg})`,
+        thumbnail: starlightObservatoryImg,
         textColorTheme: 'light',
-        accentColor: '#818cf8',
+        accentColor: '#a855f7',
         overlayOpacity: 0.2
     },
     {
-        id: 'abstract-light-trails',
+        id: 'nebula-veil',
         type: 'image',
-        category: 'Vibe',
-        value: 'url(https://images.unsplash.com/photo-1555680202-c86f0e12f086?auto=format&fit=crop&q=60&w=1600)',
-        thumbnail: 'https://images.unsplash.com/photo-1555680202-c86f0e12f086?auto=format&fit=crop&q=80&w=400',
+        category: 'Celestial',
+        value: `url(${nebulaVeilImg})`,
+        thumbnail: nebulaVeilImg,
         textColorTheme: 'light',
-        accentColor: '#ec4899',
-        overlayOpacity: 0.1
+        accentColor: '#f472b6', // Pink-400
+        overlayOpacity: 0.15
+    },
+    {
+        id: 'aurora-bloom',
+        type: 'image',
+        category: 'Celestial',
+        value: `url(${auroraBloomImg})`,
+        thumbnail: auroraBloomImg,
+        textColorTheme: 'light',
+        accentColor: '#10b981', // Emerald-500
+        overlayOpacity: 0.2
+    },
+
+    // ─── ABSTRACT FLOW ───
+    {
+        id: 'ocean-surge',
+        type: 'image',
+        category: 'Abstract Flow',
+        value: `url(${oceanSurgeImg})`,
+        thumbnail: oceanSurgeImg,
+        textColorTheme: 'light',
+        accentColor: '#0284c7',
+        overlayOpacity: 0.2
     },
     {
         id: 'abstract-geometric-prism',
         type: 'image',
-        category: 'Vibe',
+        category: 'Abstract Flow',
         value: 'url(https://images.unsplash.com/photo-1550684376-efcbd6e3f031?auto=format&fit=crop&q=60&w=1600)',
         thumbnail: 'https://images.unsplash.com/photo-1550684376-efcbd6e3f031?auto=format&fit=crop&q=80&w=400',
         textColorTheme: 'dark',
         accentColor: '#6366f1',
         overlayOpacity: 0.1
     },
-    // Video Wallpapers - Users can add their own videos in the Custom category
-    // These are placeholders showing the structure
+    {
+        id: 'zen-ripple-garden',
+        type: 'image',
+        category: 'Abstract Flow',
+        value: `url(${zenRippleGardenImg})`,
+        thumbnail: zenRippleGardenImg,
+        textColorTheme: 'light',
+        accentColor: '#14b8a6',
+        overlayOpacity: 0.2
+    },
+
+    // ─── AURA ───
     {
         id: 'aurora-borealis',
         type: 'animated-gradient',
@@ -213,6 +551,8 @@ export const WALLPAPERS: WallpaperConfig[] = [
         overlayOpacity: 0,
         icon: Sparkles
     },
+
+    // ─── MOTION ───
     {
         id: 'hybrid-deep-space',
         type: 'animated-gradient',
@@ -230,7 +570,6 @@ export const WALLPAPERS: WallpaperConfig[] = [
         overlayOpacity: 0.1,
         icon: Mountain
     },
-    // Particle Ambient Presets
     {
         id: 'ambient-stars',
         type: 'particles',
@@ -264,26 +603,6 @@ export const WALLPAPERS: WallpaperConfig[] = [
         accentColor: '#bef264',
         overlayOpacity: 0,
         icon: Bug
-    },
-    // --- Expansion: reaching 50 presets ---
-    {
-        id: 'slate-solid',
-        type: 'solid',
-        category: 'Solid Colour',
-        value: '#1e293b',
-        thumbnail: '#1e293b',
-        textColorTheme: 'light',
-        accentColor: '#94a3b8'
-    },
-    {
-        id: 'tokyo-night-scenery',
-        type: 'image',
-        category: 'Scenery',
-        value: 'url(https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&q=80&w=1920)',
-        thumbnail: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&q=40&w=300',
-        textColorTheme: 'light',
-        accentColor: '#f472b6',
-        icon: Map
     },
 ];
 
@@ -401,10 +720,10 @@ export const WallpaperGrid = ({ currentId, onSelect }: WallpaperSelectorProps) =
         setStoragePercent(getStorageUsagePercent());
     }, [customWallpapers]);
 
-    const categories: WallpaperCategory[] = ['Solid Colour', 'Aura', 'Motion', 'Scenery', 'Vibe', 'Custom'];
+    const categories: WallpaperCategory[] = ['Solid Colour', 'Scenery', 'Cozy Spaces', 'Anime & Cyber', 'Celestial', 'Abstract Flow', 'Aura', 'Motion', 'Custom'];
 
-    const allWallpapers = [...WALLPAPERS, ...customWallpapers];
-    const filteredWallpapers = allWallpapers.filter(wp => wp.category === activeCategory);
+    const allWallpapers = useMemo(() => [...WALLPAPERS, ...customWallpapers], [customWallpapers]);
+    const filteredWallpapers = useMemo(() => allWallpapers.filter(wp => wp.category === activeCategory), [allWallpapers, activeCategory]);
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

@@ -34,7 +34,7 @@ export const ConsistencyHeatmap = ({ history }: ConsistencyHeatmapProps) => {
         <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '1rem', marginTop: '1rem' }}>
             <h3 style={{ marginBottom: '1rem', fontSize: '1rem', opacity: 0.9 }}>Value Consistency</h3>
 
-            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap', justifyContent: 'center' }}>
                 {dates.map(date => {
                     const count = activityMap.get(date) || 0;
                     return (
@@ -42,8 +42,8 @@ export const ConsistencyHeatmap = ({ history }: ConsistencyHeatmapProps) => {
                             key={date}
                             title={`${date}: ${count} sessions`}
                             style={{
-                                width: '24px',
-                                height: '24px',
+                                width: '28px',
+                                height: '28px',
                                 borderRadius: '4px',
                                 background: getIntensityColor(count),
                                 transition: 'all 0.2s',

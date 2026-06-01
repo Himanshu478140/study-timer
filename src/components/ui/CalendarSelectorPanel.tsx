@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { FocusCalendar } from '../calendar/FocusCalendar';
-import { Calendar as CalendarIcon } from 'lucide-react';
 
 interface CalendarSelectorPanelProps {
     isOpen: boolean;
@@ -105,10 +104,12 @@ export const CalendarSelectorPanel = ({ isOpen, onClose, triggerRef }: CalendarS
     useEffect(() => {
         if (!isOpen) return;
         const handleClickOutside = (e: MouseEvent) => {
-            const isOutsidePanel = panelRef.current && !panelRef.current.contains(e.target as Node);
-            const isNotTrigger = triggerRef?.current && !triggerRef.current.contains(e.target as Node);
+            const target = e.target as HTMLElement;
+            const isOutsidePanel = panelRef.current && !panelRef.current.contains(target);
+            const isNotTrigger = triggerRef?.current && !triggerRef.current.contains(target);
+            const isModalClick = target.closest('.add-event-modal-container');
             
-            if (isOutsidePanel && isNotTrigger) {
+            if (isOutsidePanel && isNotTrigger && !isModalClick) {
                 onClose();
             }
         };
@@ -132,7 +133,7 @@ export const CalendarSelectorPanel = ({ isOpen, onClose, triggerRef }: CalendarS
                         maxWidth: 'calc(100vw - 40px)',
                         borderRadius: '2rem',
                         border: '1px solid rgba(255, 255, 255, 0.06)',
-                        padding: '24px 16px',
+                        padding: '12px',
                         zIndex: 9999,
                         background: 'rgba(0, 0, 0, 0.95)',
                         backdropFilter: 'none',
@@ -147,26 +148,7 @@ export const CalendarSelectorPanel = ({ isOpen, onClose, triggerRef }: CalendarS
                         visibility: isPositioned ? 'visible' : 'hidden'
                     }}
                 >
-                    {/* Header */}
-                    <div style={{ padding: '0 16px', marginBottom: '8px', flexShrink: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                            <CalendarIcon size={14} color="var(--color-accent)" />
-                            <h3 style={{ 
-                                fontSize: '10px', 
-                                fontWeight: 'bold', 
-                                letterSpacing: '0.2em', 
-                                textTransform: 'uppercase', 
-                                color: 'rgba(255, 255, 255, 0.4)',
-                                margin: 0
-                            }}>Planning</h3>
-                        </div>
-                        <h2 style={{ 
-                            fontSize: '24px', 
-                            fontFamily: "'Noto Serif', serif", 
-                            fontStyle: 'italic', 
-                            margin: 0
-                        }}>Focus Calendar</h2>
-                    </div>
+
 
                     {/* Calendar Body */}
                     <div className="custom-scrollbar" style={{ 

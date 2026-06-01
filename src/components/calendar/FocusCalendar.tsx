@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useHabits } from '../../context/HabitsContext';
 import { AddEventModal } from '../modals/AddEventModal';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -62,15 +63,33 @@ export const FocusCalendar = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [selectedEvent, setSelectedEvent] = useState<{ id: string; title: string; type: string; color: string } | null>(null);
+    const [modalAnchor, setModalAnchor] = useState<{
+        top: number;
+        bottom: number;
+        left: number;
+        width: number;
+    } | null>(null);
 
     const getEvent = (date: Date) => {
         const dateStr = date.toISOString().split('T')[0];
         return events.find(e => e.date === dateStr);
     };
 
-    const handleDateClick = (_e: React.MouseEvent | undefined, date: Date) => {
+    const handleDateClick = (e: React.MouseEvent | undefined, date: Date) => {
         // MONTHLY: Open Add Event Modal
         setSelectedDate(date);
+
+        if (e) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            setModalAnchor({
+                top: rect.top,
+                bottom: rect.bottom,
+                left: rect.left,
+                width: rect.width
+            });
+        } else {
+            setModalAnchor(null);
+        }
 
         // Find existing event
         const existingInfo = getEvent(date);
@@ -140,173 +159,246 @@ export const FocusCalendar = () => {
 
             <AddEventModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setModalAnchor(null);
+                }}
                 onSave={handleSaveEvent}
                 onDelete={selectedEvent ? handleDeleteEvent : undefined}
                 initialDate={selectedDate || new Date()}
                 initialEvent={selectedEvent}
+                anchor={modalAnchor}
             />
 
             <div className="widget-card" style={{
-                padding: '1.5rem',
+                padding: '1.25rem',
                 overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
-                transition: 'padding 0.3s ease',
-                position: 'relative'
+                position: 'relative',
+                background: 'linear-gradient(180deg, #1b1b1f 0%, #121215 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                borderRadius: '2rem',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)'
             }}>
 
-
+                {/* --- REALISTIC VIOLET TOP GLOWING ACCENT BAR --- */}
+                <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: '80px',
+                    height: '3px',
+                    background: 'var(--color-accent, #8b5cf6)',
+                    borderBottomLeftRadius: '3px',
+                    borderBottomRightRadius: '3px',
+                    boxShadow: '0 0 10px var(--color-accent, #8b5cf6), 0 0 20px var(--color-accent, #8b5cf6)',
+                    zIndex: 10
+                }} />
 
                 {/* --- HEADER --- */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', height: '40px' }}>
-                    <button onClick={() => handleMonthNav('prev')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 0 }}><ChevronLeft size={20} /></button>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 600, minWidth: '140px', textAlign: 'center' }}>
-                        {monthName} <span style={{ opacity: 0.5, fontSize: '1rem', fontWeight: 400 }}>{yearNum}</span>
-                    </div>
-                    <button onClick={() => handleMonthNav('next')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', padding: 0 }}><ChevronRight size={20} /></button>
-                </div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', marginTop: '0.5rem', height: '40px' }}>
+                    <button
+                        onClick={() => handleMonthNav('prev')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            background: 'rgba(255,255,255,0.02)',
+                            color: 'rgba(255,255,255,0.8)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            padding: 0
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                            e.currentTarget.style.color = '#fff';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                            e.currentTarget.style.color = 'rgba(255,255,255,0.8)';
+                        }}
+                    >
+                        <ChevronLeft size={16} />
+                    </button>
 
+                    <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#ffffff', letterSpacing: '0.2px' }}>
+                        {monthName} <span style={{ opacity: 0.9 }}>{yearNum}</span>
+                    </div>
+
+                    <button
+                        onClick={() => handleMonthNav('next')}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            background: 'rgba(255,255,255,0.02)',
+                            color: 'rgba(255,255,255,0.8)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            padding: 0
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                            e.currentTarget.style.color = '#fff';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.02)';
+                            e.currentTarget.style.color = 'rgba(255,255,255,0.8)';
+                        }}
+                    >
+                        <ChevronRight size={16} />
+                    </button>
+                </div>
 
                 {/* --- MONTHLY VIEW --- */}
                 <div className="animate-slide-right">
-                        {/* Header Strip */}
-                        <div className="calendar-month-days-strip">
-                            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
-                                <div key={d}>{d}</div>
-                            ))}
-                        </div>
+                    {/* Header Strip */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(7, 1fr)',
+                        textAlign: 'center',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        letterSpacing: '0.05em',
+                        color: 'rgba(255, 255, 255, 0.3)',
+                        textTransform: 'uppercase',
+                        marginBottom: '0.75rem',
+                        padding: '0'
+                    }}>
+                        {['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].map(d => (
+                            <div key={d}>{d}</div>
+                        ))}
+                    </div>
 
-                        {/* Days Grid */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '2px', padding: '0' }}>
-                            {gridDates.map((item, i) => {
-                                const date = item.date;
-                                const isCurrentMonth = item.isCurrentMonth;
+                    {/* Days Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', columnGap: '0', rowGap: '6px', padding: '0' }}>
+                        {gridDates.map((item, i) => {
+                            const date = item.date;
+                            const isCurrentMonth = item.isCurrentMonth;
 
-                                // --- DATE STRINGS ---
-                                // 1. Local Date String for "Today" Highlight (Visual correctness)
-                                const localDateStr = date.toLocaleDateString('en-CA');
-                                const todayLocalStr = new Date().toLocaleDateString('en-CA');
-                                const isToday = localDateStr === todayLocalStr;
+                            // --- DATE STRINGS ---
+                            const localDateStr = date.toLocaleDateString('en-CA');
+                            const todayLocalStr = new Date().toLocaleDateString('en-CA');
+                            const isToday = localDateStr === todayLocalStr;
+                            const cellKey = date.toISOString().split('T')[0];
 
-                                // 2. Naive ISO Date String for Data Logic (Matching stored format)
-                                // Events are stored as naive ISO strings (often shifted to prev day in +ve timezones)
-                                // We must generate the same key for the cell to find the event.
-                                const cellKey = date.toISOString().split('T')[0];
+                            const todayDateObj = new Date();
+                            todayDateObj.setHours(0, 0, 0, 0);
+                            const todayKey = todayDateObj.toISOString().split('T')[0];
 
-                                // Calculate Today's Key in the same naive way (reset time to 00:00:00 local first)
-                                const todayDateObj = new Date();
-                                todayDateObj.setHours(0, 0, 0, 0);
-                                const todayKey = todayDateObj.toISOString().split('T')[0];
+                            const event = events.find(e => e.date === cellKey);
+                            const isSelected = selectedDate && cellKey === selectedDate.toISOString().split('T')[0];
 
-                                const event = events.find(e => e.date === cellKey);
+                            // CONNECTOR STRIP LOGIC
+                            let isStrip = false;
+                            let isStripStart = false;
+                            let isStripEnd = false;
+                            let stripColor = 'transparent';
 
-                                // CONNECTOR STRIP LOGIC
-                                let isStrip = false;
-                                let isStripStart = false;
-                                let isStripEnd = false;
-                                let stripColor = 'transparent';
+                            const futureEvents = events
+                                .filter(e => e.date >= todayKey)
+                                .sort((a, b) => a.date.localeCompare(b.date));
 
-                                // Calculate Next Event using Naive Keys
-                                const futureEvents = events
-                                    .filter(e => e.date >= todayKey)
-                                    .sort((a, b) => a.date.localeCompare(b.date));
+                            const nextEvent = futureEvents.find(e => e.date > todayKey);
 
-                                const nextEvent = futureEvents.find(e => e.date > todayKey);
-
-                                if (nextEvent) {
-                                    // String comparison works for ISO
-                                    if (cellKey >= todayKey && cellKey <= nextEvent.date) {
-                                        isStrip = true;
-                                        stripColor = nextEvent.color;
-                                        if (cellKey === todayKey) isStripStart = true;
-                                        if (cellKey === nextEvent.date) isStripEnd = true;
-                                    }
+                            if (nextEvent) {
+                                if (cellKey >= todayKey && cellKey <= nextEvent.date) {
+                                    isStrip = true;
+                                    stripColor = nextEvent.color;
+                                    if (cellKey === todayKey) isStripStart = true;
+                                    if (cellKey === nextEvent.date) isStripEnd = true;
                                 }
-                                return (
-                                    <div
-                                        key={i}
-                                        onClick={(e) => handleDateClick(e, date)}
-                                        style={{
-                                            position: 'relative',
-                                            width: '100%',
-                                            height: '30px',
-                                            margin: '0',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            cursor: 'pointer',
-                                            opacity: isCurrentMonth ? 1 : 0.3,
-                                            background: 'transparent' // Clear old background
+                            }
+                            return (
+                                <div
+                                    key={i}
+                                    onClick={(e) => handleDateClick(e, date)}
+                                    style={{
+                                        position: 'relative',
+                                        width: '100%',
+                                        height: '34px',
+                                        margin: '0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer',
+                                        opacity: isCurrentMonth ? 1 : 0.15,
+                                        background: 'transparent'
+                                    }}
+                                >
+
+
+                                    <div style={{
+                                        width: '32px',
+                                        height: '32px',
+                                        borderRadius: '50%',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'all 0.2s',
+                                        zIndex: 2,
+                                        position: 'relative',
+
+                                        // --- CIRCLE STYLE MATCHING THE MOCKUP ---
+                                        background: (isSelected || isToday)
+                                            ? 'var(--color-accent, #8b5cf6)'
+                                            : 'transparent',
+                                        color: (isSelected || isToday)
+                                            ? '#ffffff'
+                                            : 'rgba(255,255,255,0.9)',
+                                        fontWeight: (isSelected || isToday) ? 600 : 400,
+                                        boxShadow: (isSelected || isToday)
+                                            ? '0 0 14px var(--color-accent, #8b5cf6), 0 0 4px var(--color-accent, #8b5cf6)'
+                                            : 'none',
+                                        border: 'none'
+                                    }}
+                                        onMouseEnter={(e) => {
+                                            if (!isSelected && !isToday) e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+                                            handleMouseEnterNode(e, date);
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            if (!isSelected && !isToday) e.currentTarget.style.background = 'transparent';
+                                            handleMouseLeaveNode();
                                         }}
                                     >
-                                        {/* NEW CONNECTOR STRIP DESIGN */}
-                                        {isStrip && (
-                                            <div
-                                                style={{
-                                                    position: 'absolute',
-                                                    top: '50%',
-                                                    transform: 'translateY(-50%)',
-                                                    height: '24px', // Comfortable pill height
-                                                    background: stripColor,
-                                                    opacity: 0.2, // Subtle transparency
-                                                    zIndex: 1, // Behind text
+                                        <span style={{ fontSize: '0.85rem', lineHeight: 1, transform: event && !isSelected ? 'translateY(-2px)' : 'none' }}>
+                                            {date.getDate()}
+                                        </span>
 
-                                                    // Dynamic Width & Positioning to bridge gaps
-                                                    left: isStripStart ? '50%' : '-2px', // Start from center or cover left gap
-                                                    right: isStripEnd ? '50%' : '-2px', // End at center or cover right gap
-
-                                                    // Rounded Caps
-                                                    borderTopLeftRadius: isStripStart ? '12px' : '0',
-                                                    borderBottomLeftRadius: isStripStart ? '12px' : '0',
-                                                    borderTopRightRadius: isStripEnd ? '12px' : '0',
-                                                    borderBottomRightRadius: isStripEnd ? '12px' : '0',
-                                                }}
-                                            />
+                                        {/* Subtle event dot indicator at the bottom of the circle */}
+                                        {event && !isSelected && (
+                                            <span style={{
+                                                position: 'absolute',
+                                                bottom: '4px',
+                                                width: '4px',
+                                                height: '4px',
+                                                borderRadius: '50%',
+                                                background: event.color || 'var(--color-accent, #8b5cf6)',
+                                                boxShadow: `0 0 4px ${event.color || 'var(--color-accent, #8b5cf6)'}`
+                                            }} />
                                         )}
-
-                                        <div style={{
-                                            // THE CIRCLE NODE ITSELF
-                                            width: '30px',
-                                            height: '30px',
-                                            borderRadius: '50%',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            transition: 'all 0.2s',
-                                            zIndex: 2, // Above strip
-
-                                            // --- CIRCLE STYLE IF EVENT ---
-                                            background: isToday ? 'var(--color-accent)' : (event ? event.color : 'transparent'),
-                                            color: (isToday || event) ? '#fff' : 'rgba(255,255,255,0.8)',
-                                            fontWeight: (isToday || event) ? 700 : 400,
-                                            boxShadow: isToday ? '0 0 12px var(--color-accent)' : (event ? `0 4px 12px ${event.color}66` : 'none'),
-                                            border: (isToday || event) ? '1px solid rgba(255,255,255,0.2)' : '1px solid transparent',
-                                            textShadow: (isToday || event) ? '0 1px 2px rgba(0,0,0,0.5)' : 'none'
-                                        }}
-                                            onMouseEnter={(e) => {
-                                                if (!isToday && !event) e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
-                                                handleMouseEnterNode(e, date);
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                if (!isToday && !event) e.currentTarget.style.background = 'transparent';
-                                                handleMouseLeaveNode();
-                                            }}
-                                        >
-                                            <span style={{ fontSize: '0.9rem', lineHeight: 1 }}>
-                                                {date.getDate()}
-                                            </span>
-                                        </div>
                                     </div>
-                                );
-                            })}
-                        </div>
+                                </div>
+                            );
+                        })}
                     </div>
+                </div>
 
             </div>
 
             {/* TOOLTIP */}
-            {tooltipData && (
+            {tooltipData && createPortal(
                 <div style={{
                     position: 'fixed',
                     left: tooltipData.x,
@@ -329,7 +421,7 @@ export const FocusCalendar = () => {
                     WebkitBackdropFilter: 'blur(16px)',
                     borderRadius: '14px',
                     padding: '12px 16px',
-                    zIndex: 1000,
+                    zIndex: 100005,
                     pointerEvents: 'none',
                     boxShadow: `
                         0 10px 25px rgba(0,0,0,0.45),
@@ -365,7 +457,8 @@ export const FocusCalendar = () => {
                         borderRight: '5px solid transparent',
                         borderTop: '5px solid rgba(0,0,0,0.8)'
                     }} />
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );
