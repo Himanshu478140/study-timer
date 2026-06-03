@@ -1,10 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { useCloudSync } from './CloudSyncContext';
-import {
-    syncCollectionItem,
-    loadCollection,
-    cleanupOldData
-} from '../utils/syncUtils';
+import { useGamification } from '../hooks/useGamification';
 
 export interface FocusTask {
     id: string;
@@ -34,11 +29,9 @@ interface FocusTaskContextType {
 const FocusTaskContext = createContext<FocusTaskContextType | undefined>(undefined);
 
 export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
-    const { user } = useCloudSync();
-
-
     const [tasks, setTasks] = useState<FocusTask[]>([]);
     const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+    const { awardXP } = useGamification();
 
     // Initial Load from LocalStorage (Guest Mode)
     useEffect(() => {
@@ -47,14 +40,14 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
             try {
                 const parsed = JSON.parse(savedTasks);
                 if (Array.isArray(parsed)) {
-                    // 30-DAY RETENTION POLICY
-                    const thirtyDaysAgo = new Date();
-                    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                    // 6-MONTH RETENTION POLICY
+                    const sixMonthsAgo = new Date();
+                    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
                     const cleanTasks = parsed.filter((t: FocusTask) => {
                         if (!t.isDeleted) return true;
                         if (!t.completedAt) return false;
-                        return new Date(t.completedAt) > thirtyDaysAgo;
+                        return new Date(t.completedAt) > sixMonthsAgo;
                     });
                     setTasks(cleanTasks);
                 }
@@ -66,31 +59,6 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
         const savedActiveId = localStorage.getItem('focus-active-task-id');
         if (savedActiveId) setActiveTaskId(savedActiveId);
     }, []);
-
-    // Initial Cloud Sync
-    useEffect(() => {
-        if (!user) return;
-
-        const syncFromCloud = async () => {
-            console.log("Cloud Sync: Syncing Tasks...");
-            await cleanupOldData(user.uid, 'tasks', 'completedAt');
-
-            const cloudTasks = await loadCollection(user.uid, 'tasks') as FocusTask[];
-
-            setTasks(prev => {
-                const merged = [...cloudTasks];
-                prev.forEach(local => {
-                    if (!merged.find(c => c.id === local.id)) {
-                        merged.push(local);
-                        syncCollectionItem(user.uid, 'tasks', local.id, local);
-                    }
-                });
-                return merged;
-            });
-        };
-
-        syncFromCloud();
-    }, [user]);
 
     // Persist to LocalStorage
     useEffect(() => {
@@ -118,7 +86,6 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
             timeSpent: 0
         };
         setTasks(prev => [...prev, newTask]);
-        if (user) syncCollectionItem(user.uid, 'tasks', newTask.id, newTask);
 
         if (tasks.length === 0) handleSetActiveTask(newTask.id);
         return newTask.id;
@@ -128,12 +95,14 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
         setTasks(prev => prev.map(t => {
             if (t.id === id) {
                 const isNowCompleted = !t.completed;
+                if (isNowCompleted) {
+                    awardXP(10, 'task');
+                }
                 const updatedTask = {
                     ...t,
                     completed: isNowCompleted,
                     completedAt: isNowCompleted ? new Date().toISOString() : null
                 };
-                if (user) syncCollectionItem(user.uid, 'tasks', id, updatedTask);
                 return updatedTask;
             }
             return t;
@@ -147,7 +116,6 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
                     ...t,
                     timeSpent: (t.timeSpent || 0) + ms
                 };
-                if (user) syncCollectionItem(user.uid, 'tasks', id, updatedTask);
                 return updatedTask;
             }
             return t;
@@ -158,7 +126,6 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
         setTasks(prev => prev.map(t => {
             if (t.id === id) {
                 const updatedTask = { ...t, isDeleted: true };
-                if (user) syncCollectionItem(user.uid, 'tasks', id, updatedTask);
                 return updatedTask;
             }
             return t;
@@ -170,7 +137,6 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
         setTasks(prev => prev.map(t => {
             if (t.completed) {
                 const updatedTask = { ...t, isDeleted: true };
-                if (user) syncCollectionItem(user.uid, 'tasks', t.id, updatedTask);
                 return updatedTask;
             }
             return t;

@@ -1,4 +1,3 @@
-// import { Zap, Clock, Target, Flame } from 'lucide-react'; // Removing unused
 import type { FocusStats } from '../../hooks/useHabits';
 
 interface StatsPanelProps {
@@ -18,6 +17,8 @@ import { InteractiveFocusChart } from '../stats/InteractiveFocusChart';
 import { Minus, Plus } from 'lucide-react';
 import { DailyTaskStats } from '../stats/DailyTaskStats';
 import { LevelDisplay } from '../stats/LevelDisplay';
+import { SessionHistoryCard } from '../stats/SessionHistoryCard';
+import { ScratchpadLogsCard } from '../stats/ScratchpadLogsCard';
 
 export const StatsPanel = ({ stats: _userStats, focusStats, setDailyGoal }: StatsPanelProps) => {
 
@@ -75,7 +76,7 @@ export const StatsPanel = ({ stats: _userStats, focusStats, setDailyGoal }: Stat
             {/* Level & XP Display */}
             <LevelDisplay />
 
-            {/* Consistency Heatmap */}
+            {/* Habits Monthly Heatmap */}
             <ConsistencyHeatmap history={focusStats.history} />
 
             {/* Premium Stacked Area Focus Chart */}
@@ -85,8 +86,12 @@ export const StatsPanel = ({ stats: _userStats, focusStats, setDailyGoal }: Stat
 
             {/* NEW Independent Block: Daily Tasks */}
             <DailyTaskStats />
+
+            {/* NEW Standalone Block: Session History Log */}
+            <SessionHistoryCard history={focusStats.history} />
+
+            {/* NEW Standalone Block: Scratchpad Snapshots Log */}
+            <ScratchpadLogsCard />
         </div>
     );
 };
-
-// StatCard removed as it is replaced by dedicated components

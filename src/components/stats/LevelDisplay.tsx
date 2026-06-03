@@ -2,12 +2,7 @@ import { useGamification } from '../../hooks/useGamification';
 import './levelDisplay.css';
 
 export const LevelDisplay = () => {
-    const { level, xp } = useGamification();
-
-    const XP_PER_LEVEL = 100;
-    const currentLevelXP = (level - 1) * XP_PER_LEVEL;
-    const progressXP = xp - currentLevelXP;
-    const progressPercent = (progressXP / XP_PER_LEVEL) * 100;
+    const { level, xp, xpRequiredForNextLevel, progressXP, progressPercent } = useGamification();
 
     return (
         <div className="level-display-card">
@@ -19,7 +14,7 @@ export const LevelDisplay = () => {
                 <div className="xp-info">
                     <span className="xp-current">{progressXP} XP</span>
                     <span className="xp-separator">/</span>
-                    <span className="xp-next">{XP_PER_LEVEL} XP</span>
+                    <span className="xp-next">{xpRequiredForNextLevel} XP</span>
                 </div>
             </div>
 

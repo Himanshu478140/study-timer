@@ -5,6 +5,7 @@ interface SessionRingProps {
   totalSessions?: number;
   children: React.ReactNode;
   mode?: string; // Stability check prop
+  completedModes?: string[];
 }
 
 /**
@@ -17,8 +18,34 @@ export const SessionRing: React.FC<SessionRingProps> = memo(({
   currentSession,
   totalSessions = 4,
   children,
+  mode = 'pomodoro',
+  completedModes,
 }) => {
   const prevSessionRef = useRef(currentSession);
+
+  // Determine mode color mapping
+  const getModeColor = (m: string) => {
+    switch (m) {
+      case 'pomodoro': return '#ef4444';
+      case 'flow': return '#3b82f6';
+      case 'deep_work': return '#a855f7';
+      case 'custom': return '#22c55e';
+      default: return '#ef4444';
+    }
+  };
+
+  const getModeRgb = (m: string) => {
+    switch (m) {
+      case 'pomodoro': return '239, 68, 68';
+      case 'flow': return '59, 130, 246';
+      case 'deep_work': return '168, 85, 247';
+      case 'custom': return '34, 197, 94';
+      default: return '239, 68, 68';
+    }
+  };
+
+  const colorAccent = getModeColor(mode);
+  const rgbAccent = getModeRgb(mode);
 
   // Determine which "round" we're on and how many segments are filled this round
   const round = totalSessions > 0 ? Math.floor(currentSession / totalSessions) : 0;
@@ -89,17 +116,26 @@ export const SessionRing: React.FC<SessionRingProps> = memo(({
         {Array.from({ length: totalSessions }).map((_, i) => {
           const isFilled = i < filled;
           const justFilled = i === filled - 1 && currentSession !== prevSessionRef.current;
+          
+          // Use the mode of the completed session at index i, or fall back to the active mode
+          const segmentMode = (completedModes && i < completedModes.length) 
+            ? completedModes[i] 
+            : mode;
+
+          const segColorAccent = getModeColor(segmentMode);
+          const segRgbAccent = getModeRgb(segmentMode);
+
           return (
             <path
               key={i}
               d={arcPath(i)}
               fill="none"
-              stroke={isFilled ? '#22c55e' : 'rgba(255, 255, 255, 0.2)'}
+              stroke={isFilled ? segColorAccent : 'rgba(255, 255, 255, 0.2)'}
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               className={justFilled ? 'session-ring-segment-animate' : ''}
               style={{
-                filter: isFilled ? 'drop-shadow(0 0 3px rgba(34, 197, 94, 0.5))' : 'none',
+                filter: isFilled ? `drop-shadow(0 0 3px rgba(${segRgbAccent}, 0.5))` : 'none',
                 transition: 'stroke 0.4s ease, filter 0.4s ease',
               }}
             />
@@ -120,7 +156,7 @@ export const SessionRing: React.FC<SessionRingProps> = memo(({
             position: 'absolute',
             bottom: '-2px',
             left: '-2px',
-            background: '#22c55e',
+            background: colorAccent,
             color: '#0a0a0a',
             fontSize: '0.55rem',
             fontWeight: 800,
@@ -129,7 +165,7 @@ export const SessionRing: React.FC<SessionRingProps> = memo(({
             borderRadius: '6px',
             zIndex: 2,
             pointerEvents: 'none',
-            boxShadow: '0 2px 6px rgba(34, 197, 94, 0.4)',
+            boxShadow: `0 2px 6px rgba(${rgbAccent}, 0.4)`,
           }}
         >
           ×{round}
@@ -138,9 +174,20 @@ export const SessionRing: React.FC<SessionRingProps> = memo(({
     </div>
   );
 }, (prevProps, nextProps) => {
+  const arraysEqual = (a?: string[], b?: string[]) => {
+    if (a === b) return true;
+    if (!a || !b) return false;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
+  };
+
   return prevProps.currentSession === nextProps.currentSession &&
          prevProps.totalSessions === nextProps.totalSessions &&
-         prevProps.mode === nextProps.mode;
+         prevProps.mode === nextProps.mode &&
+         arraysEqual(prevProps.completedModes, nextProps.completedModes);
 });
 
 SessionRing.displayName = 'SessionRing';

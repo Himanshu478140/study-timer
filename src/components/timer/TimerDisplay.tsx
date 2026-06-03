@@ -9,10 +9,6 @@ interface TimerDisplayProps {
     className?: string;
     font?: string;
     isFullscreen?: boolean;
-    // Props passed but not used for alignment with layout
-    active?: boolean;
-    timeLeft?: number;
-    mode?: string;
 }
 
 export const TimerDisplay = ({

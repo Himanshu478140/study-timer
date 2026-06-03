@@ -127,7 +127,7 @@ export const VerticalDockPanel = ({
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isOpen, onClose, triggerRef]);
 
-    const notesSummary = notes ? `${notes.length} characters written` : 'Quick notepad is empty';
+    const notesSummary = notes ? `${notes.length} characters written` : 'Quick scratchpad is empty';
     
     const readableModeName = {
         deep_work: 'Deep Work',
@@ -174,7 +174,7 @@ export const VerticalDockPanel = ({
         },
         {
             icon: <NotepadText size={22} />,
-            title: 'Scratch Note',
+            title: 'Scratchpad',
             subtitle: notesSummary,
             onClick: () => { onToggleNotepad(); },
             isActive: isNotepadOpen

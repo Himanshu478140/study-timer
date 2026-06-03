@@ -2,7 +2,8 @@ import React, { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Brain, Clock, Coffee, Sliders, Timer } from 'lucide-react';
-import type { FocusMode } from '../modes/ModeSelector';
+
+export type FocusMode = 'deep_work' | 'pomodoro' | 'flow' | 'custom';
 
 interface ModeSelectorPanelProps {
     isOpen: boolean;

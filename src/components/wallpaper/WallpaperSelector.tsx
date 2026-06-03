@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { createPortal } from 'react-dom';
 import {
     Image as ImageIcon, X, Info, HardDrive, Youtube, Plus,
     Stars, Sparkles, Flame, Bug,
@@ -606,67 +605,12 @@ export const WALLPAPERS: WallpaperConfig[] = [
     },
 ];
 
-interface WallpaperSelectorProps {
+interface WallpaperGridProps {
     currentId: string;
     onSelect: (config: WallpaperConfig) => void;
-    /** If provided, controls the drawer externally (no trigger button rendered) */
-    externalOpen?: boolean;
-    onClose?: () => void;
 }
 
-export const WallpaperSelector = ({ currentId, onSelect, externalOpen, onClose }: WallpaperSelectorProps) => {
-    const [internalOpen, setInternalOpen] = useState(false);
-    const isControlled = externalOpen !== undefined;
-    const isOpen = isControlled ? externalOpen : internalOpen;
-    const handleClose = () => {
-        if (isControlled && onClose) onClose();
-        else setInternalOpen(false);
-    };
-
-    return (
-        <>
-            {/* Only render trigger button when NOT externally controlled */}
-            {!isControlled && (
-                <button
-                    className="wallpaper-trigger-btn interactive-press"
-                    onClick={() => setInternalOpen(true)}
-                >
-                    <ImageIcon size={18} />
-                    <span>Wallpaper</span>
-                </button>
-            )}
-
-            {createPortal(
-                <>
-                    {/* Backdrop */}
-                    <div
-                        className={`wallpaper-drawer-overlay ${isOpen ? 'open' : ''}`}
-                        onClick={handleClose}
-                    />
-
-                    {/* Drawer Panel */}
-                    <div className={`wallpaper-drawer ${isOpen ? 'open' : ''}`}>
-                        <div className="drawer-handle" />
-
-                        {/* Header */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'white' }}>Backgrounds</h3>
-                            <button onClick={handleClose} style={{ padding: '0.5rem', opacity: 0.7, color: 'white' }}>
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        {/* Reusable Grid Component */}
-                        <WallpaperGrid currentId={currentId} onSelect={onSelect} />
-                    </div>
-                </>,
-                document.body
-            )}
-        </>
-    );
-};
-
-export const WallpaperGrid = ({ currentId, onSelect }: WallpaperSelectorProps) => {
+export const WallpaperGrid = ({ currentId, onSelect }: WallpaperGridProps) => {
     const [activeCategory, setActiveCategory] = useState<WallpaperCategory>('Solid Colour');
     const [customWallpapers, setCustomWallpapers] = useState<WallpaperConfig[]>(() => {
         try {

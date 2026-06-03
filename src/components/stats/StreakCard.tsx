@@ -18,8 +18,9 @@ export const StreakCard = ({ current, best }: StreakCardProps) => {
         <div className="glass-panel" style={{
             padding: '1.5rem',
             borderRadius: '1rem',
-            background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.05))',
-            border: '1px solid rgba(249, 115, 22, 0.2)'
+            background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(234, 88, 12, 0.08)), rgba(18, 18, 22, 0.92)',
+            border: '1px solid rgba(249, 115, 22, 0.25)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
         }}>
             <div className="flex-center" style={{ justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

@@ -1,64 +1,83 @@
-// import { Tooltip } from 'react-tooltip';
+import { useMemo } from 'react';
+import { useHabits } from '../../hooks/useHabits';
 
 interface ConsistencyHeatmapProps {
-    history: any[]; // FocusSession[]
+    history: any[]; // accepted to prevent compilation error in caller
 }
 
-export const ConsistencyHeatmap = ({ history }: ConsistencyHeatmapProps) => {
-    // Generate last 28 days (4 weeks) for compact view, or 60 days
-    const daysToShow = 28;
-    const today = new Date();
+export const ConsistencyHeatmap = ({ history: _history }: ConsistencyHeatmapProps) => {
+    const { habits } = useHabits();
 
-    // Create map of date -> intensity
-    const activityMap = new Map<string, number>();
-    history.forEach(session => {
-        const current = activityMap.get(session.date) || 0;
-        // Simple intensity: 1 session = 1 point, Max ~5 points
-        activityMap.set(session.date, current + 1);
-    });
+    const heatmapData = useMemo(() => {
+        const cells: { date: string; level: number }[] = [];
+        const now = new Date();
 
-    const dates = Array.from({ length: daysToShow }).map((_, i) => {
-        const d = new Date();
-        d.setDate(today.getDate() - (daysToShow - 1 - i));
-        return d.toISOString().split('T')[0];
-    });
+        for (let i = 181; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
 
-    const getIntensityColor = (count: number) => {
-        if (count === 0) return 'rgba(255,255,255,0.05)';
-        if (count < 2) return 'rgba(16, 185, 129, 0.3)'; // Low
-        if (count < 4) return 'rgba(16, 185, 129, 0.6)'; // Medium
-        return 'rgba(16, 185, 129, 1)'; // High
+            const completedCount = habits.reduce((acc, h) =>
+                acc + (h.completedDates.includes(dateStr) ? 1 : 0), 0
+            );
+
+            let level = 0;
+            if (completedCount >= 4) level = 4;
+            else if (completedCount === 3) level = 3;
+            else if (completedCount === 2) level = 2;
+            else if (completedCount === 1) level = 1;
+
+            cells.push({ date: dateStr, level });
+        }
+
+        return cells;
+    }, [habits]);
+
+    const getIntensityColor = (level: number) => {
+        if (level === 0) return 'rgba(var(--color-accent-rgb, 74, 124, 89), 0.08)';
+        if (level === 1) return 'rgba(var(--color-accent-rgb, 74, 124, 89), 0.25)';
+        if (level === 2) return 'rgba(var(--color-accent-rgb, 74, 124, 89), 0.45)';
+        if (level === 3) return 'rgba(var(--color-accent-rgb, 74, 124, 89), 0.65)';
+        return 'rgba(var(--color-accent-rgb, 74, 124, 89), 0.9)';
     };
 
     return (
-        <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '1rem', marginTop: '1rem' }}>
-            <h3 style={{ marginBottom: '1rem', fontSize: '1rem', opacity: 0.9 }}>Value Consistency</h3>
-
-            <div style={{ display: 'flex', gap: '2px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                {dates.map(date => {
-                    const count = activityMap.get(date) || 0;
-                    return (
-                        <div
-                            key={date}
-                            title={`${date}: ${count} sessions`}
-                            style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '4px',
-                                background: getIntensityColor(count),
-                                transition: 'all 0.2s',
-                                cursor: 'pointer'
-                            }}
-                        />
-                    );
-                })}
+        <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '1rem', marginTop: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, opacity: 0.9 }}>6-Month Heatmap</h3>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '0.75rem', opacity: 0.6 }}>
+                    <span>Less</span>
+                    <div style={{ width: 10, height: 10, background: 'rgba(var(--color-accent-rgb, 74, 124, 89), 0.08)', borderRadius: 2 }}></div>
+                    <div style={{ width: 10, height: 10, background: 'rgba(var(--color-accent-rgb, 74, 124, 89), 0.25)', borderRadius: 2 }}></div>
+                    <div style={{ width: 10, height: 10, background: 'rgba(var(--color-accent-rgb, 74, 124, 89), 0.45)', borderRadius: 2 }}></div>
+                    <div style={{ width: 10, height: 10, background: 'rgba(var(--color-accent-rgb, 74, 124, 89), 0.65)', borderRadius: 2 }}></div>
+                    <div style={{ width: 10, height: 10, background: 'rgba(var(--color-accent-rgb, 74, 124, 89), 0.9)', borderRadius: 2 }}></div>
+                    <span>More</span>
+                </div>
             </div>
-            <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'flex-end', gap: '4px', alignItems: 'center', fontSize: '0.7rem', opacity: 0.6 }}>
-                <span>Less</span>
-                <div style={{ width: 10, height: 10, background: 'rgba(255,255,255,0.05)', borderRadius: 2 }}></div>
-                <div style={{ width: 10, height: 10, background: 'rgba(16, 185, 129, 0.3)', borderRadius: 2 }}></div>
-                <div style={{ width: 10, height: 10, background: 'rgba(16, 185, 129, 1)', borderRadius: 2 }}></div>
-                <span>More</span>
+
+            <div style={{
+                display: 'grid',
+                gridTemplateRows: 'repeat(7, 1fr)',
+                gridAutoFlow: 'column',
+                gridAutoColumns: '1fr',
+                gap: '4px',
+                width: '100%'
+            }}>
+                {heatmapData.map((cell, i) => (
+                    <div
+                        key={i}
+                        title={`${cell.date}: ${cell.level} habit${cell.level !== 1 ? 's' : ''} completed`}
+                        style={{
+                            width: '100%',
+                            aspectRatio: '1',
+                            borderRadius: '2px',
+                            background: getIntensityColor(cell.level),
+                            transition: 'background 0.15s ease',
+                            cursor: 'pointer'
+                        }}
+                    />
+                ))}
             </div>
         </div>
     );

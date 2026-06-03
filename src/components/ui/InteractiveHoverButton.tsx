@@ -35,7 +35,7 @@ export const InteractiveHoverButton = React.forwardRef<HTMLButtonElement, Intera
                     cursor: 'pointer',
                     overflow: 'hidden',
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    backdropFilter: 'blur(10px)',
+                    backdropFilter: 'blur(5px)',
                     fontSize: '0.9rem',
                     fontWeight: 600,
                     pointerEvents: 'auto', // Force clickable

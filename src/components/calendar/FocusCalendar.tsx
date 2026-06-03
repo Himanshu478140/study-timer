@@ -292,33 +292,9 @@ export const FocusCalendar = () => {
                             const isToday = localDateStr === todayLocalStr;
                             const cellKey = date.toISOString().split('T')[0];
 
-                            const todayDateObj = new Date();
-                            todayDateObj.setHours(0, 0, 0, 0);
-                            const todayKey = todayDateObj.toISOString().split('T')[0];
-
                             const event = events.find(e => e.date === cellKey);
                             const isSelected = selectedDate && cellKey === selectedDate.toISOString().split('T')[0];
 
-                            // CONNECTOR STRIP LOGIC
-                            let isStrip = false;
-                            let isStripStart = false;
-                            let isStripEnd = false;
-                            let stripColor = 'transparent';
-
-                            const futureEvents = events
-                                .filter(e => e.date >= todayKey)
-                                .sort((a, b) => a.date.localeCompare(b.date));
-
-                            const nextEvent = futureEvents.find(e => e.date > todayKey);
-
-                            if (nextEvent) {
-                                if (cellKey >= todayKey && cellKey <= nextEvent.date) {
-                                    isStrip = true;
-                                    stripColor = nextEvent.color;
-                                    if (cellKey === todayKey) isStripStart = true;
-                                    if (cellKey === nextEvent.date) isStripEnd = true;
-                                }
-                            }
                             return (
                                 <div
                                     key={i}
@@ -336,8 +312,6 @@ export const FocusCalendar = () => {
                                         background: 'transparent'
                                     }}
                                 >
-
-
                                     <div style={{
                                         width: '32px',
                                         height: '32px',
@@ -417,8 +391,8 @@ export const FocusCalendar = () => {
                     borderLeft: '1px solid rgba(255,255,255,0.18)',
                     borderRight: '1px solid rgba(255,255,255,0.08)',
                     borderBottom: '1px solid rgba(0,0,0,0.35)',
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)',
+                    backdropFilter: 'blur(6px)',
+                    WebkitBackdropFilter: 'blur(6px)',
                     borderRadius: '14px',
                     padding: '12px 16px',
                     zIndex: 100005,

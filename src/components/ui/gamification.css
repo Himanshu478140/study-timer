@@ -4,7 +4,7 @@
     top: 6rem;
     right: 2rem;
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.95), rgba(99, 102, 241, 0.95));
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(6px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 16px;
     padding: 1rem 1.5rem;

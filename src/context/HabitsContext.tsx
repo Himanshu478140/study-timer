@@ -1,13 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { type User } from 'firebase/auth';
 import { useGamification } from '../hooks/useGamification';
-import { useCloudSync } from './CloudSyncContext';
-import {
-    syncCollectionItem,
-    deleteCollectionItem,
-    loadCollection,
-    cleanupOldData
-} from '../utils/syncUtils';
 
 // --- Types ---
 export interface FocusSession {
@@ -24,18 +16,26 @@ export interface DailyHabit {
     id: string;
     name: string;
     color: string; // Hex code or tailwind class
-    completedDates: string[]; // ISO Date strings "YYYY-MM-DD"
+    completedDates: string[]; // List of ISO Date Strings
     icon?: string;
     goal?: string;
     frequency?: 'daily' | 'weekdays' | 'weekly' | 'custom';
     activeDays?: string[];
 }
 
+export interface CalendarEvent {
+    id: string;
+    date: string; // "YYYY-MM-DD"
+    title: string;
+    type: string; // "session" | "habit" | "custom"
+    color: string;
+}
+
 export interface FocusStats {
     history: FocusSession[];
     today: {
         date: string;
-        score: number;
+        score: number; // 0-100 progress indicator
         pomodoros: number;
         deepWorkMinutes: number;
         sessions: number;
@@ -43,19 +43,11 @@ export interface FocusStats {
     streaks: {
         current: number;
         best: number;
-        lastActiveDate: string;
+        lastActiveDate: string; // "YYYY-MM-DD"
     };
     totalFocusMinutes: number;
     dailyGoalMinutes: number;
     level: number;
-}
-
-export interface CalendarEvent {
-    id: string;
-    date: string; // ISO Date String YYYY-MM-DD
-    title: string;
-    type: string;
-    color: string;
 }
 
 interface HabitsContextType {
@@ -69,7 +61,6 @@ interface HabitsContextType {
     addEvent: (event: Omit<CalendarEvent, 'id'>) => void;
     deleteEvent: (id: string) => void;
     setDailyGoal: (minutes: number) => void;
-    user: User | null;
 }
 
 // --- Helper Functions ---
@@ -90,13 +81,10 @@ const getYesterday = (timezone: string = 'auto') => {
     return getToday(timezone, d);
 };
 
-
 // --- Context Definition ---
 const HabitsContext = createContext<HabitsContextType | undefined>(undefined);
 
 export const HabitsProvider = ({ children, timezone }: { children: ReactNode, timezone?: string }) => {
-    const { user } = useCloudSync();
-
     // --- Stats Logic ---
     const [stats, setStats] = useState<FocusStats>(() => {
         const saved = localStorage.getItem('focus-stats');
@@ -144,74 +132,6 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
         return [];
     });
 
-    // --- Initial Cloud Load & Sync ---
-    useEffect(() => {
-        if (!user) return;
-
-        const syncFromCloud = async () => {
-            console.log("Cloud Sync: Initializing for", user.email);
-
-            // 1. Cleanup old cloud data (30-day policy)
-            await cleanupOldData(user.uid, 'sessions', 'date');
-            await cleanupOldData(user.uid, 'events', 'date');
-
-            // 2. Load Cloud Data
-            const cloudSessions = await loadCollection(user.uid, 'sessions') as FocusSession[];
-            const cloudHabits = await loadCollection(user.uid, 'habits') as DailyHabit[];
-            const cloudEvents = await loadCollection(user.uid, 'events') as CalendarEvent[];
-
-            // 3. Merge Logic (Cloud takes precedence for overlapping IDs)
-            setStats(prev => {
-                const mergedHistory = [...cloudSessions];
-                // Add local sessions that aren't in cloud yet
-                prev.history.forEach(local => {
-                    if (!mergedHistory.find(c => c.id === local.id)) {
-                        mergedHistory.push(local);
-                        // Push new local data to cloud immediately
-                        syncCollectionItem(user.uid, 'sessions', local.id, local);
-                    }
-                });
-                mergedHistory.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
-
-                // 30-Day Policy for local state too
-                const thirtyDaysAgo = new Date();
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
-                const cleanHistory = mergedHistory.filter(s => s.date >= thirtyDaysAgoStr);
-
-                return { ...prev, history: cleanHistory };
-            });
-
-            setHabits(prev => {
-                const merged = [...cloudHabits];
-                prev.forEach(local => {
-                    if (!merged.find(c => c.id === local.id)) {
-                        merged.push(local);
-                        syncCollectionItem(user.uid, 'habits', local.id, local);
-                    }
-                });
-                return merged;
-            });
-
-            setEvents(prev => {
-                const merged = [...cloudEvents];
-                prev.forEach(local => {
-                    if (!merged.find(c => c.id === local.id)) {
-                        merged.push(local);
-                        syncCollectionItem(user.uid, 'events', local.id, local);
-                    }
-                });
-
-                const thirtyDaysAgo = new Date();
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
-                return merged.filter(e => e.date >= thirtyDaysAgoStr);
-            });
-        };
-
-        syncFromCloud();
-    }, [user]);
-
     // --- Gamification Logic ---
     const { awardXP } = useGamification();
 
@@ -220,60 +140,56 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
         const today = getToday(timezone);
         const yesterday = getYesterday(timezone);
 
-        // 1. Handle Daily Reset & Streak Decay
+        // Check if day changed
         if (stats.today.date !== today) {
             setStats(prev => {
+                // Determine streak reset
+                let newStreak = prev.streaks.current;
                 const lastActive = prev.streaks.lastActiveDate;
-                const isStreakBroken = lastActive !== today && lastActive !== yesterday && lastActive !== '';
+
+                if (lastActive !== today && lastActive !== yesterday) {
+                    newStreak = 0; // Reset streak if active days missed
+                }
+
+                // 6-Month Data Retention Policy on local stats history
+                const sixMonthsAgo = new Date();
+                sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+                const sixMonthsAgoStr = sixMonthsAgo.toISOString().split('T')[0];
+
+                const cleanHistory = prev.history.filter(s => s.date >= sixMonthsAgoStr);
 
                 return {
                     ...prev,
+                    history: cleanHistory,
                     today: { date: today, score: 0, pomodoros: 0, deepWorkMinutes: 0, sessions: 0 },
-                    streaks: {
-                        ...prev.streaks,
-                        current: isStreakBroken ? 0 : prev.streaks.current
-                    }
+                    streaks: { ...prev.streaks, current: newStreak }
                 };
             });
+
+            // 6-Month Data Retention Policy on local calendar events
+            setEvents(prev => {
+                const sixMonthsAgo = new Date();
+                sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+                const sixMonthsAgoStr = sixMonthsAgo.toISOString().split('T')[0];
+
+                return prev.filter(e => e.date >= sixMonthsAgoStr);
+            });
         }
+    }, [timezone]);
 
-        // 2. Perform Local Cleanup (30-Day Retention)
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
-
-        setStats(prev => {
-            const cleanHistory = prev.history.filter(s => s.date >= thirtyDaysAgoStr);
-            if (cleanHistory.length === prev.history.length) return prev;
-            console.log(`Local Cleanup: Removed ${prev.history.length - cleanHistory.length} old sessions.`);
-            return { ...prev, history: cleanHistory };
-        });
-
-        setEvents(prev => {
-            const cleanEvents = prev.filter(e => e.date >= thirtyDaysAgoStr);
-            if (cleanEvents.length === prev.length) return prev;
-            console.log(`Local Cleanup: Removed ${prev.length - cleanEvents.length} old events.`);
-            return cleanEvents;
-        });
-
-    }, [timezone]); // Sync on timezone change or mount
-
-    // Persist Stats
+    // Persist to LocalStorage
     useEffect(() => {
         localStorage.setItem('focus-stats', JSON.stringify(stats));
     }, [stats]);
 
-    // Persist Habits
     useEffect(() => {
         localStorage.setItem('daily-habits', JSON.stringify(habits));
     }, [habits]);
 
-    // Persist Events
     useEffect(() => {
         localStorage.setItem('calendar-events', JSON.stringify(events));
     }, [events]);
 
-    // Actions
     const addHabit = (
         name: string,
         color: string,
@@ -293,7 +209,6 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
             activeDays
         };
         setHabits(prev => [...prev, newHabit]);
-        if (user) syncCollectionItem(user.uid, 'habits', newHabit.id, newHabit);
     };
 
     const toggleHabit = (id: string, date: string) => {
@@ -306,7 +221,6 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
                         ? h.completedDates.filter(d => d !== date)
                         : [...h.completedDates, date]
                 };
-                if (user) syncCollectionItem(user.uid, 'habits', id, updatedHabit);
                 return updatedHabit;
             }
             return h;
@@ -315,18 +229,15 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
 
     const deleteHabit = (id: string) => {
         setHabits(prev => prev.filter(h => h.id !== id));
-        if (user) deleteCollectionItem(user.uid, 'habits', id);
     };
 
     const addEvent = (event: Omit<CalendarEvent, 'id'>) => {
         const newEvent = { ...event, id: crypto.randomUUID() };
         setEvents(prev => [...prev, newEvent]);
-        if (user) syncCollectionItem(user.uid, 'events', newEvent.id, newEvent);
     };
 
     const deleteEvent = (id: string) => {
         setEvents(prev => prev.filter(e => e.id !== id));
-        if (user) deleteCollectionItem(user.uid, 'events', id);
     };
 
     const calculateScore = (totalMinutes: number, goal: number) => {
@@ -364,7 +275,6 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
                     newStreak = 1;
                 }
             } else if (newStreak === 0) {
-                // Handle edge case where streak is 0 but lastActive was somehow today
                 newStreak = 1;
             }
 
@@ -389,43 +299,40 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
             return updatedStats;
         });
 
-        if (user) syncCollectionItem(user.uid, 'sessions', newSession.id, newSession);
-
         // --- Award XP based on achievements ---
         setStats(prev => {
-            let totalXP = 0;
-            const isFirstSessionToday = prev.today.sessions === 1; // already incremented above
+            let achievementXP = 0;
+            const isFirstSessionToday = prev.today.sessions === 1;
             const actualTotalMinsToday = prev.history.filter(s => s.date === getToday()).reduce((acc, s) => acc + s.durationMinutes, 0);
             const goalProgress = (actualTotalMinsToday / prev.dailyGoalMinutes) * 100;
             const newStreak = prev.streaks.current;
-            const wasStreakIncremented = prev.streaks.lastActiveDate === getToday();
 
             // 🔥 Streak XP
-            if (wasStreakIncremented && isFirstSessionToday) {
-                if (newStreak === 1) totalXP += 10;
-                else if (newStreak <= 6) totalXP += 20;
-                else totalXP += 30;
-
-                if (newStreak === 7) totalXP += 100;
-                else if (newStreak === 14) totalXP += 200;
-                else if (newStreak === 30) totalXP += 500;
-
-                if (newStreak > prev.streaks.best) totalXP += 50;
+            if (isFirstSessionToday) {
+                if (newStreak === 3) achievementXP += 30;
+                else if (newStreak === 7) achievementXP += 100;
+                else if (newStreak === 30) achievementXP += 500;
             }
 
             // 🎯 Daily Goal XP
             const previousProgress = ((actualTotalMinsToday - durationMinutes) / prev.dailyGoalMinutes) * 100;
-            if (previousProgress < 50 && goalProgress >= 50) totalXP += 15;
-            if (previousProgress < 75 && goalProgress >= 75) totalXP += 25;
-            if (previousProgress < 100 && goalProgress >= 100) totalXP += 50;
-            if (previousProgress < 125 && goalProgress >= 125) totalXP += 75;
-            if (previousProgress < 150 && goalProgress >= 150) totalXP += 100;
+            if (previousProgress < 100 && goalProgress >= 100) {
+                achievementXP += 20;
+            }
 
-            // 📊 Session Quality Bonuses
-            if (isFirstSessionToday) totalXP += 10;
-            if (mode === 'deep_work' || mode === 'flow') totalXP += 5;
+            // 🏆 One-time Achievements (Milestones) based on session count
+            const sessionCount = prev.history.length;
+            if (sessionCount === 1) {
+                achievementXP += 50;
+            } else if (sessionCount === 10) {
+                achievementXP += 100;
+            } else if (sessionCount === 100) {
+                achievementXP += 500;
+            }
 
-            if (totalXP > 0) awardXP(totalXP);
+            if (achievementXP > 0) {
+                awardXP(achievementXP, 'achievement');
+            }
             return prev;
         });
     };
@@ -448,7 +355,7 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
     };
 
     return (
-        <HabitsContext.Provider value={{ stats, recordSession, habits, addHabit, toggleHabit, deleteHabit, events, addEvent, deleteEvent, setDailyGoal, user }}>
+        <HabitsContext.Provider value={{ stats, recordSession, habits, addHabit, toggleHabit, deleteHabit, events, addEvent, deleteEvent, setDailyGoal }}>
             {children}
         </HabitsContext.Provider>
     );

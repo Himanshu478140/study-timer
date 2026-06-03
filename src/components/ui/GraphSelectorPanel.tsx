@@ -188,7 +188,15 @@ export const GraphSelectorPanel = ({ isOpen, onClose, triggerRef }: GraphSelecto
                                 <Target size={12} />
                                 <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Focus Today</span>
                             </div>
-                            <div style={{ fontSize: '18px', fontWeight: 'bold' }}>{stats.today.score}m</div>
+                            <div style={{ fontSize: '18px', fontWeight: 'bold' }}>
+                                {(() => {
+                                    const todayStr = new Date().toISOString().split('T')[0];
+                                    const todayMins = stats.history
+                                        .filter((s: any) => s.date === todayStr)
+                                        .reduce((acc: number, s: any) => acc + s.durationMinutes, 0);
+                                    return todayMins;
+                                })()}m
+                            </div>
                         </div>
                     </div>
 

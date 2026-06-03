@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
 import {
     X, GalleryHorizontalEnd, Clock, BarChart2, Quote, MessageSquare,
-    Sparkles, User, Plus, Minus, BadgeInfo
+    Sparkles, User, Plus, Minus, BadgeInfo, Database, Shield, Download, Upload, Trash2, AlertTriangle,
+    Github
 } from 'lucide-react';
-import { useCloudSync } from '../../context/CloudSyncContext';
 import { StatsPanel } from './StatsPanel';
 import './dashboard.css';
 import { type WallpaperConfig } from '../wallpaper/WallpaperSelector';
 import { WallpaperGallery } from '../wallpaper/WallpaperGallery';
-import { db } from '../../lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useHabits } from '../../hooks/useHabits';
+import { FOCORA_BACKUP_KEYS } from '../../utils/backupRegistry';
 
 interface DashboardProps {
     isOpen: boolean;
@@ -80,8 +79,12 @@ export const Dashboard = ({
     customAvatar, setCustomAvatar,
     zenClockStyle, setZenClockStyle
 }: DashboardProps) => {
-    const { user } = useCloudSync();
-    
+    const [lastExportedTime, setLastExportedTime] = useState(() => localStorage.getItem('last-exported-at'));
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [importData, setImportData] = useState<any>(null);
+    const [showResetModal, setShowResetModal] = useState(false);
+    const [resetConfirmText, setResetConfirmText] = useState('');
+
     const TIMEZONES = [
         { id: 'auto', name: 'Automatic', subtext: 'System Default', region: 'General' },
         { id: 'UTC', name: 'UTC', subtext: 'Universal Time', region: 'General' },
@@ -104,7 +107,8 @@ export const Dashboard = ({
     ];
 
     const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
-    
+    const [copied, setCopied] = useState(false);
+
     useEffect(() => {
         if (isOpen) {
             setActiveTab(initialTab);
@@ -186,15 +190,20 @@ export const Dashboard = ({
         setSubmitStatus('idle');
 
         try {
-            await addDoc(collection(db, 'support_tickets'), {
-                userId: user?.uid || 'guest',
-                userEmail: user?.email || 'guest@anonymous.com',
+            // Simulate network latency for submission
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            const ticket = {
                 type: supportType,
                 message: supportMessage.trim(),
-                createdAt: serverTimestamp(),
+                createdAt: new Date().toISOString(),
                 userAgent: navigator.userAgent,
                 platform: navigator.platform
-            });
+            };
+            const existing = localStorage.getItem('local-support-tickets');
+            const tickets = existing ? JSON.parse(existing) : [];
+            tickets.push(ticket);
+            localStorage.setItem('local-support-tickets', JSON.stringify(tickets));
 
             // Update rate limit only after successful submission
             localStorage.setItem('last_support_submission', Date.now().toString());
@@ -221,6 +230,155 @@ export const Dashboard = ({
         return () => window.removeEventListener('keydown', handleEsc);
     }, [onClose]);
 
+    const getFocoraDataSize = () => {
+        let totalBytes = 0;
+        FOCORA_BACKUP_KEYS.forEach(key => {
+            const val = localStorage.getItem(key);
+            if (val) {
+                totalBytes += key.length + val.length;
+            }
+        });
+        if (totalBytes < 1024) {
+            return `${totalBytes} B`;
+        }
+        return `${(totalBytes / 1024).toFixed(2)} KB`;
+    };
+
+    const handleExportBackup = () => {
+        try {
+            const backupData: Record<string, string | null> = {};
+            FOCORA_BACKUP_KEYS.forEach(key => {
+                backupData[key] = localStorage.getItem(key);
+            });
+
+            const backupObj = {
+                app: "focora",
+                version: "2.0.0",
+                backupVersion: 1,
+                createdAt: new Date().toISOString(),
+                data: backupData
+            };
+
+            const jsonString = JSON.stringify(backupObj, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            const dateStr = new Date().toISOString().slice(0, 10);
+            link.href = url;
+            link.download = `focora-backup-${dateStr}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            const nowStr = new Date().toISOString();
+            localStorage.setItem('last-exported-at', nowStr);
+            setLastExportedTime(nowStr);
+        } catch (e) {
+            console.error('Failed to export backup', e);
+            alert('Failed to export backup. Please try again.');
+        }
+    };
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const text = event.target?.result as string;
+                const parsed = JSON.parse(text);
+
+                if (!parsed || typeof parsed !== 'object') {
+                    throw new Error("Invalid file structure. Must be a JSON object.");
+                }
+                if (parsed.app !== "focora" || parsed.backupVersion !== 1) {
+                    throw new Error("Invalid backup file. This file does not match Focora backup format.");
+                }
+                if (!parsed.data || typeof parsed.data !== 'object') {
+                    throw new Error("Backup file has no valid data payload.");
+                }
+
+                setImportData(parsed.data);
+                setShowImportModal(true);
+            } catch (err: any) {
+                alert(err.message || "Failed to parse backup file.");
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+    };
+
+    const handleConfirmImport = () => {
+        if (!importData) return;
+
+        try {
+            // Create emergency local backup
+            const localEmergencyData: Record<string, string | null> = {};
+            FOCORA_BACKUP_KEYS.forEach(key => {
+                localEmergencyData[key] = localStorage.getItem(key);
+            });
+            const emergencyObj = {
+                app: "focora",
+                version: "2.0.0",
+                backupVersion: 1,
+                createdAt: new Date().toISOString(),
+                note: "Emergency backup automatically created before manual import",
+                data: localEmergencyData
+            };
+            
+            localStorage.setItem('focora-pre-import-backup', JSON.stringify(emergencyObj));
+
+            const jsonString = JSON.stringify(emergencyObj, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const dateStr = new Date().toISOString().replace(/[:.]/g, '-');
+            link.href = url;
+            link.download = `focora-auto-backup-before-import-${dateStr}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            // Import data
+            Object.keys(importData).forEach(key => {
+                if (importData[key] !== null && importData[key] !== undefined) {
+                    localStorage.setItem(key, importData[key]);
+                } else {
+                    localStorage.removeItem(key);
+                }
+            });
+
+            setShowImportModal(false);
+            window.location.reload();
+        } catch (e) {
+            console.error('Import failed:', e);
+            alert('Import failed. Please check the console.');
+        }
+    };
+
+    const handleConfirmReset = () => {
+        if (resetConfirmText.trim().toUpperCase() !== 'RESET') {
+            alert('Please type RESET exactly as requested to confirm.');
+            return;
+        }
+
+        try {
+            FOCORA_BACKUP_KEYS.forEach(key => {
+                localStorage.removeItem(key);
+            });
+            localStorage.removeItem('focora-pre-import-backup');
+            setShowResetModal(false);
+            window.location.reload();
+        } catch (e) {
+            console.error('Reset failed:', e);
+            alert('Reset failed. Please check the console.');
+        }
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -243,7 +401,7 @@ export const Dashboard = ({
                     <SidebarItem icon={Clock} label="Clock" active={activeTab === 'clock'} onClick={() => setActiveTab('clock')} />
                     <SidebarItem icon={BarChart2} label="Stats" active={activeTab === 'stats'} onClick={() => setActiveTab('stats')} />
                     <SidebarItem icon={Quote} label="Quotes" active={activeTab === 'quotes'} onClick={() => setActiveTab('quotes')} />
-                    <SidebarItem icon={User} label="Account" active={activeTab === 'account'} onClick={() => setActiveTab('account')} />
+                    <SidebarItem icon={Database} label="Account" active={activeTab === 'account'} onClick={() => setActiveTab('account')} />
 
 
                     <SidebarItem
@@ -425,7 +583,7 @@ export const Dashboard = ({
                                     Customize individual break durations for core focus routines.
                                 </p>
 
-                                <div className="setting-options" style={{ background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '0.6rem', width: 'fit-content', marginBottom: '1.25rem', display: 'flex' }}>
+                                <div className="setting-options" style={{ background: 'rgba(18, 18, 22, 0.8)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '4px', borderRadius: '0.6rem', width: 'fit-content', marginBottom: '1.25rem', display: 'flex' }}>
                                     {(['pomodoro', 'flow', 'deep_work'] as const).map(m => (
                                         <button
                                             key={m}
@@ -439,7 +597,7 @@ export const Dashboard = ({
                                     ))}
                                 </div>
 
-                                <div className="feature-card" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1.25rem', background: 'rgba(255,255,255,0.01)', border: '1px solid rgba(255,255,255,0.05)', padding: '1.25rem', borderRadius: '1.25rem' }}>
+                                <div className="feature-card" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1.25rem', background: 'rgba(18, 18, 22, 0.85)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '1.25rem', borderRadius: '1.25rem' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                                         {/* Option 1: Auto */}
                                         <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', cursor: 'pointer', fontSize: '0.9rem', color: 'white' }}>
@@ -486,9 +644,9 @@ export const Dashboard = ({
                                                         {min} min
                                                     </button>
                                                 ))}
-                                                
+
                                                 {/* Custom input */}
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '0.375rem', padding: '0.2rem 0.5rem' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(18, 18, 22, 0.8)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '0.375rem', padding: '0.2rem 0.5rem' }}>
                                                     <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.5)' }}>Custom:</span>
                                                     <input
                                                         className="no-spinner"
@@ -544,23 +702,21 @@ export const Dashboard = ({
                                     ))}
                                 </div>
 
-                                <div className="feature-card" style={{ marginTop: '1rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '1rem' }}>
+                                <div className="feature-card feature-row-card" style={{ marginTop: '1rem', background: 'rgba(18, 18, 22, 0.8)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '1rem', borderRadius: '1rem' }}>
                                     <div className="feature-info">
-                                        <h3>Zen Mode Mode</h3>
+                                        <h3>Zen Mode</h3>
                                         <p>Choose what to display in Zen Mode.</p>
                                     </div>
-                                    <div className="setting-options" style={{ background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '0.6rem' }}>
+                                    <div className="setting-pill">
                                         <button
                                             className={`setting-btn ${features.zenModeType === 'clock' ? 'active' : ''}`}
                                             onClick={() => setFeatures({ ...features, zenModeType: 'clock' })}
-                                            style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem' }}
                                         >
                                             Clock
                                         </button>
                                         <button
                                             className={`setting-btn ${features.zenModeType === 'timer' ? 'active' : ''}`}
                                             onClick={() => setFeatures({ ...features, zenModeType: 'timer' })}
-                                            style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem' }}
                                         >
                                             Timer
                                         </button>
@@ -568,23 +724,21 @@ export const Dashboard = ({
                                 </div>
 
 
-                                <div className="feature-card" style={{ marginTop: '0.75rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '1rem' }}>
+                                <div className="feature-card feature-row-card" style={{ marginTop: '0.75rem', background: 'rgba(18, 18, 22, 0.8)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '1rem', borderRadius: '1rem' }}>
                                     <div className="feature-info">
                                         <h3>Zen Time Format</h3>
                                         <p>Switch between 12-hour and 24-hour display.</p>
                                     </div>
-                                    <div className="setting-options" style={{ background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '0.6rem' }}>
+                                    <div className="setting-pill">
                                         <button
                                             className={`setting-btn ${features.zenTimeFormat === '12h' ? 'active' : ''}`}
                                             onClick={() => setFeatures({ ...features, zenTimeFormat: '12h' })}
-                                            style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem' }}
                                         >
                                             12H
                                         </button>
                                         <button
                                             className={`setting-btn ${features.zenTimeFormat === '24h' ? 'active' : ''}`}
                                             onClick={() => setFeatures({ ...features, zenTimeFormat: '24h' })}
-                                            style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem' }}
                                         >
                                             24H
                                         </button>
@@ -596,23 +750,21 @@ export const Dashboard = ({
                                     <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem', marginBottom: '1rem' }}>
                                         Personalize your landing experience.
                                     </p>
-                                    <div className="feature-card" style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '1rem' }}>
+                                    <div className="feature-card feature-row-card" style={{ background: 'rgba(18, 18, 22, 0.8)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: '1rem', borderRadius: '1rem' }}>
                                         <div className="feature-info">
                                             <h3>Time Format</h3>
                                             <p>Switch between 12-hour and 24-hour display on the Relax screen.</p>
                                         </div>
-                                        <div className="setting-options" style={{ background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '0.6rem' }}>
+                                        <div className="setting-pill">
                                             <button
                                                 className={`setting-btn ${features.homeTimeFormat === '12h' ? 'active' : ''}`}
                                                 onClick={() => setFeatures({ ...features, homeTimeFormat: '12h' })}
-                                                style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem' }}
                                             >
                                                 12H
                                             </button>
                                             <button
                                                 className={`setting-btn ${features.homeTimeFormat === '24h' ? 'active' : ''}`}
                                                 onClick={() => setFeatures({ ...features, homeTimeFormat: '24h' })}
-                                                style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem' }}
                                             >
                                                 24H
                                             </button>
@@ -678,7 +830,7 @@ export const Dashboard = ({
                                             onClick={() => setQuoteFont(f.id)}
                                             style={{
                                                 padding: '1rem',
-                                                background: quoteFont === f.id ? 'rgba(var(--color-accent-rgb), 0.15)' : 'rgba(255,255,255,0.03)',
+                                                background: quoteFont === f.id ? 'rgba(var(--color-accent-rgb), 0.25)' : 'rgba(18, 18, 22, 0.85)',
                                                 border: `1px solid ${quoteFont === f.id ? 'var(--color-accent)' : 'rgba(255,255,255,0.08)'}`,
                                                 borderRadius: '0.8rem',
                                                 cursor: 'pointer',
@@ -711,8 +863,8 @@ export const Dashboard = ({
                                             flex: 1,
                                             padding: '0.8rem 1.2rem',
                                             borderRadius: '0.8rem',
-                                            background: 'rgba(255,255,255,0.05)',
-                                            border: '1px solid rgba(255,255,255,0.1)',
+                                            background: 'rgba(18, 18, 22, 0.8)',
+                                            border: '1px solid rgba(255,255,255,0.12)',
                                             color: 'white',
                                             fontSize: '0.9rem'
                                         }}
@@ -758,7 +910,7 @@ export const Dashboard = ({
                                         onClick={() => setSelectedQuote(q)}
                                         style={{
                                             padding: '1.5rem',
-                                            background: selectedQuote === q ? 'rgba(var(--color-accent-rgb), 0.15)' : 'rgba(255,255,255,0.03)',
+                                            background: selectedQuote === q ? 'rgba(var(--color-accent-rgb), 0.25)' : 'rgba(18, 18, 22, 0.85)',
                                             border: `1px solid ${selectedQuote === q ? 'var(--color-accent)' : 'rgba(255,255,255,0.08)'}`,
                                             borderRadius: '1rem',
                                             cursor: 'pointer',
@@ -799,7 +951,7 @@ export const Dashboard = ({
                                         onClick={() => setSelectedQuote(q)}
                                         style={{
                                             padding: '1.5rem',
-                                            background: selectedQuote === q ? 'rgba(var(--color-accent-rgb), 0.15)' : 'rgba(255,255,255,0.03)',
+                                            background: selectedQuote === q ? 'rgba(var(--color-accent-rgb), 0.25)' : 'rgba(18, 18, 22, 0.85)',
                                             border: `1px solid ${selectedQuote === q ? 'var(--color-accent)' : 'rgba(255,255,255,0.08)'}`,
                                             borderRadius: '1rem',
                                             cursor: 'pointer',
@@ -863,16 +1015,16 @@ export const Dashboard = ({
                     )}
 
                     {activeTab === 'account' && (
-                        <div className="dashboard-section animate-fade-in" style={{ maxWidth: '500px', margin: '0 auto' }}>
+                        <div className="dashboard-section animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto' }}>
                             <h2 className="flex-center" style={{ justifyContent: 'flex-start', gap: '0.5rem' }}>
-                                <User size={20} /> Account Settings
+                                <Database size={20} /> Data & Profile
                             </h2>
                             <p style={{ marginBottom: '2rem', color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>
-                                Configure your profile avatar, timezone, and regional preferences.
+                                Manage your profile, timezone settings, and offline backups.
                             </p>
 
                             {/* Premium Custom Avatar Selector */}
-                            <div className="setting-card" style={{ padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '1rem', marginBottom: '2rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <div className="setting-card" style={{ padding: '2rem', background: 'rgba(18, 18, 22, 0.85)', borderRadius: '1rem', marginBottom: '2rem', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
                                 <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                     <Sparkles size={16} color="var(--color-accent)" /> Profile Avatar
                                 </h3>
@@ -961,9 +1113,111 @@ export const Dashboard = ({
                                 </div>
                             </div>
 
-                            {/* Premium Timezone Selection UI */}
-                            <div className="timezone-settings-container" style={{ marginTop: '1.5rem' }}>
-                                <h4 className="settings-subtitle">
+                            {/* Offline-First Data Management Section */}
+                            <section className="data-management-section">
+                                <h3 style={{ fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                                    <Database size={16} color="var(--color-accent)" /> Data Management
+                                </h3>
+
+                                {/* Privacy Banner */}
+                                <div className="privacy-banner">
+                                    <Shield size={20} className="privacy-banner-icon" />
+                                    <p className="privacy-banner-text">
+                                        <strong>Offline-First & Private:</strong> Your data never leaves your device. We use no accounts, no tracking, and have zero cloud dependencies. Your focus metrics are 100% yours.
+                                    </p>
+                                </div>
+
+                                {/* Telemetry & Stats */}
+                                <div className="telemetry-card">
+                                    <div className="telemetry-grid">
+                                        <div className="telemetry-item">
+                                            <span className="telemetry-label">Stored Data Size</span>
+                                            <span className="telemetry-value">{getFocoraDataSize()}</span>
+                                        </div>
+                                        <div className="telemetry-item">
+                                            <span className="telemetry-label">Last Exported Backup</span>
+                                            <span className="telemetry-value">
+                                                {lastExportedTime ? new Date(lastExportedTime).toLocaleDateString(undefined, {
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                }) : 'Never'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="data-actions-row">
+                                        <button 
+                                            className="data-btn data-btn-primary"
+                                            onClick={handleExportBackup}
+                                            title="Download all your Focora settings and data as a JSON file"
+                                        >
+                                            <Download size={16} /> Export Backup
+                                        </button>
+
+                                        <button 
+                                            className="data-btn data-btn-secondary"
+                                            onClick={() => document.getElementById('backup-import-input')?.click()}
+                                            title="Restore previously exported Focora settings and data from a JSON file"
+                                        >
+                                            <Upload size={16} /> Import Backup
+                                        </button>
+                                        
+                                        <input 
+                                            id="backup-import-input"
+                                            type="file"
+                                            accept=".json"
+                                            onChange={handleFileSelect}
+                                            style={{ display: 'none' }}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Danger Zone */}
+                                <div style={{ 
+                                    marginTop: 'var(--space-2)', 
+                                    padding: 'var(--space-3)', 
+                                    border: '1px solid rgba(239, 68, 68, 0.2)', 
+                                    borderRadius: '1rem',
+                                    background: 'rgba(239, 68, 68, 0.02)'
+                                }}>
+                                    <h4 style={{ 
+                                        color: '#ef4444', 
+                                        margin: '0 0 var(--space-1) 0', 
+                                        fontSize: '0.875rem', 
+                                        fontWeight: 600,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem'
+                                    }}>
+                                        <AlertTriangle size={14} /> Danger Zone
+                                    </h4>
+                                    <p style={{ 
+                                        fontSize: '0.75rem', 
+                                        color: 'rgba(255,255,255,0.5)', 
+                                        margin: '0 0 var(--space-2) 0', 
+                                        lineHeight: 1.4 
+                                    }}>
+                                        Wipe all your Focora settings, tasks, habits, and session history. This action is immediate and cannot be undone unless you have a backup.
+                                    </p>
+                                    <button 
+                                        className="data-btn data-btn-danger"
+                                        onClick={() => {
+                                            setResetConfirmText('');
+                                            setShowResetModal(true);
+                                        }}
+                                    >
+                                        <Trash2 size={16} /> Reset App
+                                    </button>
+                                </div>
+                            </section>
+
+                            {/* Timezone Selection UI */}
+                            <div className="timezone-settings-container" style={{ marginTop: '2rem' }}>
+                                <h4 className="settings-subtitle" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: 'white', marginBottom: '1rem', fontWeight: 600 }}>
                                     <Clock size={14} /> Timezone Settings
                                 </h4>
 
@@ -996,14 +1250,14 @@ export const Dashboard = ({
 
 
                     {activeTab === 'support' && (
-                        <div className="dashboard-section" style={{ maxWidth: '600px', margin: '0 auto' }}>
+                        <div className="dashboard-section animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto' }}>
                             <h2 style={{ marginBottom: '0.5rem' }}>Help & Support</h2>
                             <p style={{ marginBottom: '2rem', color: 'rgba(255,255,255,0.6)' }}>
-                                Have a question or found a bug? We're here to help you stay focused.
+                                Have a question, feedback, or found a bug? Submit the form below or email us directly at <a href="mailto:feedbackhimanshu065@gamil.com" style={{ color: 'var(--color-accent)', textDecoration: 'none' }}>feedbackhimanshu065@gamil.com</a>
                             </p>
 
                             {/* Support Form Section */}
-                            <div className="support-form-container-new" style={{ padding: '2rem', borderRadius: '1.5rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <div className="support-form-container-new" style={{ padding: '2rem', borderRadius: '1.5rem', background: 'rgba(18, 18, 22, 0.85)', border: '1px solid rgba(255,255,255,0.08)' }}>
                                 <form onSubmit={handleSubmitSupport} className="feedback-form">
                                     <div className="form-group">
                                         <label>Query Type</label>
@@ -1045,8 +1299,8 @@ export const Dashboard = ({
                                     {rateLimitActive ? (
                                         <div style={{
                                             padding: '1rem',
-                                            background: 'rgba(255, 255, 255, 0.03)',
-                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            background: 'rgba(18, 18, 22, 0.6)',
+                                            border: '1px solid rgba(255, 255, 255, 0.08)',
                                             borderRadius: '0.75rem',
                                             color: 'rgba(255,255,255,0.5)',
                                             fontSize: '0.85rem',
@@ -1087,143 +1341,200 @@ export const Dashboard = ({
                                 </div>
 
                                 <div className="faq-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem' }}>
-                                    <div className="faq-card" style={{ padding: '1.2rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                        <div style={{ fontWeight: 800, fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--color-accent)' }}>How do I change my Daily Focus Goal?</div>
+                                    <div className="faq-card" style={{ padding: '1.2rem', borderRadius: '1rem', background: 'rgba(18, 18, 22, 0.85)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                        <div style={{ fontWeight: 800, fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--color-accent)' }}>How do I change my Daily Focus Target?</div>
                                         <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
                                             Go to the <strong>Stats</strong> tab. Look for the "Daily Focus Target" adjuster in the top-right header—you can change it there instantly.
                                         </p>
                                     </div>
 
-                                    <div className="faq-card" style={{ padding: '1.2rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                        <div style={{ fontWeight: 800, fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--color-accent)' }}>What is the "Focus Score"?</div>
+                                    <div className="faq-card" style={{ padding: '1.2rem', borderRadius: '1rem', background: 'rgba(18, 18, 22, 0.85)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                        <div style={{ fontWeight: 800, fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--color-accent)' }}>How do I import, export, or back up data?</div>
                                         <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
-                                            It shows your percentage progress towards your Daily Goal. If your goal is 240m and you've focused for 120m, your score will be 50%.
+                                            Go to the <strong>Account</strong> tab. You can export all your stats, habits, and settings as a `.json` backup file, or upload a previously exported file to restore your progress.
                                         </p>
                                     </div>
 
-                                    <div className="faq-card" style={{ padding: '1.2rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                        <div style={{ fontWeight: 800, fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--color-accent)' }}>How do I save my progress?</div>
+                                    <div className="faq-card" style={{ padding: '1.2rem', borderRadius: '1rem', background: 'rgba(18, 18, 22, 0.85)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                        <div style={{ fontWeight: 800, fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--color-accent)' }}>What is the browser storage limit?</div>
                                         <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
-                                            Your stats, habits, and focus logs are automatically saved locally inside your browser's storage. No login is required.
+                                            Data is saved in browser `localStorage` (capped at ~5MB, enough for years of use). To keep storage low, a 6 months cleanup policy auto-archives old detailed focus session logs.
                                         </p>
                                     </div>
 
-                                    <div className="faq-card" style={{ padding: '1.2rem', borderRadius: '1rem', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                        <div style={{ fontWeight: 800, fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--color-accent)' }}>Where are my custom quotes?</div>
+                                    <div className="faq-card" style={{ padding: '1.2rem', borderRadius: '1rem', background: 'rgba(18, 18, 22, 0.85)', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                                        <div style={{ fontWeight: 800, fontSize: '0.85rem', marginBottom: '0.5rem', color: 'var(--color-accent)' }}>Is my study progress private?</div>
                                         <p style={{ margin: 0, fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5 }}>
-                                            Custom quotes are securely stored in your local browser's storage.
+                                            Yes! Everything is saved locally on your device. No personal data is sent to external servers, making it private, secure, and fully offline-friendly.
                                         </p>
                                     </div>
                                 </div>
 
                                 <div style={{ marginTop: '2rem', textAlign: 'center' }}>
                                     <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>
-                                        Still need help? Email us at <a href="mailto:support@studytimer.app" style={{ color: 'var(--color-accent)', textDecoration: 'none' }}>support@studytimer.app</a>
+                                        Still need help? Email me at <a href="mailto:feedbackhimanshu065@gamil.com" style={{ color: 'var(--color-accent)', textDecoration: 'none' }}>feedbackhimanshu065@gamil.com</a>
                                     </p>
                                 </div>
                             </div>
                         </div>
                     )}
-
                     {activeTab === 'about' && (
-                        <div className="dashboard-section" style={{ maxWidth: '600px', margin: '0 auto', textAlign: 'center', padding: '2rem 0' }}>
+                        <div className="dashboard-section animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto', textAlign: 'center', padding: '2rem 0' }}>
+ 
                             <div style={{
-                                width: '64px',
-                                height: '64px',
-                                background: 'rgba(var(--color-accent-rgb), 0.1)',
-                                borderRadius: '20px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                margin: '0 auto 2rem auto',
-                                color: 'var(--color-accent)',
-                                border: '1px solid rgba(var(--color-accent-rgb), 0.2)'
-                            }}>
-                                <BadgeInfo size={32} />
-                            </div>
-
-                            <h2 style={{ marginBottom: '0.5rem', fontSize: '1.8rem' }}>About focora</h2>
-                            <div style={{
-                                fontSize: '0.75rem',
-                                fontWeight: 700,
-                                color: 'var(--color-accent)',
-                                background: 'rgba(var(--color-accent-rgb), 0.15)',
-                                padding: '4px 12px',
-                                borderRadius: '99px',
-                                width: 'fit-content',
-                                margin: '0 auto 2rem auto',
-                                border: '1px solid rgba(var(--color-accent-rgb), 0.25)',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.05em'
-                            }}>
-                                Version 2.0
-                            </div>
-
-                            <div style={{
-                                background: 'rgba(255, 255, 255, 0.03)',
-                                border: '1px solid rgba(255, 255, 255, 0.05)',
+                                background: 'rgba(18, 18, 22, 0.85)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
                                 borderRadius: '1.5rem',
                                 padding: '2.5rem',
-                                lineHeight: '1.8',
                                 color: 'rgba(255, 255, 255, 0.8)',
-                                fontSize: '1.05rem',
                                 display: 'flex',
                                 flexDirection: 'column',
-                                gap: '1.5rem'
+                                gap: '1rem'
                             }}>
-                                <p style={{ margin: 0 }}>
-                                    This is a personal focus timer I built for my own deep work sessions.
-                                </p>
-                                <p style={{ margin: 0 }}>
-                                    I’m sharing it publicly in case it helps someone else focus too.
-                                </p>
-                                <p style={{ margin: 0, padding: '1.5rem', background: 'rgba(var(--color-accent-rgb), 0.05)', borderRadius: '1rem', borderLeft: '4px solid var(--color-accent)' }}>
-                                    It’s a hobby project — updates happen only when I need improvements for myself. Feedback is appreciated. Updates are made when they align with the app’s direction.
-                                </p>
-                                <p style={{
-                                    margin: '1rem 0 0 0',
-                                    fontWeight: 700,
-                                    color: 'var(--color-accent)',
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.1em',
-                                    fontSize: '0.9rem'
-                                }}>
-                                    Simple. Intentional. Built for focus.
-                                </p>
-                            </div>
+                                {/* Brand Moment Title */}
+                                <h1 style={{ 
+                                    margin: '0 auto 0.5rem auto', 
+                                    fontSize: '3rem', 
+                                    fontWeight: 900, 
+                                    letterSpacing: '-0.04em', 
+                                    color: '#ffffff',
+                                    borderBottom: '3px solid var(--color-accent)',
+                                    paddingBottom: '0.01rem',
+                                    width: 'fit-content'
+                                }}>focora</h1>
 
-                            <div className="tooltip-container">
-                                <div className="button-content">
-                                    <span className="text">Share with Friends</span>
-                                    <svg
-                                        className="share-icon"
-                                        viewBox="0 0 24 24"
-                                        width="20"
-                                        height="20"
-                                    >
-                                        <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
-                                    </svg>
-                                </div>
-                                <div className="tooltip-content">
-                                    <div className="social-icons">
-                                        <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent("Check out this awesome focus app, focora!")}&url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noopener noreferrer" className="social-icon twitter" title="Share on Twitter">
-                                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                                                <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
-                                            </svg>
-                                        </a>
-                                        <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noopener noreferrer" className="social-icon facebook" title="Share on Facebook">
-                                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                                                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                                            </svg>
-                                        </a>
-                                        <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noopener noreferrer" className="social-icon linkedin" title="Share on LinkedIn">
-                                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                                                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z" /><circle cx="4" cy="4" r="2" />
-                                            </svg>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                                {/* Tier 1 — The one-liner (largest/boldest, primary attention) */}
+                                <h2 style={{
+                                    margin: 0,
+                                    fontSize: '1.5rem',
+                                    fontWeight: 800,
+                                    lineHeight: '1.4',
+                                    color: '#ffffff',
+                                    letterSpacing: '-0.02em'
+                                }}>
+                                    A personal focus timer, built for deep work.
+                                </h2>
+ 
+                                {/* Tier 2 — The context (normal weight, slightly muted color) */}
+                                <p style={{
+                                    margin: 0,
+                                    fontSize: '1.05rem',
+                                    fontWeight: 400,
+                                    lineHeight: '1.6',
+                                    color: 'rgba(255, 255, 255, 0.6)'
+                                }}>
+                                    Built for myself, shared publicly. No features for features' sake.
+                                </p>
+ 
+                                 {/* Tier 3 — The blockquote disclaimer (trimmed text, green left border accent, breathing space) */}
+                                 <blockquote style={{
+                                     margin: '0.75rem 0 0 0',
+                                     padding: '1.25rem 1.5rem',
+                                     background: 'rgba(var(--color-accent-rgb), 0.05)',
+                                     borderRadius: '1rem',
+                                     borderLeft: '0.25rem solid var(--color-accent)',
+                                     fontSize: '0.95rem',
+                                     lineHeight: '1.6',
+                                     color: 'rgba(255, 255, 255, 0.7)',
+                                     textAlign: 'left'
+                                 }}>
+                                     Hobby project. Updates happen when I need them. Feedback is welcome if it fits the direction.
+                                 </blockquote>
+ 
+                                 {/* Tagline */}
+                                 <p style={{
+                                     margin: '0.5rem 0 0 0',
+                                     fontWeight: 700,
+                                     color: 'var(--color-accent)',
+                                     textTransform: 'uppercase',
+                                     letterSpacing: '0.1em',
+                                     fontSize: '0.9rem'
+                                 }}>
+                                     Simple. Intentional. Built for focus. <span style={{ opacity: 0.5, fontWeight: 500, textTransform: 'none', letterSpacing: 'normal', marginLeft: '0.5rem' }}>— v2.0</span>
+                                 </p>
+                             </div>
+
+                             <div style={{
+                                     display: 'flex',
+                                     alignItems: 'center',
+                                     justifyContent: 'center',
+                                     gap: '1.5rem',
+                                     marginTop: '2.5rem',
+                                     flexWrap: 'wrap'
+                                 }}>
+                                     {/* Share Widget */}
+                                     <div className="tooltip-container" style={{ marginTop: 0 }}>
+                                         <div className="button-content">
+                                             <span className="text">Share with Friends</span>
+                                             <svg
+                                                 className="share-icon"
+                                                 viewBox="0 0 24 24"
+                                                 width="20"
+                                                 height="20"
+                                             >
+                                                 <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
+                                             </svg>
+                                         </div>
+                                         <div className="tooltip-content">
+                                             <div className="social-icons">
+                                                 <a href={`https://api.whatsapp.com/send?text=${encodeURIComponent("Check out this awesome focus app, focora! " + "https://focora-timer.vercel.app/")}`} target="_blank" rel="noopener noreferrer" className="social-icon whatsapp" title="Share on WhatsApp">
+                                                     <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor">
+                                                         <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.9 7.9 0 0 0 13.6 2.326zM7.994 14.521a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.73.73 0 0 0-.529.247c-.182.198-.691.677-.691 1.654s.71 1.916.81 2.049c.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232"/>
+                                                     </svg>
+                                                 </a>
+                                                 <a href={`https://t.me/share/url?url=${encodeURIComponent("https://focora-timer.vercel.app/")}&text=${encodeURIComponent("Check out this awesome focus app, focora!")}`} target="_blank" rel="noopener noreferrer" className="social-icon telegram" title="Share on Telegram">
+                                                     <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                                         <path d="M20.665 3.717l-17.73 6.837c-1.21.486-1.203 1.161-.222 1.462l4.539 1.446 11.004-6.941c.522-.32.983-.141.597.228l-8.91 8.766-.35 5.257c.515 0 .741-.235 1.03-.526l2.456-2.387 5.116 3.784c.944.52 1.62.248 1.854-.878l3.256-15.35c.338-1.353-.46-1.956-1.365-1.55z"/>
+                                                     </svg>
+                                                 </a>
+                                                 <button 
+                                                     onClick={(e) => {
+                                                         e.preventDefault();
+                                                         navigator.clipboard.writeText("https://focora-timer.vercel.app/");
+                                                         setCopied(true);
+                                                         setTimeout(() => setCopied(false), 2000);
+                                                     }}
+                                                     className="social-icon copylink"
+                                                     title={copied ? "Copied!" : "Copy Link"}
+                                                     style={{
+                                                         border: 'none',
+                                                         cursor: 'pointer',
+                                                         padding: 0,
+                                                         outline: 'none'
+                                                     }}
+                                                 >
+                                                     {copied ? (
+                                                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                                             <polyline points="20 6 9 17 4 12" />
+                                                         </svg>
+                                                     ) : (
+                                                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                                             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                                                             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                                                         </svg>
+                                                     )}
+                                                 </button>
+                                             </div>
+                                         </div>
+                                     </div>
+
+                                     {/* SPACE FOR LIKE BUTTON (Reserved for user implementation) */}
+                                     {/* <LikeButton /> */}
+
+                                     {/* GitHub Star Button */}
+                                     <a
+                                         href="https://github.com/Himanshu478140/study-timer"
+                                         target="_blank"
+                                         rel="noopener noreferrer"
+                                         className="rainbow-btn"
+                                         title="Star on GitHub"
+                                     >
+                                         <div style={{ display: 'flex', alignItems: 'center' }}>
+                                              <Github size={16} />
+                                             <span style={{ marginLeft: '4px' }}>Star on GitHub</span>
+                                         </div>
+                                     </a>
+                                 </div>
 
                             <div style={{ marginTop: '3rem', opacity: 0.5, lineHeight: 1.4 }}>
                                 <div style={{ fontWeight: 900, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
@@ -1233,10 +1544,127 @@ export const Dashboard = ({
                                     Crafted by Himanshu
                                 </div>
                             </div>
+
+                            {/* What's New Section */}
+                            <div className="whats-new-container">
+                                <h3 className="whats-new-title">
+                                    <Sparkles size={14} /> What's New in v2.0
+                                </h3>
+                                <ul className="whats-new-list">
+                                    {[
+                                        { title: "Minimal Redesign", desc: "Every screen stripped back. Cleaner layout, less visual noise, more focus." },
+                                        { title: "Performance Improvements", desc: "Faster load, lower resource usage. The app gets out of your way quicker." },
+                                        { title: "New Wallpaper Collection", desc: "Fresh set of wallpapers added. More ways to set the mood for your session." },
+                                        { title: "Desktop & Tablet App", desc: "focora is now available as a native app on desktop and tablet." },
+                                        { title: "Responsive Web App", desc: "The web version now adapts properly to desktop and tablet screens." },
+                                        { title: "Scratchpad", desc: "A simple scratchpad, built in. Jot down thoughts without leaving your session." },
+                                        { title: "Data Export & Import", desc: "Your data stays yours. Export it, back it up, bring it back anytime. No cloud required." },
+                                        { title: "Improved Widgets", desc: "Widget layouts have been refined. Better spacing, better readability." }
+                                    ].map((item, idx) => (
+                                        <li key={idx} className="whats-new-item">
+                                            <div className="whats-new-content">
+                                                <div className="whats-new-item-title">{item.title}</div>
+                                                <div className="whats-new-item-desc">{item.desc}</div>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
                         </div>
                     )}
                 </div>
             </div>
+            {/* Import Confirmation Modal */}
+            {showImportModal && (
+                <div className="nested-modal-overlay" onClick={() => setShowImportModal(false)}>
+                    <div className="nested-modal-container" onClick={(e) => e.stopPropagation()}>
+                        <header className="nested-modal-header">
+                            <Upload size={20} color="var(--color-accent)" />
+                            <span>Import Backup</span>
+                        </header>
+                        
+                        <div className="nested-modal-body">
+                            <p style={{ margin: 0 }}>
+                                Are you sure you want to restore this backup? This action is destructive and will overwrite all your current local data, including:
+                            </p>
+                            <ul className="nested-modal-list">
+                                <li className="nested-modal-list-item">• Daily Habits & Logs</li>
+                                <li className="nested-modal-list-item">• Tasks & History</li>
+                                <li className="nested-modal-list-item">• Study Session Statistics</li>
+                                <li className="nested-modal-list-item">• Custom Quotes & Notes</li>
+                                <li className="nested-modal-list-item">• App Config & Theme Settings</li>
+                            </ul>
+                            <p style={{ margin: 'var(--space-2) 0 0 0', fontWeight: 600, color: 'var(--color-accent)' }}>
+                                Note: An emergency pre-import backup will be downloaded and saved automatically before proceeding.
+                            </p>
+                        </div>
+
+                        <footer className="nested-modal-footer">
+                            <button 
+                                className="data-btn data-btn-secondary"
+                                onClick={() => setShowImportModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                className="data-btn data-btn-primary"
+                                onClick={handleConfirmImport}
+                            >
+                                Proceed & Import
+                            </button>
+                        </footer>
+                    </div>
+                </div>
+            )}
+
+            {/* Reset Confirmation Modal */}
+            {showResetModal && (
+                <div className="nested-modal-overlay" onClick={() => setShowResetModal(false)}>
+                    <div className="nested-modal-container" onClick={(e) => e.stopPropagation()}>
+                        <header className="nested-modal-header danger">
+                            <AlertTriangle size={20} />
+                            <span>Reset Application</span>
+                        </header>
+                        
+                        <div className="nested-modal-body">
+                            <p style={{ margin: 0 }}>
+                                This will completely delete all your Focora settings, tasks, habits, and stats. This action cannot be undone.
+                            </p>
+                            <p style={{ margin: 'var(--space-2) 0' }}>
+                                To confirm, please type <strong style={{ color: 'white' }}>RESET</strong> in the box below:
+                            </p>
+                            <input 
+                                type="text"
+                                className="nested-modal-input"
+                                placeholder="Type RESET to confirm"
+                                value={resetConfirmText}
+                                onChange={(e) => setResetConfirmText(e.target.value)}
+                                autoFocus
+                            />
+                        </div>
+
+                        <footer className="nested-modal-footer">
+                            <button 
+                                className="data-btn data-btn-secondary"
+                                onClick={() => setShowResetModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                className="data-btn data-btn-danger"
+                                onClick={handleConfirmReset}
+                                disabled={resetConfirmText.trim().toUpperCase() !== 'RESET'}
+                                style={{
+                                    opacity: resetConfirmText.trim().toUpperCase() === 'RESET' ? 1 : 0.5,
+                                    cursor: resetConfirmText.trim().toUpperCase() === 'RESET' ? 'pointer' : 'not-allowed'
+                                }}
+                            >
+                                Reset Everything
+                            </button>
+                        </footer>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

@@ -60,7 +60,7 @@ export const DailyTaskStats = () => {
             </div>
 
             <div className="widget-daily-tasks-container" style={{
-                background: 'rgba(var(--color-accent-rgb), 0.03)',
+                background: 'rgba(18, 18, 22, 0.85)',
                 borderRadius: '16px',
                 border: '1px solid var(--color-glass-border)',
                 display: 'flex',

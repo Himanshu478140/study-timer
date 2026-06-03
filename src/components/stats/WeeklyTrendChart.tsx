@@ -24,10 +24,10 @@ export const WeeklyTrendChart = ({ history, minimal = false }: WeeklyTrendChartP
     // --- VISUAL CONFIGURATION ---
     const GRAPH_CONFIG = {
         total: { color: '168, 85, 247', stroke: '#a855f7', fillOpacity: 0.7, strokeOpacity: 1 }, // Purple
-        pomo: { color: '249, 115, 22', stroke: '#f97316', fillOpacity: 0.15, strokeOpacity: 0.3 }, // Orange
-        deep: { color: '59, 130, 246', stroke: '#3b82f6', fillOpacity: 0.15, strokeOpacity: 0.3 }, // Blue
-        flow: { color: '34, 197, 94', stroke: '#22c55e', fillOpacity: 0.15, strokeOpacity: 0.3 },  // Green
-        custom: { color: '250, 204, 21', stroke: '#facc15', fillOpacity: 0.15, strokeOpacity: 0.3 } // Yellow/Gold
+        pomo: { color: '239, 68, 68', stroke: '#ef4444', fillOpacity: 0.15, strokeOpacity: 0.3 }, // Red
+        deep: { color: '168, 85, 247', stroke: '#a855f7', fillOpacity: 0.15, strokeOpacity: 0.3 }, // Purple
+        flow: { color: '59, 130, 246', stroke: '#3b82f6', fillOpacity: 0.15, strokeOpacity: 0.3 },  // Blue
+        custom: { color: '34, 197, 94', stroke: '#22c55e', fillOpacity: 0.15, strokeOpacity: 0.3 } // Green
     };
 
     // Process data for the last 7 days
@@ -210,10 +210,10 @@ export const WeeklyTrendChart = ({ history, minimal = false }: WeeklyTrendChartP
                     {activeData && hoverIndex !== null && (
                         <>
                             <circle cx={pointsTotal[hoverIndex].x} cy={pointsTotal[hoverIndex].y} r={4} fill="#a855f7" />
-                            <circle cx={pointsPomo[hoverIndex].x} cy={pointsPomo[hoverIndex].y} r={4} fill="#f97316" stroke="#fff" strokeWidth={1} />
-                            <circle cx={pointsDeep[hoverIndex].x} cy={pointsDeep[hoverIndex].y} r={4} fill="#3b82f6" stroke="#fff" strokeWidth={1} />
-                            <circle cx={pointsFlow[hoverIndex].x} cy={pointsFlow[hoverIndex].y} r={4} fill="#22c55e" stroke="#fff" strokeWidth={1} />
-                            <circle cx={pointsCustom[hoverIndex].x} cy={pointsCustom[hoverIndex].y} r={4} fill="#facc15" stroke="#fff" strokeWidth={1} />
+                            <circle cx={pointsPomo[hoverIndex].x} cy={pointsPomo[hoverIndex].y} r={4} fill="#ef4444" stroke="#fff" strokeWidth={1} />
+                            <circle cx={pointsDeep[hoverIndex].x} cy={pointsDeep[hoverIndex].y} r={4} fill="#a855f7" stroke="#fff" strokeWidth={1} />
+                            <circle cx={pointsFlow[hoverIndex].x} cy={pointsFlow[hoverIndex].y} r={4} fill="#3b82f6" stroke="#fff" strokeWidth={1} />
+                            <circle cx={pointsCustom[hoverIndex].x} cy={pointsCustom[hoverIndex].y} r={4} fill="#22c55e" stroke="#fff" strokeWidth={1} />
 
                             <line x1={pointsTotal[hoverIndex].x} y1={0} x2={pointsTotal[hoverIndex].x} y2={height} stroke="rgba(255,255,255,0.2)" strokeDasharray="4 4" />
                         </>

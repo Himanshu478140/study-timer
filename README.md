@@ -1,73 +1,148 @@
-# React + TypeScript + Vite
+# focora
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **Simple. Intentional. Built for deep focus.**
 
-Currently, two official plugins are available:
+focora is a modern focus and productivity dashboard designed to help you stay consistent, eliminate distractions, and build meaningful work habits.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Featuring an adaptive focus timer, immersive Zen Mode, habit tracking, task management, focus analytics, ambient audio, and customizable workspaces, focora brings everything you need for deep work into a single distraction-free environment.
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## ✨ Features
 
-## Expanding the ESLint configuration
+### ⏱️ Focus Timer
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+* Multiple focus styles including Pomodoro, Flow, and Deep Work
+* Custom break durations and automatic break scheduling
+* Session-based productivity tracking
+* Daily focus goals and progress monitoring
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 🧘 Zen Mode
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+* Full-screen distraction-free workspace
+* Beautiful wallpapers and immersive backgrounds
+* Ambient sounds and binaural audio support
+* Designed for long, uninterrupted focus sessions
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### ✅ Tasks & Productivity
+
+* Organize tasks alongside your focus sessions
+* Track completed work over time
+* Build sustainable productivity habits
+* Session-linked task progress tracking
+
+### 📊 Focus Analytics
+
+* Detailed focus statistics and trends
+* Daily, weekly, and long-term productivity insights
+* Session history with ratings and notes
+* Visual charts to monitor consistency and growth
+
+### 🔥 Habit Tracking
+
+* Create and manage custom habits
+* Track completion streaks
+* Visual progress indicators
+* Integrated directly into your productivity workflow
+
+### 🎨 Personalized Workspace
+
+* Custom wallpapers and themes
+* Solid color backgrounds and video wallpapers
+* Custom quotes and motivational content
+* Responsive desktop-first experience
+
+### 💾 Local-First Experience
+
+* No account required
+* Fast and privacy-friendly
+* Data stored locally on your device
+* Export and import backups anytime
+
+---
+
+## 🛠 Tech Stack
+
+* React 19
+* TypeScript
+* Vite
+* Framer Motion
+* Lucide React
+* Firebase (optional support services)
+* Local Storage
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+* Node.js 18+
+
+### Installation
+
+```bash
+git clone https://github.com/Himanshu478140/study-timer.git
+cd study-timer
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```text
+http://localhost:5173
 ```
+
+### Production Build
+
+```bash
+npm run build
+```
+
+---
+
+## 📸 Screenshots
+
+Add screenshots or GIFs here.
+
+Suggested sections:
+
+* Dashboard
+* Focus Timer
+* Zen Mode
+* Statistics
+* Habit Tracker
+* Settings
+
+---
+
+## 🎯 Philosophy
+
+focora is built around three core principles:
+
+* **Focus First** — Remove distractions and make deep work effortless.
+* **Privacy by Default** — Your data stays on your device.
+* **Intentional Design** — Every interaction should feel fast, purposeful, and visually refined.
+
+---
+
+## 📬 Feedback
+
+Found a bug, have a feature request, or want to share feedback?
+
+📧 [feedbackhimanshu065@gmail.com](mailto:feedbackhimanshu065@gmail.com)
+
+You can also submit suggestions directly through the in-app Support section.
+
+---
+
+## 📄 License
+
+MIT License
+
+---
+
+<p align="center">
+  Built with ❤️ by Himanshu
+</p>

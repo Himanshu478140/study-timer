@@ -10,13 +10,12 @@ import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { useHabits } from './hooks/useHabits';
 import { HabitsProvider } from './context/HabitsContext';
 import { useDocumentPiP } from './hooks/useDocumentPiP';
-import { useCloudSync } from './context/CloudSyncContext';
 
 import { TimerDisplay } from './components/timer/TimerDisplay';
 import { TimerControls } from './components/timer/TimerControls';
 import { MiniTimer } from './components/timer/MiniTimer';
-import { type FocusMode } from './components/modes/ModeSelector';
-import { WallpaperSelector, WALLPAPERS, type WallpaperConfig } from './components/wallpaper/WallpaperSelector';
+import { type FocusMode } from './components/ui/ModeSelectorPanel';
+import { WALLPAPERS, type WallpaperConfig } from './components/wallpaper/WallpaperSelector';
 import { WallpaperLayer } from './components/layout/WallpaperLayer';
 import { AudioPanel } from './components/audio/AudioPanel';
 import { HomeView } from './components/home/HomeView';
@@ -25,10 +24,9 @@ import { type AppMode } from './components/layout/GlobalModeSwitcher';
 import { WeatherWidget } from './components/widgets/WeatherWidget';
 
 import { Dashboard } from './components/dashboard/Dashboard';
-import { Trophy, Zap, PictureInPicture2, Maximize, Minimize, User as UserIcon, Leaf, X, Brain, Clock, Coffee, Sliders, Pencil, Settings, Hourglass, CloudSun } from 'lucide-react';
+import { Trophy, Zap, PictureInPicture2, Maximize, Minimize, User as UserIcon, Leaf, X, Brain, Clock, Coffee, Sliders, Pencil, Settings, Hourglass, CloudSun, Bold, Italic, Underline, Strikethrough, Quote, ListOrdered, List, ListTodo, Outdent, Indent } from 'lucide-react';
 import { Dock, DockIcon } from './components/ui/Dock';
 import { VerticalDockPanel } from './components/ui/VerticalDockPanel';
-import { StitchMenu } from './components/ui/StitchMenu';
 import { TaskSelectorPanel } from './components/ui/TaskSelectorPanel';
 import { GraphSelectorPanel } from './components/ui/GraphSelectorPanel';
 import { HabitSelectorPanel } from './components/ui/HabitSelectorPanel';
@@ -39,13 +37,12 @@ import './components/audio/audio.css';
 import './components/ui/VerticalDock.css';
 import { TypingAnimation } from './components/ui/TypingAnimation';
 import { DailyProgressRing } from './components/widgets/DailyProgressRing';
-import { SessionQualityModal } from './components/modals/SessionQualityModal';
 import { BreakPromptModal } from './components/modals/BreakPromptModal';
 import { SessionRing } from './components/ui/SessionRing';
 import { DesktopWidgetLayout } from './components/layout/DesktopWidgetLayout';
 import { GamificationNotification } from './components/ui/GamificationNotification';
-import { MobileToolsOverlay } from './components/layout/MobileToolsOverlay';
-import { syncDoc, loadUserDoc } from './utils/syncUtils';
+
+
 
 const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: (tz: string) => void }) => {
   const [mode, setMode] = useState<FocusMode>('deep_work');
@@ -64,20 +61,17 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
   });
 
   const [isDashboardOpen, setIsDashboardOpen] = useState(false); // Dashboard State
-  const [showQualityModal, setShowQualityModal] = useState(false);
   const [breakPrompt, setBreakPrompt] = useState<{ show: boolean, duration: number }>({ show: false, duration: 5 });
   const [isBreak, setIsBreak] = useState(false);
-  const [isMobileToolsOpen, setIsMobileToolsOpen] = useState(false);
+  const [pendingXp, setPendingXp] = useState<{ xpGained: number; hasCombo: boolean } | null>(null);
+
   const [isAudioPanelOpen, setIsAudioPanelOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isHabitsOpen, setIsHabitsOpen] = useState(false);
   const [isTaskPanelOpen, setIsTaskPanelOpen] = useState(false);
   const [isGraphPanelOpen, setIsGraphPanelOpen] = useState(false);
   const [isModePanelOpen, setIsModePanelOpen] = useState(false);
-  const [pendingSession, setPendingSession] = useState<{ mode: string, duration: number } | null>(null);
-  const [isStitchMenuOpen, setIsStitchMenuOpen] = useState(false);
   const [isDockExpanded, setIsDockExpanded] = useState(false);
-  const [isWallpaperOpen, setIsWallpaperOpen] = useState(false);
   const [isNotepadOpen, setIsNotepadOpen] = useState(false);
   const [dashboardTab, setDashboardTab] = useState<DashboardTab>('stats');
   const [customAvatar, setCustomAvatar] = useState<string | null>(() => {
@@ -105,6 +99,78 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
   const [isNotepadPositioned, setIsNotepadPositioned] = useState(false);
   const homeTaskPencilRef = useRef<HTMLDivElement>(null);
   const [taskPanelTriggerRef, setTaskPanelTriggerRef] = useState<React.RefObject<HTMLDivElement | null>>(homeTaskPencilRef);
+
+  const editorRef = useRef<HTMLDivElement>(null);
+  const [activeStyles, setActiveStyles] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+    strikeThrough: false,
+    insertOrderedList: false,
+    insertUnorderedList: false,
+  });
+
+  const updateActiveStyles = () => {
+    try {
+      setActiveStyles({
+        bold: document.queryCommandState('bold'),
+        italic: document.queryCommandState('italic'),
+        underline: document.queryCommandState('underline'),
+        strikeThrough: document.queryCommandState('strikeThrough'),
+        insertOrderedList: document.queryCommandState('insertOrderedList'),
+        insertUnorderedList: document.queryCommandState('insertUnorderedList'),
+      });
+    } catch (e) {
+      // document.queryCommandState may fail if not selection is active
+    }
+  };
+
+  useEffect(() => {
+    if (isNotepadOpen) {
+      const handleSelectionChange = () => {
+        updateActiveStyles();
+      };
+      document.addEventListener('selectionchange', handleSelectionChange);
+      return () => {
+        document.removeEventListener('selectionchange', handleSelectionChange);
+      };
+    }
+  }, [isNotepadOpen]);
+
+  const handleFormat = (command: string, value: string = '') => {
+    document.execCommand(command, false, value);
+    if (editorRef.current) {
+      setNotes(editorRef.current.innerHTML);
+    }
+    updateActiveStyles();
+  };
+
+  const handleInsertChecklist = () => {
+    document.execCommand('insertHTML', false, '<ul class="todo-checklist"><li style="list-style:none; display:flex; align-items:center; gap:8px;"><input type="checkbox" class="notepad-todo-checkbox" style="width:14px; height:14px; margin:0;" />&nbsp;</li></ul>');
+    if (editorRef.current) {
+      setNotes(editorRef.current.innerHTML);
+    }
+  };
+
+  const handleEditorInput = () => {
+    if (editorRef.current) {
+      setNotes(editorRef.current.innerHTML);
+    }
+  };
+
+  const handleEditorClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox') {
+      const checkbox = target as HTMLInputElement;
+      if (checkbox.hasAttribute('checked')) {
+        checkbox.removeAttribute('checked');
+      } else {
+        checkbox.setAttribute('checked', 'true');
+      }
+      handleEditorInput();
+    }
+  };
+
 
   const [dimensions, setDimensions] = useState({
     scale: Math.max(0.5, Math.min(Math.min(window.innerHeight / 633, window.innerWidth / 850), 1.8))
@@ -193,7 +259,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
   // Task context for vertical strip
   const { tasks, activeTaskId, addTaskTime } = useFocusTask();
 
-  const { setThemeFromWallpaper, toggleTheme, themeMode } = useTheme(); // Destructure toggleTheme and themeMode
+  const { setThemeFromWallpaper } = useTheme(); // Destructure toggleTheme and themeMode
   const { level, xp, awardXP, notification } = useGamification();
   const { playSFX, activeAmbient } = useSound();
   const { isFullscreen, enterFullscreen, exitFullscreen } = useFullscreen();
@@ -215,30 +281,58 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
   useEffect(() => {
     localStorage.setItem('saved-zen-clock-style', zenClockStyle);
   }, [zenClockStyle]);
-  const [timerConfig, setTimerConfig] = useState({
-    pomodoro: 25,
-    flow: 52,
-    deep_work: 90,
-    shortBreak: 5,
-    longBreak: 15,
-    custom: 15,
-    customBreak: 5,
-    pomodoroBreakMode: 'auto' as 'auto' | 'fixed',
-    pomodoroBreakDuration: 5,
-    flowBreakMode: 'auto' as 'auto' | 'fixed',
-    flowBreakDuration: 17,
-    deepWorkBreakMode: 'auto' as 'auto' | 'fixed',
-    deepWorkBreakDuration: 15
+  const [timerConfig, setTimerConfig] = useState(() => {
+    const saved = localStorage.getItem('study-timer-timer-config');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse timerConfig", e);
+      }
+    }
+    return {
+      pomodoro: 25,
+      flow: 52,
+      deep_work: 90,
+      shortBreak: 5,
+      longBreak: 15,
+      custom: 15,
+      customBreak: 5,
+      pomodoroBreakMode: 'auto' as 'auto' | 'fixed',
+      pomodoroBreakDuration: 5,
+      flowBreakMode: 'auto' as 'auto' | 'fixed',
+      flowBreakDuration: 17,
+      deepWorkBreakMode: 'auto' as 'auto' | 'fixed',
+      deepWorkBreakDuration: 15
+    };
   });
-  const [features, setFeatures] = useState({
-    ambientMode: false,
-    sound: true,
-    notifications: true,
-    showQuoteInFullscreen: true,
-    zenModeType: 'clock' as 'clock' | 'timer',
-    zenTimeFormat: '24h' as '12h' | '24h',
-    homeTimeFormat: '24h' as '12h' | '24h'
+  const [features, setFeatures] = useState(() => {
+    const saved = localStorage.getItem('study-timer-features');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse features", e);
+      }
+    }
+    return {
+      ambientMode: false,
+      sound: true,
+      notifications: true,
+      showQuoteInFullscreen: true,
+      zenModeType: 'clock' as 'clock' | 'timer',
+      zenTimeFormat: '24h' as '12h' | '24h',
+      homeTimeFormat: '24h' as '12h' | '24h'
+    };
   });
+
+  useEffect(() => {
+    localStorage.setItem('study-timer-timer-config', JSON.stringify(timerConfig));
+  }, [timerConfig]);
+
+  useEffect(() => {
+    localStorage.setItem('study-timer-features', JSON.stringify(features));
+  }, [features]);
   const [selectedQuote, setSelectedQuote] = useState("The only way to do great work is to love what you do.");
   const [quoteFont, setQuoteFont] = useState(() => {
     const saved = localStorage.getItem('quote-font');
@@ -253,7 +347,23 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [notes, setNotes] = useState(() => localStorage.getItem('study-notes') || '');
+  const [notes, setNotes] = useState(() => {
+    const savedDate = localStorage.getItem('study-notes-date');
+    const todayStr = new Date().toDateString();
+    
+    if (savedDate && savedDate !== todayStr) {
+      // It's a new day! Clear the active scratchpad text
+      localStorage.setItem('study-notes', '');
+      localStorage.setItem('study-notes-date', todayStr);
+      return '';
+    }
+    
+    if (!savedDate) {
+      localStorage.setItem('study-notes-date', todayStr);
+    }
+    
+    return localStorage.getItem('study-notes') || '';
+  });
   const [completedSessionsToday, setCompletedSessionsToday] = useState<number>(() => {
     const saved = localStorage.getItem('completed-sessions-today');
     if (saved) {
@@ -272,11 +382,87 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
 
   useEffect(() => {
     localStorage.setItem('study-notes', notes);
+
+    const cleanContent = notes.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+    if (!cleanContent) return;
+
+    const debounceHandler = setTimeout(() => {
+      try {
+        const savedLogs = localStorage.getItem('scratchpad-logs');
+        const logs: Array<{ id: string; timestamp: string; content: string }> = savedLogs ? JSON.parse(savedLogs) : [];
+        const now = new Date();
+        const lastLog = logs[logs.length - 1];
+
+        // Do nothing if content is exactly the same as the last log
+        if (lastLog && lastLog.content === notes) {
+          return;
+        }
+
+        const FIVE_MINUTES_MS = 5 * 60 * 1000;
+        const isRecent = lastLog && (now.getTime() - new Date(lastLog.timestamp).getTime() < FIVE_MINUTES_MS);
+        const isSameDay = lastLog && (new Date(lastLog.timestamp).toDateString() === now.toDateString());
+
+        if (isRecent && isSameDay) {
+          // Update the existing entry for this active typing session
+          lastLog.content = notes;
+          lastLog.timestamp = now.toISOString();
+        } else {
+          // Create a new entry
+          logs.push({
+            id: Math.random().toString(36).substring(2, 9),
+            timestamp: now.toISOString(),
+            content: notes
+          });
+        }
+
+        localStorage.setItem('scratchpad-logs', JSON.stringify(logs));
+        window.dispatchEvent(new Event('scratchpad-logs-updated'));
+      } catch (err) {
+        console.error('Error saving scratchpad logs:', err);
+      }
+    }, 5000); // 5 seconds debounce
+
+    return () => clearTimeout(debounceHandler);
   }, [notes]);
+
+  // Sync contentEditable content on open or when notes change (e.g. daily reset)
+  useEffect(() => {
+    if (isNotepadOpen && editorRef.current) {
+      if (editorRef.current.innerHTML !== notes) {
+        editorRef.current.innerHTML = notes || '<div><br></div>';
+      }
+    }
+  }, [isNotepadOpen, notes]);
 
   useEffect(() => {
     localStorage.setItem('custom-quotes', JSON.stringify(customQuotes));
   }, [customQuotes]);
+
+  // Check for day change to clear scratchpad and reset daily sessions count
+  useEffect(() => {
+    const checkDayChange = () => {
+      const todayStr = new Date().toDateString();
+      const savedDate = localStorage.getItem('study-notes-date');
+      
+      if (savedDate && savedDate !== todayStr) {
+        setNotes('');
+        localStorage.setItem('study-notes', '');
+        localStorage.setItem('study-notes-date', todayStr);
+        setCompletedSessionsToday(0);
+      }
+    };
+    
+    // Check on mount and focus
+    checkDayChange();
+    
+    const interval = setInterval(checkDayChange, 60000); // Check every minute
+    window.addEventListener('focus', checkDayChange);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', checkDayChange);
+    };
+  }, []);
 
   const handleAddQuote = (quote: string) => {
     if (!customQuotes.includes(quote)) {
@@ -293,7 +479,22 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
 
   // --- SYNC ENGINE INTEGRATION ---
   const { recordSession, stats } = useHabits();
-  const { user } = useCloudSync();
+
+  const getTodayDateStr = () => {
+    if (timezone === 'auto') return new Date().toLocaleDateString('en-CA');
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(new Date());
+  };
+
+  const todaySessions = (stats?.history || [])
+    .filter((s: any) => s.date === getTodayDateStr())
+    .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+
+  const completedModes = todaySessions.map((s: any) => s.mode);
 
   const streak = stats.streaks.current;
 
@@ -305,54 +506,6 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
     }
     prevLevel.current = level;
   }, [level]);
-
-  // Initial Preferences Load
-  useEffect(() => {
-    if (!user) return;
-    const loadPreferences = async () => {
-      console.log("Cloud Sync: Loading Preferences...");
-      const cloudData = await loadUserDoc(user.uid);
-      if (cloudData?.preferences) {
-        const p = cloudData.preferences;
-        if (p.wallpaper) setWallpaper(p.wallpaper);
-        if (p.clockFont) setClockFont(p.clockFont);
-        if (p.timerConfig) setTimerConfig(p.timerConfig);
-        if (p.features) setFeatures(p.features);
-        if (p.quoteFont) setQuoteFont(p.quoteFont);
-        if (p.customQuotes) setCustomQuotes(p.customQuotes);
-        if (p.appMode) setAppMode(p.appMode);
-      } else {
-        // Migration: Push local preferences to cloud on first login
-        syncDoc(user.uid, 'preferences', {
-          wallpaper,
-          clockFont,
-          timerConfig,
-          features,
-          quoteFont,
-          customQuotes,
-          appMode,
-          timezone
-        });
-      }
-    };
-    loadPreferences();
-  }, [user]);
-
-  // Real-time Preference Sync
-  useEffect(() => {
-    if (user) {
-      syncDoc(user.uid, 'preferences', {
-        wallpaper,
-        clockFont,
-        timerConfig,
-        features,
-        quoteFont,
-        customQuotes,
-        appMode,
-        timezone
-      });
-    }
-  }, [user, wallpaper, clockFont, timerConfig, features, quoteFont, customQuotes, appMode, timezone]);
 
   // Document PiP Hook
   const { pipWindow, requestPiP, closePiP } = useDocumentPiP();
@@ -469,8 +622,28 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
               timerConfig.custom
       );
 
-      const xpGained = mode === 'pomodoro' ? 25 : mode === 'flow' ? 50 : mode === 'deep_work' ? 100 : Math.floor(duration / 1);
-      awardXP(xpGained);
+      let xpGained = 0;
+      if (mode === 'pomodoro') {
+        xpGained = 30;
+      } else if (mode === 'flow') {
+        xpGained = 65;
+      } else if (mode === 'deep_work') {
+        xpGained = 125;
+      } else {
+        const roundedDuration = Math.round(duration);
+        if (roundedDuration === 25) {
+          xpGained = 30;
+        } else if (roundedDuration === 50 || roundedDuration === 52) {
+          xpGained = 65;
+        } else if (roundedDuration === 90) {
+          xpGained = 125;
+        } else {
+          xpGained = 5 + Math.floor(duration);
+        }
+      }
+
+      const hasCombo = tasks.length > 0 && tasks.every(t => t.completed);
+      setPendingXp({ xpGained, hasCombo });
 
       exitFullscreen();
 
@@ -496,17 +669,6 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
     }
   });
 
-  const handleSessionSave = (rating: number, tags: string[]) => {
-    if (pendingSession) {
-      recordSession(pendingSession.mode, true, pendingSession.duration, false, rating, tags);
-      setPendingSession(null);
-
-      // Auto-suggest break after save
-      const breakTime = getBreakTime(pendingSession.mode);
-      setBreakPrompt({ show: true, duration: breakTime });
-    }
-    setShowQualityModal(false);
-  };
 
   const handleTakeBreak = (minutes: number) => {
     setTimerStatus('idle');
@@ -603,13 +765,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
         />
       )}
 
-      {/* Focus Warning Toast */}
-      <SessionQualityModal
-        isOpen={showQualityModal}
-        onClose={() => setShowQualityModal(false)}
-        onSave={handleSessionSave}
-        sessionType={pendingSession?.mode || 'Focus'}
-      />
+
 
       <BreakPromptModal
         isOpen={breakPrompt.show}
@@ -617,6 +773,13 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
         onTakeBreak={() => {
           setBreakPrompt({ ...breakPrompt, show: false });
           handleTakeBreak(breakPrompt.duration);
+          if (pendingXp) {
+            awardXP(pendingXp.xpGained, 'session');
+            if (pendingXp.hasCombo) {
+              awardXP(25, 'achievement');
+            }
+            setPendingXp(null);
+          }
         }}
         onSkipBreak={() => {
           setBreakPrompt({ ...breakPrompt, show: false });
@@ -624,6 +787,13 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
           setTimerStatus('idle');
           setTimeLeft(getInitialTime(mode));
           setIsBreak(false);
+          if (pendingXp) {
+            awardXP(pendingXp.xpGained, 'session');
+            if (pendingXp.hasCombo) {
+              awardXP(25, 'achievement');
+            }
+            setPendingXp(null);
+          }
         }}
       />
 
@@ -820,9 +990,6 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
                   marginBottom: '0',
                   transform: isFocusActive ? 'none' : 'none',
                 }}
-                active={status === 'running'}
-                timeLeft={timeLeft}
-                mode={mode}
               />
 
               <div style={{
@@ -884,15 +1051,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
         pipWindow.document.body
       )}
 
-      <footer className="focus-footer">
-        {/* Wallpaper Drawer (externally controlled) */}
-        <WallpaperSelector
-          currentId={wallpaper.id}
-          onSelect={setWallpaper}
-          externalOpen={isWallpaperOpen}
-          onClose={() => setIsWallpaperOpen(false)}
-        />
-      </footer>
+
 
       {/* Bottom-Left Unified Docks Group */}
       <div
@@ -1036,7 +1195,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
               </div>
 
               {/* Focus Mode Icon & Label — wrapped in SessionRing */}
-              <SessionRing currentSession={completedSessionsToday} totalSessions={4} mode={mode}>
+              <SessionRing currentSession={completedSessionsToday} totalSessions={4} mode={mode} completedModes={completedModes}>
                 <div
                   className="flex-center"
                   title="Current Focus Mode"
@@ -1133,15 +1292,6 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
         </div>
       )}
 
-      <StitchMenu
-        isOpen={isStitchMenuOpen}
-        onClose={() => setIsStitchMenuOpen(false)}
-        onOpenSection={(section) => {
-          setDashboardTab(section);
-          setIsDashboardOpen(true);
-        }}
-      />
-
       <TaskSelectorPanel
         isOpen={isTaskPanelOpen}
         onClose={() => setIsTaskPanelOpen(false)}
@@ -1201,21 +1351,132 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
             }}
           >
             <div className="notepad-popup-header">
-              <span className="notepad-popup-title">Notepad</span>
+              <span className="notepad-popup-title">Scratchpad</span>
               <button className="notepad-popup-close" onClick={() => setIsNotepadOpen(false)}>
                 <X size={14} />
               </button>
             </div>
-            <textarea
+
+            {/* Rich-Text Formatting Toolbar */}
+            <div className="notepad-toolbar">
+              <button
+                type="button"
+                onClick={() => handleFormat('bold')}
+                className={`toolbar-btn ${activeStyles.bold ? 'active' : ''}`}
+                title="Bold"
+              >
+                <Bold size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFormat('italic')}
+                className={`toolbar-btn ${activeStyles.italic ? 'active' : ''}`}
+                title="Italic"
+              >
+                <Italic size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFormat('underline')}
+                className={`toolbar-btn ${activeStyles.underline ? 'active' : ''}`}
+                title="Underline"
+              >
+                <Underline size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFormat('strikeThrough')}
+                className={`toolbar-btn ${activeStyles.strikeThrough ? 'active' : ''}`}
+                title="Strikethrough"
+              >
+                <Strikethrough size={14} />
+              </button>
+              <div className="toolbar-divider" />
+              <button
+                type="button"
+                onClick={() => handleFormat('formatBlock', '<h1>')}
+                className="toolbar-btn text-btn"
+                title="Heading 1"
+              >
+                H1
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFormat('formatBlock', '<h2>')}
+                className="toolbar-btn text-btn"
+                title="Heading 2"
+              >
+                H2
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFormat('formatBlock', '<blockquote>')}
+                className="toolbar-btn"
+                title="Blockquote"
+              >
+                <Quote size={14} />
+              </button>
+              <div className="toolbar-divider" />
+              <button
+                type="button"
+                onClick={() => handleFormat('insertOrderedList')}
+                className={`toolbar-btn ${activeStyles.insertOrderedList ? 'active' : ''}`}
+                title="Numbered List"
+              >
+                <ListOrdered size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFormat('insertUnorderedList')}
+                className={`toolbar-btn ${activeStyles.insertUnorderedList ? 'active' : ''}`}
+                title="Bulleted List"
+              >
+                <List size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={handleInsertChecklist}
+                className="toolbar-btn"
+                title="Todo List"
+              >
+                <ListTodo size={14} />
+              </button>
+              <div className="toolbar-divider" />
+              <button
+                type="button"
+                onClick={() => handleFormat('outdent')}
+                className="toolbar-btn"
+                title="Decrease Indent"
+              >
+                <Outdent size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleFormat('indent')}
+                className="toolbar-btn"
+                title="Increase Indent"
+              >
+                <Indent size={14} />
+              </button>
+            </div>
+
+            <div
+              ref={editorRef}
+              contentEditable
+              onInput={handleEditorInput}
+              onClick={handleEditorClick}
               className="notepad-popup-textarea custom-scrollbar"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Write something..."
+              data-placeholder="Write something..."
               spellCheck={false}
-              autoFocus
+              style={{
+                outline: 'none',
+                userSelect: 'text',
+                WebkitUserSelect: 'text'
+              }}
             />
+
             <div className="notepad-popup-footer">
-              <span>{notes.length} chars</span>
+              <span>{notes ? notes.replace(/<[^>]*>/g, '').length : 0} chars</span>
               <span>Auto-saved</span>
             </div>
           </motion.div>
@@ -1261,17 +1522,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
         triggerRef={audioIconRef}
       />
 
-      {/* Mobile Tools Toggle (Visible <= 900px) */}
-      {/* Mobile Sidebar/Drawer Overlay */}
-      <MobileToolsOverlay
-        isOpen={isMobileToolsOpen}
-        onClose={() => setIsMobileToolsOpen(false)}
-        onOpenDashboard={() => setIsDashboardOpen(true)}
-        onToggleTheme={toggleTheme}
-        themeMode={themeMode}
-        appMode={appMode}
-        onAppModeChange={handleAppModeChange}
-      />
+
     </div>
   );
 };

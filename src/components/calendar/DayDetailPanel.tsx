@@ -42,7 +42,6 @@ export const DayDetailPanel = ({ date, stats, onClose }: DayDetailPanelProps) =>
             bottom: 0,
             zIndex: 50,
             background: 'rgba(20, 20, 30, 0.95)', // High contrast backdrop
-            backdropFilter: 'blur(10px)',
             display: 'flex',
             flexDirection: 'column',
             padding: '1.5rem',
