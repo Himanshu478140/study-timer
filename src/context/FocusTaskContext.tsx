@@ -29,12 +29,7 @@ interface FocusTaskContextType {
 const FocusTaskContext = createContext<FocusTaskContextType | undefined>(undefined);
 
 export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
-    const [tasks, setTasks] = useState<FocusTask[]>([]);
-    const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
-    const { awardXP } = useGamification();
-
-    // Initial Load from LocalStorage (Guest Mode)
-    useEffect(() => {
+    const [tasks, setTasks] = useState<FocusTask[]>(() => {
         const savedTasks = localStorage.getItem('focus-tasks');
         if (savedTasks) {
             try {
@@ -44,21 +39,24 @@ export const FocusTaskProvider = ({ children }: { children: ReactNode }) => {
                     const sixMonthsAgo = new Date();
                     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-                    const cleanTasks = parsed.filter((t: FocusTask) => {
+                    return parsed.filter((t: FocusTask) => {
                         if (!t.isDeleted) return true;
                         if (!t.completedAt) return false;
                         return new Date(t.completedAt) > sixMonthsAgo;
                     });
-                    setTasks(cleanTasks);
                 }
-            } catch (e) { console.error(e); }
-        } else {
-            setTasks([]);
+            } catch (e) {
+                console.error(e);
+            }
         }
+        return [];
+    });
 
-        const savedActiveId = localStorage.getItem('focus-active-task-id');
-        if (savedActiveId) setActiveTaskId(savedActiveId);
-    }, []);
+    const [activeTaskId, setActiveTaskId] = useState<string | null>(() => {
+        return localStorage.getItem('focus-active-task-id');
+    });
+
+    const { awardXP } = useGamification();
 
     // Persist to LocalStorage
     useEffect(() => {

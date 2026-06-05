@@ -13,6 +13,7 @@ interface StatsPanelProps {
 import { FocusScorePanel } from '../stats/FocusScorePanel';
 import { StreakCard } from '../stats/StreakCard';
 import { ConsistencyHeatmap } from '../stats/ConsistencyHeatmap';
+import { HabitMonthlyHeatmaps } from '../stats/HabitMonthlyHeatmaps';
 import { InteractiveFocusChart } from '../stats/InteractiveFocusChart';
 import { Minus, Plus } from 'lucide-react';
 import { DailyTaskStats } from '../stats/DailyTaskStats';
@@ -24,13 +25,13 @@ export const StatsPanel = ({ stats: _userStats, focusStats, setDailyGoal }: Stat
 
     return (
         <div style={{ paddingBottom: '2rem' }}>
-            <div className="stats-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div className="stats-header">
                 <div>
                     <div className="stats-title">Focus Performance</div>
                     <p style={{ color: 'rgba(255,255,255,0.7)' }}>Track your consistency and prevent burnout.</p>
                 </div>
                 {/* Goal Adjuster - Relocated for discoverability */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginRight: '2.5rem' }}>
+                <div className="stats-goal-adjuster">
                     <div style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', opacity: 0.5, marginBottom: '0.5rem', letterSpacing: '0.05em' }}>
                         Daily Focus Target
                     </div>
@@ -78,6 +79,9 @@ export const StatsPanel = ({ stats: _userStats, focusStats, setDailyGoal }: Stat
 
             {/* Habits Monthly Heatmap */}
             <ConsistencyHeatmap history={focusStats.history} />
+
+            {/* Individual Habit Monthly Heatmaps */}
+            <HabitMonthlyHeatmaps />
 
             {/* Premium Stacked Area Focus Chart */}
             <div style={{ marginTop: '1.5rem', animation: 'fadeIn 0.3s ease-out' }}>

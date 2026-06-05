@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { History, Brain, Flame, Coffee, Sliders, Star, Tag, Clock } from 'lucide-react';
 import type { FocusSession } from '../../context/HabitsContext';
 
@@ -6,6 +7,13 @@ interface SessionHistoryCardProps {
 }
 
 export const SessionHistoryCard = ({ history }: SessionHistoryCardProps) => {
+    const recentHistory = useMemo(() => {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        sevenDaysAgo.setHours(0, 0, 0, 0);
+        return history.filter(session => new Date(session.startTime) >= sevenDaysAgo);
+    }, [history]);
+
     // Helper: format duration in minutes to h/m
     const formatDuration = (minutes: number) => {
         if (!minutes) return '0m';
@@ -89,13 +97,13 @@ export const SessionHistoryCard = ({ history }: SessionHistoryCardProps) => {
                     </div>
                     <div>
                         <h2 id="session-history-title" style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: '#fff' }}>Session History</h2>
-                        <p style={{ fontSize: '0.8rem', opacity: 0.6, margin: 0 }}>Log of completed focus sessions</p>
+                        <p style={{ fontSize: '0.8rem', opacity: 0.6, margin: 0 }}>Log of completed focus sessions (last 7 days)</p>
                     </div>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem', background: 'rgba(255, 255, 255, 0.08)', padding: '0.375rem 0.75rem', borderRadius: '0.625rem' }}>
-                    <span style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>{history.length}</span>
-                    <span style={{ fontSize: '0.65rem', opacity: 0.7, textTransform: 'uppercase', fontWeight: 600, color: '#fff' }}>Total</span>
+                    <span style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>{recentHistory.length}</span>
+                    <span style={{ fontSize: '0.65rem', opacity: 0.7, textTransform: 'uppercase', fontWeight: 600, color: '#fff' }}>Days</span>
                 </div>
             </div>
 
@@ -113,16 +121,16 @@ export const SessionHistoryCard = ({ history }: SessionHistoryCardProps) => {
                     overflowY: 'auto',
                     padding: '1.25rem'
                 }}>
-                    {history.length > 0 ? (
+                    {recentHistory.length > 0 ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            {history.map((session, index) => {
+                            {recentHistory.map((session, index) => {
                                 const cfg = getModeConfig(session.mode);
                                 return (
-                                    <div 
-                                        key={session.id || index} 
+                                    <div
+                                        key={session.id || index}
                                         style={{
-                                            borderBottom: index === history.length - 1 ? 'none' : '1px solid rgba(255, 255, 255, 0.06)',
-                                            paddingBottom: index === history.length - 1 ? '0' : '1rem',
+                                            borderBottom: index === recentHistory.length - 1 ? 'none' : '1px solid rgba(255, 255, 255, 0.06)',
+                                            paddingBottom: index === recentHistory.length - 1 ? '0' : '1rem',
                                             display: 'flex',
                                             flexDirection: 'column',
                                             gap: '0.5rem'
@@ -198,11 +206,11 @@ export const SessionHistoryCard = ({ history }: SessionHistoryCardProps) => {
                                                 {session.rating && (
                                                     <div style={{ display: 'flex', gap: '1px' }}>
                                                         {Array.from({ length: 5 }).map((_, i) => (
-                                                            <Star 
-                                                                key={i} 
-                                                                size={10} 
-                                                                color={i < (session.rating || 0) ? '#eab308' : 'rgba(255,255,255,0.15)'} 
-                                                                fill={i < (session.rating || 0) ? '#eab308' : 'transparent'} 
+                                                            <Star
+                                                                key={i}
+                                                                size={10}
+                                                                color={i < (session.rating || 0) ? '#eab308' : 'rgba(255,255,255,0.15)'}
+                                                                fill={i < (session.rating || 0) ? '#eab308' : 'transparent'}
                                                             />
                                                         ))}
                                                     </div>
@@ -213,8 +221,8 @@ export const SessionHistoryCard = ({ history }: SessionHistoryCardProps) => {
                                         {session.tags && session.tags.length > 0 && (
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem', paddingLeft: '3rem' }}>
                                                 {session.tags.map((tag, tIdx) => (
-                                                    <div 
-                                                        key={tIdx} 
+                                                    <div
+                                                        key={tIdx}
                                                         style={{
                                                             display: 'flex',
                                                             alignItems: 'center',
@@ -250,7 +258,7 @@ export const SessionHistoryCard = ({ history }: SessionHistoryCardProps) => {
                             gap: '0.5rem'
                         }}>
                             <History size={32} opacity={0.2} />
-                            <span>No completed sessions recorded yet.</span>
+                            <span>No completed sessions in the last 7 days.</span>
                         </div>
                     )}
                 </div>

@@ -29,7 +29,7 @@ export const ScratchpadLogsCard = () => {
 
     window.addEventListener('scratchpad-logs-updated', loadLogs);
     window.addEventListener('storage', loadLogs);
-    
+
     return () => {
       window.removeEventListener('scratchpad-logs-updated', loadLogs);
       window.removeEventListener('storage', loadLogs);
@@ -41,7 +41,7 @@ export const ScratchpadLogsCard = () => {
     const today = new Date();
     const yesterday = new Date();
     yesterday.setDate(today.getDate() - 1);
-    
+
     if (date.toDateString() === today.toDateString()) {
       return 'Today';
     } else if (date.toDateString() === yesterday.toDateString()) {
@@ -71,13 +71,13 @@ export const ScratchpadLogsCard = () => {
   // Group logs by day and apply search filter
   const groupedLogs = useMemo(() => {
     const sorted = [...logs].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    
+
     const filtered = sorted.filter(log => {
       if (!searchQuery.trim()) return true;
       const stripped = log.content.replace(/<[^>]*>/g, '').toLowerCase();
       return stripped.includes(searchQuery.toLowerCase());
     });
-    
+
     const groups: { [key: string]: ScratchpadLog[] } = {};
     filtered.forEach(log => {
       const dateKey = new Date(log.timestamp).toDateString();
@@ -86,7 +86,7 @@ export const ScratchpadLogsCard = () => {
       }
       groups[dateKey].push(log);
     });
-    
+
     return Object.entries(groups).map(([dateKey, entries]) => ({
       dateKey,
       friendlyDate: getFriendlyDate(dateKey),

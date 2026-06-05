@@ -77,30 +77,47 @@ const SFX_URLS = {
 };
 
 export const SoundProvider = ({ children }: { children: ReactNode }) => {
-    const [activeAmbient, setActiveAmbient] = useState<AmbientSound | string>('none');
-    const [volumes, setVolumes] = useState({
-        master: 0.5, // Default lower to be subtle
-        ambient: 1.0,
-        ui: 0.6
-    });
-
-    // Load from localStorage on mount
-    useEffect(() => {
+    const [volumes, setVolumes] = useState(() => {
         const saved = localStorage.getItem('study-timer-audio');
         if (saved) {
             try {
                 const parsed = JSON.parse(saved);
-                setVolumes(parsed.volumes || volumes);
-                // Don't auto-play ambient on load to respect autoplay policies usually
-                // But we can set the state
-                setActiveAmbient(parsed.activeAmbient || 'none');
-
-                // Initialize manager volumes
-                audioManager.setVolume('master', parsed.volumes?.master ?? 0.5);
-                audioManager.setVolume('ambient', parsed.volumes?.ambient ?? 1.0);
-                audioManager.setVolume('ui', parsed.volumes?.ui ?? 0.6);
-            } catch (e) { console.error(e); }
+                if (parsed.volumes) {
+                    return {
+                        master: parsed.volumes.master ?? 0.5,
+                        ambient: parsed.volumes.ambient ?? 1.0,
+                        ui: parsed.volumes.ui ?? 0.6
+                    };
+                }
+            } catch (e) {
+                console.error(e);
+            }
         }
+        return {
+            master: 0.5,
+            ambient: 1.0,
+            ui: 0.6
+        };
+    });
+
+    const [activeAmbient, setActiveAmbient] = useState<AmbientSound | string>(() => {
+        const saved = localStorage.getItem('study-timer-audio');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                return parsed.activeAmbient || 'none';
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        return 'none';
+    });
+
+    // Initialize manager volumes on mount
+    useEffect(() => {
+        audioManager.setVolume('master', volumes.master);
+        audioManager.setVolume('ambient', volumes.ambient);
+        audioManager.setVolume('ui', volumes.ui);
     }, []);
 
     // Persist settings

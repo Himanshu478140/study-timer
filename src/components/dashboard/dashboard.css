@@ -158,7 +158,11 @@
 
 /* Stats Section Styles */
 .stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
     margin-bottom: 2rem;
+    gap: 1rem;
 }
 
 .stats-title {
@@ -167,6 +171,28 @@
     color: white;
     margin-bottom: 0.25rem;
     transition: color var(--transition-theme);
+}
+
+.stats-goal-adjuster {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 2.5rem;
+    flex-shrink: 0;
+}
+
+/* Tablet Portrait and Mobile Responsiveness for Stats Header */
+@media (max-width: 900px) {
+    .stats-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.25rem;
+    }
+
+    .stats-goal-adjuster {
+        margin-right: 0;
+        align-items: flex-start;
+    }
 }
 
 .glass-panel {
