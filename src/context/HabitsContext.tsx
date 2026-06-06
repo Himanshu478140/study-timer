@@ -88,13 +88,15 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
     // --- Stats Logic ---
     const [stats, setStats] = useState<FocusStats>(() => {
         const saved = localStorage.getItem('focus-stats');
+        const savedGoal = localStorage.getItem('focus-daily-goal');
+        const initialGoal = savedGoal ? parseInt(savedGoal, 10) : 240;
 
         const defaultStats: FocusStats = {
             history: [],
             today: { date: getToday(timezone), score: 0, pomodoros: 0, deepWorkMinutes: 0, sessions: 0 },
             streaks: { current: 0, best: 0, lastActiveDate: '' },
             totalFocusMinutes: 0,
-            dailyGoalMinutes: 240, // Default 4 hours
+            dailyGoalMinutes: initialGoal, // Use dedicated key
             level: 1
         };
 
@@ -102,7 +104,12 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
             const parsed = JSON.parse(saved);
             let finalHistory: FocusSession[] = parsed.history || [];
             finalHistory.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
-            return { ...defaultStats, ...parsed, history: finalHistory };
+            return { 
+                ...defaultStats, 
+                ...parsed, 
+                dailyGoalMinutes: initialGoal, // Enforce correct goal value on load
+                history: finalHistory 
+            };
         }
 
         return defaultStats;
@@ -175,7 +182,7 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
                 return prev.filter(e => e.date >= sixMonthsAgoStr);
             });
         }
-    }, [timezone]);
+    }, [timezone, stats.today.date]);
 
     // Persist to LocalStorage
     useEffect(() => {
@@ -338,6 +345,7 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
     };
 
     const setDailyGoal = (minutes: number) => {
+        localStorage.setItem('focus-daily-goal', minutes.toString());
         setStats(prev => {
             const actualTotalMinsToday = prev.history
                 .filter(s => s.date === prev.today.date)

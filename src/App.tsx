@@ -364,21 +364,6 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
     
     return localStorage.getItem('study-notes') || '';
   });
-  const [completedSessionsToday, setCompletedSessionsToday] = useState<number>(() => {
-    const saved = localStorage.getItem('completed-sessions-today');
-    if (saved) {
-      const { count, date } = JSON.parse(saved);
-      if (date === new Date().toDateString()) return count;
-    }
-    return 0;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('completed-sessions-today', JSON.stringify({
-      count: completedSessionsToday,
-      date: new Date().toDateString()
-    }));
-  }, [completedSessionsToday]);
 
   useEffect(() => {
     localStorage.setItem('study-notes', notes);
@@ -448,7 +433,6 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
         setNotes('');
         localStorage.setItem('study-notes', '');
         localStorage.setItem('study-notes-date', todayStr);
-        setCompletedSessionsToday(0);
       }
     };
     
@@ -495,6 +479,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
     .sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
 
   const completedModes = todaySessions.map((s: any) => s.mode);
+  const completedSessionsToday = completedModes.length;
 
   const streak = stats.streaks.current;
 
@@ -650,8 +635,6 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
       if (features.notifications) {
         new Notification("Focus Session Complete!", { body: "Great job! Take a well-deserved break.", icon: "/favicon.ico" });
       }
-
-      setCompletedSessionsToday(prev => prev + 1);
 
       // DIRECT SAVE - No Popups/Modals
       const activeTaskText = activeTaskId ? tasks.find(t => t.id === activeTaskId)?.text : undefined;

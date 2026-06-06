@@ -4,6 +4,7 @@ export const FOCORA_BACKUP_KEYS = [
     'focus-tasks',
     'focus-active-task-id',
     'focus-stats',
+    'focus-daily-goal',
     'custom-wallpapers-list',
     'wallpaper-favorites',
     'custom-avatar',

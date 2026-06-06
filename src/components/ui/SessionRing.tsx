@@ -117,9 +117,15 @@ export const SessionRing: React.FC<SessionRingProps> = memo(({
           const isFilled = i < filled;
           const justFilled = i === filled - 1 && currentSession !== prevSessionRef.current;
           
-          // Use the mode of the completed session at index i, or fall back to the active mode
-          const segmentMode = (completedModes && i < completedModes.length) 
-            ? completedModes[i] 
+          // Calculate the correct index in completedModes for this segment in the current round
+          const activeRound = currentSession > 0 && (currentSession % totalSessions === 0) && round > 0
+            ? round - 1
+            : round;
+          const completedIndex = activeRound * totalSessions + i;
+
+          // Use the mode of the completed session at the calculated index, or fall back to the active mode
+          const segmentMode = (completedModes && completedIndex < completedModes.length) 
+            ? completedModes[completedIndex] 
             : mode;
 
           const segColorAccent = getModeColor(segmentMode);
