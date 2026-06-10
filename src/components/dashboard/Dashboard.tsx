@@ -117,14 +117,8 @@ export const Dashboard = ({
 
     const [aboutVisited, setAboutVisited] = useState(() => localStorage.getItem('about_visited') === 'true');
 
-    // Support Form State
-    const [supportType, setSupportType] = useState<'bug' | 'feature' | 'feedback'>('feedback');
-    const [supportMessage, setSupportMessage] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [focusError, setFocusError] = useState(false);
     const [breakError, setBreakError] = useState(false);
-    const [rateLimitActive, setRateLimitActive] = useState(false);
 
     const [activeBreakSettingMode, setActiveBreakSettingMode] = useState<'pomodoro' | 'flow' | 'deep_work'>('pomodoro');
 
@@ -171,53 +165,7 @@ export const Dashboard = ({
         return dur === 5 || dur === 10 || dur === 15;
     };
 
-    // Rate limit check on mount or when support tab opens
-    useEffect(() => {
-        const lastSubmission = localStorage.getItem('last_support_submission');
-        if (lastSubmission) {
-            const timePassed = Date.now() - parseInt(lastSubmission);
-            if (timePassed < 24 * 60 * 60 * 1000) {
-                setRateLimitActive(true);
-            }
-        }
-    }, [activeTab]);
 
-    const handleSubmitSupport = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!supportMessage.trim()) return;
-
-        setIsSubmitting(true);
-        setSubmitStatus('idle');
-
-        try {
-            // Simulate network latency for submission
-            await new Promise(resolve => setTimeout(resolve, 800));
-
-            const ticket = {
-                type: supportType,
-                message: supportMessage.trim(),
-                createdAt: new Date().toISOString(),
-                userAgent: navigator.userAgent,
-                platform: navigator.platform
-            };
-            const existing = localStorage.getItem('local-support-tickets');
-            const tickets = existing ? JSON.parse(existing) : [];
-            tickets.push(ticket);
-            localStorage.setItem('local-support-tickets', JSON.stringify(tickets));
-
-            // Update rate limit only after successful submission
-            localStorage.setItem('last_support_submission', Date.now().toString());
-            setRateLimitActive(true);
-
-            setSubmitStatus('success');
-            setSupportMessage('');
-        } catch (error) {
-            console.error('Error submitting support ticket:', error);
-            setSubmitStatus('error');
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
     const [newQuoteText, setNewQuoteText] = useState('');
     const { setDailyGoal } = useHabits();
 
@@ -1253,88 +1201,11 @@ export const Dashboard = ({
                         <div className="dashboard-section animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto' }}>
                             <h2 style={{ marginBottom: '0.5rem' }}>Help & Support</h2>
                             <p style={{ marginBottom: '2rem', color: 'rgba(255,255,255,0.6)' }}>
-                                Have a question, feedback, or found a bug? Submit the form below or email us directly at <a href="mailto:feedbackhimanshu065@gamil.com" style={{ color: 'var(--color-accent)', textDecoration: 'none' }}>feedbackhimanshu065@gamil.com</a>
+                                Have a question, feedback, or found a bug? Email me directly at <a href="mailto:feedbackhimanshu065@gamil.com" style={{ color: 'var(--color-accent)', textDecoration: 'none' }}>feedbackhimanshu065@gamil.com</a>
                             </p>
 
-                            {/* Support Form Section */}
-                            <div className="support-form-container-new" style={{ padding: '2rem', borderRadius: '1.5rem', background: 'rgba(18, 18, 22, 0.85)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                                <form onSubmit={handleSubmitSupport} className="feedback-form">
-                                    <div className="form-group">
-                                        <label>Query Type</label>
-                                        <div className="type-selector">
-                                            {(['feedback', 'bug', 'feature'] as const).map(type => (
-                                                <button
-                                                    key={type}
-                                                    type="button"
-                                                    className={`type-btn ${supportType === type ? 'active' : ''}`}
-                                                    onClick={() => setSupportType(type)}
-                                                >
-                                                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label>Message</label>
-                                        <textarea
-                                            placeholder="How can we help?"
-                                            value={supportMessage}
-                                            onChange={(e) => setSupportMessage(e.target.value)}
-                                            maxLength={1010} // Padding for counter
-                                        ></textarea>
-                                        <div style={{
-                                            display: 'flex',
-                                            justifyContent: 'flex-end',
-                                            marginTop: '6px',
-                                            fontSize: '0.7rem',
-                                            color: supportMessage.trim().length > 1000 ? '#ef4444' : 'rgba(255,255,255,0.3)',
-                                            fontWeight: 600,
-                                            transition: 'color 0.2s'
-                                        }}>
-                                            {supportMessage.trim().length} / 1000
-                                        </div>
-                                    </div>
-
-                                    {rateLimitActive ? (
-                                        <div style={{
-                                            padding: '1rem',
-                                            background: 'rgba(18, 18, 22, 0.6)',
-                                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                                            borderRadius: '0.75rem',
-                                            color: 'rgba(255,255,255,0.5)',
-                                            fontSize: '0.85rem',
-                                            textAlign: 'center',
-                                            lineHeight: '1.5'
-                                        }}>
-                                            You can send feedback once every 24 hours. <br />Thanks for understanding.
-                                        </div>
-                                    ) : (
-                                        <button
-                                            type="submit"
-                                            className="submit-btn interactive-press"
-                                            disabled={isSubmitting || supportMessage.trim().length === 0 || supportMessage.trim().length > 1000}
-                                            style={{ width: '100%' }}
-                                        >
-                                            {isSubmitting ? 'Sending...' : 'Send Feedback'}
-                                        </button>
-                                    )}
-
-                                    {submitStatus === 'success' && (
-                                        <div className="form-status success" style={{ marginTop: '1rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-                                            <Sparkles size={14} /> Message sent successfully!
-                                        </div>
-                                    )}
-                                    {submitStatus === 'error' && (
-                                        <div className="form-status error" style={{ marginTop: '1rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-                                            <X size={14} /> Failed to send. Please try again.
-                                        </div>
-                                    )}
-                                </form>
-                            </div>
-
-                            {/* Quick FAQ Section - Now Below the Form */}
-                            <div className="faq-container-new" style={{ marginTop: '3rem' }}>
+                            {/* Quick FAQ Section */}
+                            <div className="faq-container-new" style={{ marginTop: '0' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.5rem' }}>
                                     <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>Quick FAQ</h3>
                                     <div style={{ height: '1px', flex: 1, background: 'linear-gradient(90deg, rgba(255,255,255,0.1), transparent)' }} />
