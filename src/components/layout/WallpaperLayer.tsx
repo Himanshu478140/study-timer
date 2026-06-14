@@ -8,13 +8,16 @@ import '../wallpaper/animatedGradients.css';
 
 interface WallpaperLayerProps {
     config: WallpaperConfig;
+    onReady?: () => void;
 }
 
 // Session-level cache of successfully preloaded & decoded background images to bypass the decode queue
 const decodedImagesCache = new Set<string>();
 
-export const WallpaperLayer = ({ config }: WallpaperLayerProps) => {
-    const [layer1Image, setLayer1Image] = useState<string | null>(null);
+export const WallpaperLayer = ({ config, onReady }: WallpaperLayerProps) => {
+    const [layer1Image, setLayer1Image] = useState<string | null>(() => {
+        return config.type === 'image' ? config.value : null;
+    });
     const [layer2Image, setLayer2Image] = useState<string | null>(null);
     const [activeLayer, setActiveLayer] = useState<1 | 2 | null>(null);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -35,16 +38,39 @@ export const WallpaperLayer = ({ config }: WallpaperLayerProps) => {
                 setIsTransitioning(!prefersReducedMotion);
                 setActiveLayer(null);
             }
+            if (onReady) onReady();
             return;
         }
 
         const targetValue = config.value;
 
-        // 1. Initial Load: Mount instantly on application startup for visual snappiness
+        // 1. Initial Load: Pre-decode the image before fading it in to prevent any black flashes
         if (activeLayer === null) {
-            setLayer1Image(targetValue);
-            setActiveLayer(1);
-            decodedImagesCache.add(targetValue);
+            const currentLoadId = ++loadIdRef.current;
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const rawUrl = getRawUrl(targetValue);
+            const img = new Image();
+            img.src = rawUrl;
+
+            const handleInitialImageReady = () => {
+                if (currentLoadId !== loadIdRef.current) return;
+                setIsTransitioning(!prefersReducedMotion);
+                setActiveLayer(1);
+                decodedImagesCache.add(targetValue);
+                if (onReady) onReady();
+            };
+
+            if (typeof img.decode === 'function') {
+                img.decode()
+                    .then(handleInitialImageReady)
+                    .catch((err) => {
+                        console.warn('[WallpaperLayer] Async initial decode failed, falling back', err);
+                        handleInitialImageReady();
+                    });
+            } else {
+                img.onload = handleInitialImageReady;
+                img.onerror = handleInitialImageReady;
+            }
             return;
         }
 

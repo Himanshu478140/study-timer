@@ -14,12 +14,7 @@
     "electron:dir": "npm run build && electron-builder --dir"
   },
   "dependencies": {
-    "electron-store": "^11.0.2",
-    "firebase": "^12.8.0",
-    "framer-motion": "^12.34.0",
-    "lucide-react": "^0.563.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "electron-store": "^11.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -35,7 +30,12 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "eslint-plugin-react-x": "^2.8.1",
+    "firebase": "^12.8.0",
+    "framer-motion": "^12.34.0",
     "globals": "^16.5.0",
+    "lucide-react": "^0.563.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4",

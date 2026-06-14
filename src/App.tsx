@@ -518,9 +518,11 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
     }
   };
 
-
-
-
+  const handleWallpaperReady = () => {
+    if (window.electronAPI && window.electronAPI.appReady) {
+      window.electronAPI.appReady();
+    }
+  };
 
   // Apply wallpaper theme when changed
   useEffect(() => {
@@ -733,7 +735,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
   if (isWidgetMode) {
     return (
       <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column', padding: 0, margin: 0, boxSizing: 'border-box' }}>
-        <WallpaperLayer config={wallpaper} />
+        <WallpaperLayer config={wallpaper} onReady={handleWallpaperReady} />
         <WidgetView
           timeLeft={timeLeft}
           status={status}
@@ -751,7 +753,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
     <div className={`focus-scene ${(window.electronAPI && !isFullscreen) ? 'has-electron-titlebar' : ''}`}>
       {window.electronAPI && !isFullscreen && <ElectronTitlebar />}
 
-      <WallpaperLayer config={wallpaper} />
+      <WallpaperLayer config={wallpaper} onReady={handleWallpaperReady} />
 
       {/* Dashboard Overlay */}
       {isDashboardOpen && (

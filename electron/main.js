@@ -1,9 +1,16 @@
-import { app, BrowserWindow, ipcMain, Tray, Menu, Notification, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, Tray, Menu, Notification, screen, protocol, net } from 'electron';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import http from 'http';
-import fs from 'fs';
+import { fileURLToPath, pathToFileURL } from 'url';
 import Store from 'electron-store';
+
+// Set application name before initializing store to ensure it uses AppData/Roaming/Focora
+app.name = 'Focora';
+
+// Single Instance Lock to prevent database access conflicts and memory footprint
+if (!app.requestSingleInstanceLock()) {
+    app.quit();
+    process.exit(0);
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,102 +20,37 @@ const store = new Store();
 
 let mainWindow = null;
 let tray = null;
-let localServer = null;
-let localServerPort = null;
 let currentMode = 'full';
 
-// MIME Types for local HTTP server
-const MIME_TYPES = {
-    '.html': 'text/html',
-    '.css': 'text/css',
-    '.js': 'text/javascript',
-    '.json': 'application/json',
-    '.png': 'image/png',
-    '.jpg': 'image/jpeg',
-    '.gif': 'image/gif',
-    '.svg': 'image/svg+xml',
-    '.ico': 'image/x-icon',
-    '.mp3': 'audio/mpeg',
-    '.wav': 'audio/wav',
-    '.webm': 'video/webm',
-    '.mp4': 'video/mp4',
-    '.woff': 'font/woff',
-    '.woff2': 'font/woff2',
-    '.ttf': 'font/ttf',
-    '.otf': 'font/otf'
-};
+// Handle second instance activation
+app.on('second-instance', () => {
+    if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        if (!mainWindow.isVisible()) mainWindow.show();
+        mainWindow.focus();
+    }
+});
 
-// Start a lightweight local web server in production to load files over HTTP
-function startLocalServer() {
-    return new Promise((resolve, reject) => {
-        const distPath = path.join(__dirname, '../dist');
-        const server = http.createServer((req, res) => {
-            let safeUrl = decodeURIComponent(req.url);
-            const urlPath = safeUrl.split(/[?#]/)[0];
-            let filePath = path.join(distPath, urlPath === '/' ? 'index.html' : urlPath);
-
-            // Path traversal prevention
-            if (!filePath.startsWith(distPath)) {
-                res.statusCode = 403;
-                res.end('Forbidden');
-                return;
-            }
-
-            fs.readFile(filePath, (err, content) => {
-                if (err) {
-                    if (err.code === 'ENOENT') {
-                        // Return index.html for React router fallback
-                        fs.readFile(path.join(distPath, 'index.html'), (err2, indexContent) => {
-                            if (err2) {
-                                res.statusCode = 404;
-                                res.end('Not Found');
-                            } else {
-                                res.writeHead(200, { 'Content-Type': 'text/html' });
-                                res.end(indexContent, 'utf-8');
-                            }
-                        });
-                    } else {
-                        res.statusCode = 500;
-                        res.end(`Server Error: ${err.code}`);
-                    }
-                } else {
-                    const ext = path.extname(filePath).toLowerCase();
-                    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-                    res.writeHead(200, { 'Content-Type': contentType });
-                    res.end(content, 'utf-8');
-                }
-            });
-        });
-
-        server.listen(0, '127.0.0.1', () => {
-            const port = server.address().port;
-            resolve({ port, server });
-        });
-
-        server.on('error', (err) => {
-            reject(err);
-        });
-    });
-}
+// Register custom protocol for production — gives a stable origin (app://focora)
+// so localStorage always persists across restarts. Must be called before app.whenReady().
+protocol.registerSchemesAsPrivileged([
+    {
+        scheme: 'app',
+        privileges: {
+            standard: true,
+            secure: true,
+            supportFetchAPI: true,
+            corsEnabled: true,
+            stream: true
+        }
+    }
+]);
 
 async function createWindow() {
     const isDev = !app.isPackaged;
-    let startUrl = '';
-
-    if (isDev) {
-        startUrl = process.env.ELECTRON_START_URL || 'http://localhost:5173/';
-    } else {
-        try {
-            const result = await startLocalServer();
-            localServer = result.server;
-            localServerPort = result.port;
-            startUrl = `http://127.0.0.1:${localServerPort}/`;
-        } catch (err) {
-            console.error('Failed to start local static server:', err);
-            app.quit();
-            return;
-        }
-    }
+    const startUrl = isDev
+        ? (process.env.ELECTRON_START_URL || 'http://localhost:5173/')
+        : 'app://focora/';
 
     // Load window state from store
     const savedBounds = store.get('windowBounds') || { width: 1200, height: 800 };
@@ -129,6 +71,7 @@ async function createWindow() {
         alwaysOnTop: false,
         hasShadow: true,
         resizable: true,
+        show: false, // Prevents window from showing a black background before page contents are loaded
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
@@ -144,6 +87,22 @@ async function createWindow() {
     }
 
     mainWindow.loadURL(startUrl);
+
+    // Show window only when content is ready to prevent blank/black screen flashes
+    let isShown = false;
+    const showWindow = () => {
+        if (!isShown && mainWindow) {
+            isShown = true;
+            mainWindow.show();
+        }
+    };
+
+    ipcMain.once('app-ready', showWindow);
+
+    mainWindow.once('ready-to-show', () => {
+        // Fallback: if React doesn't report ready within 1.5s, show the window anyway
+        setTimeout(showWindow, 1500);
+    });
 
     // Track bounds when window is modified
     mainWindow.on('resize', () => {
@@ -327,6 +286,33 @@ ipcMain.on('show-notification', (event, { title, body }) => {
 });
 
 app.whenReady().then(() => {
+    // Register custom protocol handler for production builds
+    // Serves files from dist/ under the stable origin app://focora
+    if (app.isPackaged) {
+        const distPath = path.join(__dirname, '../dist');
+        protocol.handle('app', async (request) => {
+            const url = new URL(request.url);
+            let filePath = decodeURIComponent(url.pathname);
+            if (filePath === '/' || filePath === '') {
+                filePath = '/index.html';
+            }
+
+            const fullPath = path.join(distPath, filePath);
+
+            // Security: prevent path traversal
+            if (!fullPath.startsWith(distPath)) {
+                return new Response('Forbidden', { status: 403 });
+            }
+
+            try {
+                return await net.fetch(pathToFileURL(fullPath).toString());
+            } catch {
+                // SPA fallback: serve index.html for client-side routing
+                return net.fetch(pathToFileURL(path.join(distPath, 'index.html')).toString());
+            }
+        });
+    }
+
     createWindow();
     createTray();
 });
@@ -340,11 +326,5 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
     if (mainWindow === null) {
         createWindow();
-    }
-});
-
-app.on('will-quit', () => {
-    if (localServer) {
-        localServer.close();
     }
 });
