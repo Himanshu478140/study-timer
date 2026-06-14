@@ -20,3 +20,6 @@ Thumbs.db
 # Temporary
 .gemini
 tmp
+
+# Electron build artifacts
+dist-electron

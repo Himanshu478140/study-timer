@@ -1405,6 +1405,20 @@ export const Dashboard = ({
                                              <span style={{ marginLeft: '4px' }}>Star on GitHub</span>
                                          </div>
                                      </a>
+
+                                     {/* Download App Button */}
+                                     <a
+                                         href="https://github.com/Himanshu478140/study-timer/releases/download/v1.0.0/Focora_Inno_Setup.exe"
+                                         target="_blank"
+                                         rel="noopener noreferrer"
+                                         className="rainbow-btn"
+                                         title="Download Desktop App"
+                                     >
+                                         <div style={{ display: 'flex', alignItems: 'center' }}>
+                                             <Download size={16} />
+                                             <span style={{ marginLeft: '4px' }}>Download App</span>
+                                         </div>
+                                     </a>
                                  </div>
 
                             <div style={{ marginTop: '3rem', opacity: 0.5, lineHeight: 1.4 }}>

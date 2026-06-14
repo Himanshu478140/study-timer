@@ -14,6 +14,7 @@ import { useDocumentPiP } from './hooks/useDocumentPiP';
 import { TimerDisplay } from './components/timer/TimerDisplay';
 import { TimerControls } from './components/timer/TimerControls';
 import { MiniTimer } from './components/timer/MiniTimer';
+import { WidgetView } from './components/layout/WidgetView';
 import { type FocusMode } from './components/ui/ModeSelectorPanel';
 import { WALLPAPERS, type WallpaperConfig } from './components/wallpaper/WallpaperSelector';
 import { WallpaperLayer } from './components/layout/WallpaperLayer';
@@ -39,7 +40,7 @@ import { TypingAnimation } from './components/ui/TypingAnimation';
 import { DailyProgressRing } from './components/widgets/DailyProgressRing';
 import { BreakPromptModal } from './components/modals/BreakPromptModal';
 import { SessionRing } from './components/ui/SessionRing';
-import { DesktopWidgetLayout } from './components/layout/DesktopWidgetLayout';
+import { ElectronTitlebar } from './components/layout/ElectronTitlebar';
 import { GamificationNotification } from './components/ui/GamificationNotification';
 
 
@@ -350,18 +351,18 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
   const [notes, setNotes] = useState(() => {
     const savedDate = localStorage.getItem('study-notes-date');
     const todayStr = new Date().toDateString();
-    
+
     if (savedDate && savedDate !== todayStr) {
       // It's a new day! Clear the active scratchpad text
       localStorage.setItem('study-notes', '');
       localStorage.setItem('study-notes-date', todayStr);
       return '';
     }
-    
+
     if (!savedDate) {
       localStorage.setItem('study-notes-date', todayStr);
     }
-    
+
     return localStorage.getItem('study-notes') || '';
   });
 
@@ -428,20 +429,20 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
     const checkDayChange = () => {
       const todayStr = new Date().toDateString();
       const savedDate = localStorage.getItem('study-notes-date');
-      
+
       if (savedDate && savedDate !== todayStr) {
         setNotes('');
         localStorage.setItem('study-notes', '');
         localStorage.setItem('study-notes-date', todayStr);
       }
     };
-    
+
     // Check on mount and focus
     checkDayChange();
-    
+
     const interval = setInterval(checkDayChange, 60000); // Check every minute
     window.addEventListener('focus', checkDayChange);
-    
+
     return () => {
       clearInterval(interval);
       window.removeEventListener('focus', checkDayChange);
@@ -494,22 +495,32 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
 
   // Document PiP Hook
   const { pipWindow, requestPiP, closePiP } = useDocumentPiP();
-
-  // Basic hash routing for Electron Widget Mode
   const [isWidgetMode, setIsWidgetMode] = useState(false);
 
   useEffect(() => {
-    const checkHash = () => {
-      if (window.location.hash === '#/widget') {
-        setIsWidgetMode(true);
-        // Add transparent background to body for electron
-        document.body.style.background = 'transparent';
-      }
-    };
-    checkHash();
-    window.addEventListener('hashchange', checkHash);
-    return () => window.removeEventListener('hashchange', checkHash);
+    if (window.electronAPI && window.electronAPI.onModeChanged) {
+      const unsubscribe = window.electronAPI.onModeChanged((newMode) => {
+        setIsWidgetMode(newMode === 'widget');
+      });
+      return unsubscribe;
+    }
   }, []);
+
+  const handlePiPClick = () => {
+    if (window.electronAPI) {
+      window.electronAPI.setWindowMode(isWidgetMode ? 'full' : 'widget');
+    } else {
+      const isTabletOrMobile = window.matchMedia('(max-width: 1024px)').matches || ('ontouchstart' in window);
+      if (isTabletOrMobile) {
+        return; // Do nothing on tablet/mobile
+      }
+      requestPiP({ width: 320, height: 320 });
+    }
+  };
+
+
+
+
 
   // Apply wallpaper theme when changed
   useEffect(() => {
@@ -593,7 +604,9 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
         setTimerStatus('idle');
         setTimeLeft(getInitialTime(mode));
 
-        if (features.notifications) {
+        if (window.electronAPI) {
+          window.electronAPI.showNotification("Break's Over!", "Ready to get back to work?");
+        } else if (features.notifications) {
           new Notification("Break's Over!", { body: "Ready to get back to work?", icon: "/favicon.ico" });
         }
         return;
@@ -632,7 +645,9 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
 
       exitFullscreen();
 
-      if (features.notifications) {
+      if (window.electronAPI) {
+        window.electronAPI.showNotification("Focus Session Complete!", "Great job! Take a well-deserved break.");
+      } else if (features.notifications) {
         new Notification("Focus Session Complete!", { body: "Great job! Take a well-deserved break.", icon: "/favicon.ico" });
       }
 
@@ -663,6 +678,15 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
   const handleStart = () => {
     start();
   };
+
+  useEffect(() => {
+    if (window.electronAPI) {
+      const unsubscribe = window.electronAPI.onStartSession(() => {
+        handleStart();
+      });
+      return unsubscribe;
+    }
+  }, [status]);
 
   const handleReset = () => {
     setIsBreak(false); // Always exit break mode on reset
@@ -704,13 +728,28 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
   // Reset timer when mode changes is handled by useTimer's internal useEffect responding to initialTime change
   // Redundant effect removed to prevent conflicts
 
-  // ELECTRON WIDGET MODE RENDER
+
+
   if (isWidgetMode) {
-    return <DesktopWidgetLayout />;
+    return (
+      <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column', padding: 0, margin: 0, boxSizing: 'border-box' }}>
+        <WallpaperLayer config={wallpaper} />
+        <WidgetView
+          timeLeft={timeLeft}
+          status={status}
+          start={handleStart}
+          pause={pause}
+          reset={handleReset}
+          mode={mode}
+          onCloseWidget={handlePiPClick}
+        />
+      </div>
+    );
   }
 
   return (
-    <div className="focus-scene">
+    <div className={`focus-scene ${(window.electronAPI && !isFullscreen) ? 'has-electron-titlebar' : ''}`}>
+      {window.electronAPI && !isFullscreen && <ElectronTitlebar />}
 
       <WallpaperLayer config={wallpaper} />
 
@@ -824,7 +863,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
           <div className="stitch-header-left" style={{
             position: 'absolute',
             left: '2rem',
-            top: '1.2rem',
+            top: 'calc(var(--safe-top-offset) + 1.2rem)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'flex-start',
@@ -1112,7 +1151,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
             {(mouseX: MotionValue<number>) => (
               <>
                 {/* PiP */}
-                <DockIcon mouseX={mouseX} label="Pop Out" onClick={() => requestPiP({ width: 320, height: 320 })}>
+                <DockIcon mouseX={mouseX} label="Pop Out" onClick={handlePiPClick}>
                   <PictureInPicture2 size={20} />
                 </DockIcon>
 
@@ -1240,7 +1279,7 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
           onClick={(e) => { e.stopPropagation(); setIsDockExpanded(!isDockExpanded); }}
           style={{
             position: 'fixed',
-            top: '2rem',
+            top: 'calc(var(--safe-top-offset) + 2rem)',
             left: '2rem',
             width: '2.5rem',
             height: '2.5rem',

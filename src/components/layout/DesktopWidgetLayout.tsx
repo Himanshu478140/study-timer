@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Play, Pause, RefreshCw, X, Settings2 } from 'lucide-react';
+import { Play, Pause, RefreshCw, X, Settings2, Maximize2 } from 'lucide-react';
 import { useTimer } from '../../hooks/useTimer';
 import type { WallpaperConfig } from '../wallpaper/WallpaperSelector';
 import { WALLPAPERS, WallpaperGrid } from '../wallpaper/WallpaperSelector';
@@ -25,6 +25,21 @@ export const DesktopWidgetLayout = () => {
     useEffect(() => {
         localStorage.setItem('widget-wallpaper', JSON.stringify(wallpaper));
     }, [wallpaper]);
+
+    // Real-time wallpaper sync from main window
+    useEffect(() => {
+        const channel = new BroadcastChannel('wallpaper_sync');
+        const handleMessage = (event: MessageEvent) => {
+            if (event.data) {
+                setWallpaper(event.data);
+            }
+        };
+        channel.addEventListener('message', handleMessage);
+        return () => {
+            channel.removeEventListener('message', handleMessage);
+            channel.close();
+        };
+    }, []);
 
     const { timeLeft, status, start, pause, reset } = useTimer({
         initialTime: 25 * 60,
@@ -133,8 +148,32 @@ export const DesktopWidgetLayout = () => {
                         // @ts-ignore
                         WebkitAppRegion: 'no-drag'
                     }}
+                    title="Wallpaper Settings"
                 >
                     <Settings2 size={14} />
+                </button>
+
+                {/* Return to Full App */}
+                <button
+                    onClick={() => {
+                        // @ts-ignore
+                        if (window.electronAPI) {
+                            // @ts-ignore
+                            window.electronAPI.setWindowMode('full');
+                        }
+                    }}
+                    className="interactive-hover"
+                    style={{
+                        background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '50%', color: 'white', cursor: 'pointer',
+                        width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        backdropFilter: 'blur(4px)',
+                        // @ts-ignore
+                        WebkitAppRegion: 'no-drag'
+                    }}
+                    title="Switch to Full App Mode"
+                >
+                    <Maximize2 size={14} />
                 </button>
 
                 {/* Close Button */}
@@ -149,6 +188,7 @@ export const DesktopWidgetLayout = () => {
                         // @ts-ignore
                         WebkitAppRegion: 'no-drag'
                     }}
+                    title="Minimize to System Tray"
                 >
                     <X size={14} />
                 </button>
