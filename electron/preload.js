@@ -7,7 +7,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     close: () => ipcRenderer.send('window-close'),
     showNotification: (title, body) => ipcRenderer.send('show-notification', { title, body }),
     setWindowMode: (mode) => ipcRenderer.send('window-set-mode', mode),
-    appReady: () => ipcRenderer.send('app-ready'),
     onModeChanged: (callback) => {
         const subscription = (event, mode) => callback(mode);
         ipcRenderer.on('mode-changed', subscription);

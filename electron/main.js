@@ -88,20 +88,9 @@ async function createWindow() {
 
     mainWindow.loadURL(startUrl);
 
-    // Show window only when content is ready to prevent blank/black screen flashes
-    let isShown = false;
-    const showWindow = () => {
-        if (!isShown && mainWindow) {
-            isShown = true;
-            mainWindow.show();
-        }
-    };
-
-    ipcMain.once('app-ready', showWindow);
-
+    // Show the window only when page has finished initial paint to prevent black flash
     mainWindow.once('ready-to-show', () => {
-        // Fallback: if React doesn't report ready within 1.5s, show the window anyway
-        setTimeout(showWindow, 1500);
+        mainWindow.show();
     });
 
     // Track bounds when window is modified

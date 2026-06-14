@@ -4,7 +4,6 @@ export interface ElectronAPI {
     close: () => void;
     showNotification: (title: string, body: string) => void;
     setWindowMode: (mode: 'full' | 'widget') => void;
-    appReady: () => void;
     onModeChanged: (callback: (mode: 'full' | 'widget') => void) => () => void;
     onStartSession: (callback: () => void) => () => void;
 }
