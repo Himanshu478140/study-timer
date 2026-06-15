@@ -53,7 +53,13 @@ const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: 
     const saved = localStorage.getItem('saved-wallpaper');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Find the wallpaper in the current WALLPAPERS list to get the fresh hashed URL from this build
+        const fresh = WALLPAPERS.find(wp => wp.id === parsed.id);
+        if (fresh) {
+          return fresh;
+        }
+        return parsed;
       } catch (e) {
         console.error("Failed to parse saved wallpaper", e);
       }
