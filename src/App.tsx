@@ -8,6 +8,7 @@ import { useFullscreen } from './hooks/useFullscreen';
 import { useFocusTask } from './hooks/useFocusTask';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { useHabits } from './hooks/useHabits';
+import { IntroVideo } from './components/ui/IntroVideo';
 import { HabitsProvider } from './context/HabitsContext';
 import { useDocumentPiP } from './hooks/useDocumentPiP';
 
@@ -45,8 +46,22 @@ import { GamificationNotification } from './components/ui/GamificationNotificati
 
 
 
-const StudyTimer = ({ timezone, setTimezone }: { timezone: string, setTimezone: (tz: string) => void }) => {
+const StudyTimer = ({
+  timezone,
+  setTimezone,
+  onReady
+}: {
+  timezone: string,
+  setTimezone: (tz: string) => void,
+  onReady?: () => void
+}) => {
   const [mode, setMode] = useState<FocusMode>('deep_work');
+
+  useEffect(() => {
+    if (onReady) {
+      onReady();
+    }
+  }, [onReady]);
   /* Wallpaper Persistence Logic */
   const [wallpaper, setWallpaper] = useState<WallpaperConfig>(() => {
     // 1. Load from LocalStorage on mount
@@ -1560,12 +1575,37 @@ export default function App() {
     localStorage.setItem('app-timezone', timezone);
   }, [timezone]);
 
+  // State to track if the background app is initialized and ready
+  const [appReady, setAppReady] = useState(false);
+
+  // State to track if intro is currently showing (always true at startup)
+  const [showIntro, setShowIntro] = useState(true);
+
+  const handleIntroComplete = () => {
+    setShowIntro(false);
+  };
+
   return (
     <ThemeProvider>
       <HabitsProvider timezone={timezone}>
         <SoundProvider>
-          <StudyTimer timezone={timezone} setTimezone={setTimezone} />
-          <GamificationNotification />
+          <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+            <StudyTimer
+              timezone={timezone}
+              setTimezone={setTimezone}
+              onReady={() => setAppReady(true)}
+            />
+            <GamificationNotification />
+            
+            <AnimatePresence>
+              {showIntro && (
+                <IntroVideo
+                  appReady={appReady}
+                  onComplete={handleIntroComplete}
+                />
+              )}
+            </AnimatePresence>
+          </div>
         </SoundProvider>
       </HabitsProvider>
     </ThemeProvider>
