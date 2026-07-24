@@ -1,0 +1,37 @@
+/* Accessibility: Consolidated Preferred Reduced Motion overrides */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .stitch-stats-bar,
+  .stitch-timer-section,
+  .stitch-header,
+  .stitch-bottom-bar,
+  .stitch-toolbar-btn,
+  .stitch-task-inline,
+  .toolbar-btn,
+  .notepad-popup-textarea,
+  .cardContainer::before,
+  .card,
+  .electron-titlebar-btn,
+  .electron-titlebar-mode-btn {
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .stitch-toolbar-btn:hover+.stitch-toolbar-btn,
+  .stitch-toolbar-btn:has(+ .stitch-toolbar-btn:hover) {
+    transform: none !important;
+  }
+
+  .session-ring-segment-animate,
+  .session-ring-badge {
+    animation: none !important;
+  }
+}

@@ -1,0 +1,125 @@
+/* Custom Electron Titlebar styling */
+.electron-titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 36px;
+  background: var(--electron-titlebar-bg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  z-index: 9999;
+  user-select: none;
+  -webkit-app-region: drag;
+  font-family: 'Outfit', sans-serif;
+  color: #ffffff;
+}
+
+.electron-titlebar-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.electron-titlebar-logo {
+  width: 1rem;
+  height: 1rem;
+}
+
+.electron-titlebar-text {
+  font-weight: 700;
+}
+
+.electron-titlebar-badge {
+  font-size: 0.6rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.125rem 0.375rem;
+  border-radius: 10px;
+  margin-left: 0.25rem;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.02em;
+}
+
+.electron-titlebar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  -webkit-app-region: no-drag;
+}
+
+.electron-titlebar-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.electron-titlebar-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.electron-titlebar-btn.close-btn:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.electron-titlebar-mode-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  cursor: pointer;
+  padding: 4px 12px;
+  border-radius: 14px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: 'Outfit', sans-serif;
+}
+
+.electron-titlebar-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.electron-titlebar-mode-btn:active {
+  transform: translateY(0);
+}
+
+.electron-titlebar-divider {
+  width: 1px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.has-electron-titlebar {
+  --safe-top-offset: 36px;
+}
+
+/* Adjust layout when running under Electron in Full Mode */
+.focus-scene.has-electron-titlebar {
+  padding-top: calc(clamp(1rem, 2vh, 2rem) + var(--safe-top-offset)) !important;
+}
+
+/* Accessible focus states */
+.electron-titlebar-btn:focus-visible,
+.electron-titlebar-mode-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #7c3aed);
+  outline-offset: 1px;
+}

@@ -1,0 +1,64 @@
+/* --- CLOCK FONTS --- */
+.font-default {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+
+.font-minimal {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.font-minimal-light {
+  font-family: 'Inter', sans-serif;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+}
+
+.font-serif {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.font-serif-condensed {
+  font-family: 'Playfair Display', serif;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0;
+}
+
+.font-handwritten {
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  letter-spacing: 0;
+  display: inline-block;
+  transform: scale(1.1);
+  /* Bump size slightly for readability */
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.font-rounded {
+  font-family: 'Quicksand', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.font-display {
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+
+.font-retro {
+  font-family: 'Abril Fatface', serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}

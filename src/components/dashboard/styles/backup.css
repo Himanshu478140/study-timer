@@ -1,0 +1,115 @@
+/* Data Management & Backup UI */
+.data-management-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: var(--space-4);
+}
+
+.privacy-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    background: rgba(var(--color-accent-rgb), 0.06);
+    border: 1px solid rgba(var(--color-accent-rgb), 0.15);
+    border-radius: var(--space-2);
+}
+
+.privacy-banner-icon {
+    color: var(--color-accent);
+    flex-shrink: 0;
+}
+
+.privacy-banner-text {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.telemetry-card {
+    background: rgba(18, 18, 22, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--space-2);
+    padding: var(--space-3);
+}
+
+.telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+.telemetry-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.telemetry-label {
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.telemetry-value {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: white;
+}
+
+.data-actions-row {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.data-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-3);
+    border-radius: 0.75rem;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast) cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+}
+
+.data-btn-primary {
+    background: var(--color-accent);
+    color: white;
+}
+
+.data-btn-primary:hover {
+    background: rgba(var(--color-accent-rgb), 0.85);
+}
+
+.data-btn-secondary {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: white;
+}
+
+.data-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.data-btn-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.data-btn-danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+}

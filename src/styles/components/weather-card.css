@@ -1,0 +1,114 @@
+/* Weather Card (Relax Mode - Compact Left Widget) */
+.cardContainer {
+  width: fit-content;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  position: relative;
+  width: 150px;
+  height: 170px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 8px;
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  background-color: rgba(65, 65, 65, 0.308);
+  border: 1px solid rgba(255, 255, 255, 0.089);
+  cursor: pointer;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+.city {
+  font-weight: 700;
+  font-size: 0.8em;
+  letter-spacing: 1px;
+  color: white;
+  margin: 0;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.weather {
+  font-weight: 500;
+  font-size: 0.65em;
+  letter-spacing: 1px;
+  color: rgb(197, 197, 197);
+  margin: 0;
+}
+
+.temp {
+  font-size: 1.4em;
+  color: white;
+  margin: 0;
+  font-weight: 600;
+}
+
+.minmaxContainer {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.min,
+.max {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0px 10px;
+  gap: 2px;
+}
+
+.max {
+  align-items: flex-start;
+  border-left: 1.5px solid rgba(255, 255, 255, 0.3);
+}
+
+.maxHeading,
+.minHeading {
+  font-size: 0.6em;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.maxTemp,
+.minTemp {
+  font-size: 0.55em;
+  font-weight: 500;
+  color: rgb(197, 197, 197);
+  margin: 0;
+}
+
+.cardContainer::before {
+  width: 70px;
+  height: 70px;
+  content: "";
+  position: absolute;
+  background-color: var(--color-accent, rgb(144, 161, 255));
+  z-index: -1;
+  border-radius: 50%;
+  left: 65px;
+  top: 35px;
+  transition: all 1s;
+  opacity: 0.8;
+}
+
+.cardContainer:hover::before {
+  transform: translate(-30px, 30px);
+}

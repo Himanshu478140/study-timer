@@ -1,0 +1,106 @@
+/* Tablet Portrait and Mobile Responsiveness for Stats Header */
+@media (max-width: 900px) {
+    .stats-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.25rem;
+    }
+
+    .stats-goal-adjuster {
+        margin-right: 0;
+        align-items: flex-start;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-content {
+        padding: 2rem;
+    }
+
+    .support-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .feature-row-card {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 1rem;
+    }
+    
+    .feature-row-card .setting-pill {
+        align-self: stretch;
+        width: 100%;
+        justify-content: stretch;
+    }
+    
+    .feature-row-card .setting-pill .setting-btn {
+        flex: 1;
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-sidebar {
+        width: 80px;
+        padding: 1.5rem 1rem;
+    }
+
+    .sidebar-item span {
+        display: none;
+    }
+
+    .sidebar-item {
+        justify-content: center;
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .guide-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Accessibility & Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    .button-content {
+        animation: none;
+    }
+
+    .button-content,
+    .share-icon,
+    .social-icon,
+    .tooltip-content {
+        transition: none;
+    }
+
+    .whats-new-container,
+    .whats-new-item,
+    .whats-new-badge,
+    .whats-new-item-title {
+        transition: none !important;
+        transform: none !important;
+        animation: none !important;
+    }
+
+    .nested-modal-overlay,
+    .nested-modal-container {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: scale(1) !important;
+        transition: none !important;
+    }
+    
+    .data-btn {
+        transition: none !important;
+    }
+
+    .rainbow-btn,
+    .rainbow-btn::before {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
+}

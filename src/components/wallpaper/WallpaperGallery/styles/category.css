@@ -1,0 +1,59 @@
+/* === Category Row === */
+.wg-category {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;         /* 12px */
+}
+
+.wg-category__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.wg-category__icon {
+  color: var(--color-accent, #818cf8);
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.wg-category__title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--wg-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.wg-category__count {
+  font-size: 0.6875rem;
+  color: var(--wg-text-muted);
+  font-weight: 500;
+}
+
+/* Horizontal scroll track */
+.wg-scroll-row {
+  display: flex;
+  gap: 0.75rem;         /* 12px */
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
+
+.wg-scroll-row::-webkit-scrollbar {
+  height: 4px;
+}
+
+.wg-scroll-row::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.wg-scroll-row::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 99px;
+}
+
+.wg-scroll-row::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

@@ -1,4 +1,4 @@
-import { formatTime } from '../../utils/time';
+import { formatTime } from './time';
 import { FlipClock } from './FlipClock';
 import { SimpleFlip } from './SimpleFlip';
 import './timer.css';

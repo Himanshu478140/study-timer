@@ -1,0 +1,91 @@
+/* --- VIEW TRANSITION API (Circular Reveal) --- */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 100;
+}
+
+::view-transition-new(root) {
+  z-index: 200;
+  animation: reveal-circular 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes reveal-circular {
+  from {
+    clip-path: circle(0% at var(--reveal-x, 50%) var(--reveal-y, 50%));
+  }
+
+  to {
+    clip-path: circle(150% at var(--reveal-x, 50%) var(--reveal-y, 50%));
+  }
+}
+
+@keyframes breathing {
+  0% {
+    transform: scale(1);
+    opacity: 0.95;
+    text-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  50% {
+    transform: scale(1.01);
+    opacity: 1;
+    text-shadow: 0 10px 50px rgba(var(--color-accent-rgb), 0.3);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 0.95;
+    text-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.animate-breathing {
+  animation: breathing 4s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 0.3;
+  }
+}
+
+@keyframes ringSegmentFill {
+  0% {
+    stroke-opacity: 0.3;
+    stroke-width: 1;
+  }
+
+  50% {
+    stroke-opacity: 1;
+    stroke-width: 4;
+  }
+
+  100% {
+    stroke-opacity: 1;
+    stroke-width: 2.5;
+  }
+}
+
+@keyframes badgePop {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

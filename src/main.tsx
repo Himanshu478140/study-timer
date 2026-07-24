@@ -1,8 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
+import './styles/index.css'
 import App from './App.tsx'
-import { FocusTaskProvider } from './context/FocusTaskContext'
+import { TaskManagerProvider } from './TaskManager'
 
 // Register PWA Service Worker for offline support in browser/tablet mode (exclude Electron)
 if ('serviceWorker' in navigator && !window.electronAPI) {
@@ -15,8 +15,8 @@ if ('serviceWorker' in navigator && !window.electronAPI) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <FocusTaskProvider>
+    <TaskManagerProvider>
       <App />
-    </FocusTaskProvider>
+    </TaskManagerProvider>
   </StrictMode>,
 )

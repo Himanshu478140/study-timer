@@ -1,0 +1,154 @@
+.task-panel__input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-top: 1px solid var(--tp-divider);
+  border-bottom: 1px solid var(--tp-divider);
+  flex-shrink: 0;
+}
+
+.task-panel__add-btn {
+  width: 2rem;
+  height: 2rem;
+  min-width: 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--tp-input-border);
+  background: var(--tp-input-bg);
+  color: var(--tp-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.task-panel__add-btn:hover {
+  background: var(--tp-card-bg-hover);
+  color: var(--tp-text-primary);
+  border-color: var(--tp-card-border-hover);
+}
+
+.task-panel__add-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #818cf8);
+  outline-offset: 2px;
+}
+
+.task-panel__text-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 0.875rem;
+  color: var(--tp-text-primary);
+  font-family: inherit;
+  outline: none;
+  min-width: 0;
+}
+
+.task-panel__text-input::placeholder {
+  color: var(--tp-text-muted);
+  font-style: italic;
+}
+
+/* Category Select */
+.task-panel__cat-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--tp-input-bg);
+  border: 1px solid var(--tp-input-border);
+  border-radius: 0.375rem;
+  padding: 0.25rem 1.75rem 0.25rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--tp-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  flex-shrink: 0;
+  background-image: none !important; /* Custom arrow is handled in markup */
+  position: relative;
+}
+
+.task-panel__cat-select:hover {
+  border-color: var(--tp-card-border-hover);
+  color: var(--tp-text-primary);
+}
+
+.task-panel__cat-select:focus-visible {
+  outline: 2px solid var(--color-accent, #818cf8);
+  outline-offset: 2px;
+}
+
+/* Custom Category Dropdown Trigger Styles */
+.custom-dropdown__trigger {
+  padding-right: 1.5rem !important;
+}
+
+.custom-dropdown__trigger-arrow {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%) scale(0.75);
+  opacity: 0.5;
+  font-size: 0.5rem;
+  transition: transform 0.2s ease;
+  pointer-events: none;
+}
+
+.custom-dropdown__trigger[aria-expanded="true"] .custom-dropdown__trigger-arrow {
+  transform: translateY(-50%) scale(0.75) rotate(180deg);
+}
+
+/* Custom Menu Item Hover Effects */
+.custom-dropdown__item:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--tp-text-primary) !important;
+}
+
+.custom-dropdown__item--selected:hover {
+  background: rgba(129, 140, 248, 0.12) !important;
+  color: var(--color-accent, #818cf8) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .custom-dropdown__menu,
+  .custom-dropdown__trigger-arrow,
+  .custom-dropdown__item {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* Time input */
+.task-panel__time-input {
+  width: 3rem;
+  background: var(--tp-input-bg);
+  border: 1px solid var(--tp-input-border);
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.375rem;
+  font-size: 0.75rem;
+  color: var(--tp-text-secondary);
+  text-align: center;
+  font-family: inherit;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.task-panel__time-input::placeholder {
+  color: var(--tp-text-muted);
+}
+
+.task-panel__time-input:focus {
+  outline: none;
+  border-color: var(--tp-input-focus);
+  color: var(--tp-text-primary);
+}
+
+.task-panel__time-input:focus-visible {
+  outline: 2px solid var(--color-accent, #818cf8);
+  outline-offset: 2px;
+}

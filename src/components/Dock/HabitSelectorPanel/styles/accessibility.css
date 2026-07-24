@@ -1,0 +1,25 @@
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+
+    .ht-container,
+    .ht-container *,
+    .ht-habit-card,
+    .ht-habit-toggle,
+    .ht-fab,
+    .ht-add-form,
+    .ht-day-item,
+    .ht-stat-card,
+    .ht-heatmap-cell,
+    .ht-add-card,
+    .ht-popup,
+    .ht-popup *,
+    .ht-popup-icon-btn,
+    .ht-popup-btn--submit,
+    .ht-popup-select-trigger,
+    .ht-popup-select-dropdown,
+    .ht-popup-select-option,
+    .ht-popup-day-btn {
+        animation: none !important;
+        transition: none !important;
+    }
+}

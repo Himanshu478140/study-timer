@@ -1,5 +1,7 @@
 {
   "name": "study-timer",
+  "description": "Focora Study Timer Application",
+  "author": "Himanshu",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -51,6 +53,7 @@
     "files": [
       "dist/**/*",
       "electron/**/*",
+      "src/Drivebackup/**/*",
       "package.json"
     ],
     "win": {

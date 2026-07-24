@@ -1,0 +1,16 @@
+.ht-container {
+    --ht-accent: var(--color-accent, #4a7c59);
+    --ht-accent-rgb: var(--color-accent-rgb, 74, 124, 89);
+    --ht-accent-light: var(--color-accent, #6b9e7a);
+    --ht-surface: rgba(18, 18, 22, 0.8);
+    --ht-surface-hover: rgba(18, 18, 22, 0.9);
+    --ht-border: rgba(255, 255, 255, 0.08);
+    --ht-border-hover: rgba(255, 255, 255, 0.14);
+    --ht-text-primary: rgba(255, 255, 255, 0.92);
+    --ht-text-secondary: rgba(255, 255, 255, 0.5);
+    --ht-text-muted: rgba(255, 255, 255, 0.3);
+    --ht-radius-sm: 0.5rem;
+    --ht-radius-md: 0.75rem;
+    --ht-radius-lg: 1rem;
+    --ht-radius-xl: 1.5rem;
+}

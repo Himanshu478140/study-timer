@@ -1,0 +1,71 @@
+:root {
+  --safe-top-offset: 0px;
+  --electron-titlebar-bg: rgba(10, 10, 10, 0.01);
+  /* Colors - Dark Mode Base */
+  --color-bg-primary: #0f0f11;
+  --color-text-primary: #f5f5f7;
+  --color-text-secondary: #a1a1aa;
+  --color-accent: #818cf8;
+  --color-accent-rgb: 129, 140, 248;
+  --color-glass-bg: rgba(20, 20, 20, 0.1);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+
+  /* --- LAYOUT CONTROL PANEL --- */
+  /* TRANSPARENCY CONTROLS */
+  --widget-border-opacity: 0.2;
+  /* Border visibility */
+  /* --------------------------- */
+  /* TINT CONTROL */
+  --glass-tint-strength: 0.3;
+  /* Controls how much Accent Color is mixed into the glass (0.0 - 1.0) */
+
+  /* HUD Scaling */
+  --ui-scale: clamp(0.5, min(calc(100dvh / 633px), calc(100dvw / 850px)), 1.5);
+
+  /* Spacing (8px grid) */
+  --space-0_5: 0.25rem;
+  /* 4px */
+  --space-1: 0.5rem;
+  /* 8px */
+  --space-2: 1rem;
+  /* 16px */
+  --space-3: 1.5rem;
+  /* 24px */
+  --space-4: 2rem;
+  /* 32px */
+  --space-5: 2.5rem;
+  /* 40px */
+  --space-6: 3rem;
+  /* 48px */
+  --space-8: 4rem;
+  /* 64px */
+  --space-12: 6rem;
+  /* 96px */
+
+  /* Typography */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 2rem;
+  --font-size-4xl: 2.5rem;
+  --font-size-display: 5rem;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  /* Animation */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-theme: 1s cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Global Breakpoints */
+  --breakpoint-tablet-landscape: 1100px;
+  --breakpoint-tablet-portrait: 900px;
+  --breakpoint-mobile: 600px;
+}

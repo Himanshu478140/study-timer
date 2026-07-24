@@ -1,4 +1,4 @@
-import type { FocusStats } from '../../hooks/useHabits';
+import type { FocusStats } from '../../Offlinebackup/localstorage/HabitsContext';
 
 interface StatsPanelProps {
     stats: {
@@ -10,16 +10,16 @@ interface StatsPanelProps {
     setDailyGoal: (minutes: number) => void;
 }
 
-import { FocusScorePanel } from '../stats/FocusScorePanel';
-import { StreakCard } from '../stats/StreakCard';
-import { ConsistencyHeatmap } from '../stats/ConsistencyHeatmap';
-import { HabitMonthlyHeatmaps } from '../stats/HabitMonthlyHeatmaps';
-import { InteractiveFocusChart } from '../stats/InteractiveFocusChart';
+import { FocusScorePanel } from './stats/FocusScorePanel';
+import { StreakCard } from './stats/StreakCard';
+import { ConsistencyHeatmap } from './stats/ConsistencyHeatmap';
+import { HabitMonthlyHeatmaps } from './stats/HabitMonthlyHeatmaps';
+import { InteractiveFocusChart } from './stats/InteractiveFocusChart';
 import { Minus, Plus } from 'lucide-react';
-import { DailyTaskStats } from '../stats/DailyTaskStats';
-import { LevelDisplay } from '../stats/LevelDisplay';
-import { SessionHistoryCard } from '../stats/SessionHistoryCard';
-import { ScratchpadLogsCard } from '../stats/ScratchpadLogsCard';
+import { DailyTaskStats } from './stats/DailyTaskStats';
+import { LevelDisplay } from './stats/LevelDisplay';
+import { SessionHistoryCard } from './stats/SessionHistoryCard';
+import { ScratchpadLogsCard } from './stats/ScratchpadLogsCard';
 
 export const StatsPanel = ({ stats: _userStats, focusStats, setDailyGoal }: StatsPanelProps) => {
 

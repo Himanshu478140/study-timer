@@ -1,0 +1,20 @@
+/* --- CSS Variables --- */
+.wallpaper-gallery {
+  --wg-bg-card: rgba(255, 255, 255, 0.04);
+  --wg-bg-card-hover: rgba(255, 255, 255, 0.08);
+  --wg-border: rgba(255, 255, 255, 0.08);
+  --wg-border-hover: rgba(255, 255, 255, 0.16);
+  --wg-text-primary: rgba(255, 255, 255, 0.95);
+  --wg-text-secondary: rgba(255, 255, 255, 0.55);
+  --wg-text-muted: rgba(255, 255, 255, 0.35);
+  --wg-radius-sm: 0.5rem;
+  --wg-radius-md: 0.75rem;
+  --wg-radius-lg: 1rem;
+  --wg-radius-xl: 1.25rem;
+  --wg-thumb-w: 152px;
+  --wg-thumb-h: 96px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;          /* 24px */
+}

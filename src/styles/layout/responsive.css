@@ -1,0 +1,115 @@
+.brand-logo-text {
+  font-size: 0.85rem;
+  transition: font-size 0.3s ease;
+}
+
+@media (max-width: 800px) {
+  .brand-logo-text {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 680px) {
+  .brand-logo-text {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em !important;
+  }
+}
+
+/* --- RESPONSIVE SCALING --- */
+.mobile-only-flex {
+  display: none !important;
+}
+
+@media (max-width: 1100px) {
+  .mobile-only-flex {
+    display: flex !important;
+  }
+
+  .level-stats-pill {
+    right: 1.5rem !important;
+    top: 1rem !important;
+    padding: 4px 12px !important;
+  }
+
+  .focus-container {
+    max-width: 100%;
+    padding: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .level-stats-pill {
+    right: 0.75rem !important;
+    top: 0.75rem !important;
+    padding: 3px 10px !important;
+    transform: scale(0.9);
+    transform-origin: top right;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Header elements stay stable now */
+}
+
+@media (max-width: 560px) {
+  .stitch-header {
+    padding: 0.5rem 1rem;
+    gap: 0.5rem;
+  }
+
+  /* Hide branding earlier to make room for stats bar */
+  .stitch-header>div:first-child {
+    display: none;
+  }
+
+  .stitch-stats-bar {
+    gap: 0.6rem !important;
+    padding: 0.3rem 0.8rem !important;
+  }
+
+  .stitch-stats-bar span {
+    font-size: 0.65rem !important;
+  }
+
+  /* Hide XP earlier to prevent break at 532px */
+  .stitch-stats-bar>div:nth-child(2) span:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .stitch-stats-bar {
+    gap: 0.5rem !important;
+    padding: 0.25rem 0.6rem !important;
+  }
+
+  /* Keep stats vertically in pill on very small screens */
+  .stitch-timer-section {
+    padding: 1rem 0.5rem;
+  }
+
+  .stitch-mode-label {
+    font-size: 0.65rem;
+  }
+
+  /* Right icons: make smaller */
+  .stitch-header>div:last-child {
+    gap: 0.5rem;
+  }
+
+  .stitch-header>div:last-child button,
+  .stitch-header>div:last-child .avatar-circle-container {
+    width: 2rem !important;
+    height: 2rem !important;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Make task panel more mobile friendly */
+  .task-selector-panel-mobile {
+    right: 20px !important;
+    width: calc(100vw - 40px) !important;
+    max-width: 400px;
+  }
+}

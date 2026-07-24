@@ -1,0 +1,33 @@
+/* --- CSS Variables (scoped) --- */
+.task-panel {
+  --tp-bg: rgba(18, 18, 22, 0.96);
+  --tp-card-bg: rgba(255, 255, 255, 0.04);
+  --tp-card-bg-hover: rgba(255, 255, 255, 0.07);
+  --tp-card-border: rgba(255, 255, 255, 0.06);
+  --tp-card-border-hover: rgba(255, 255, 255, 0.12);
+  --tp-card-border-active: rgba(129, 140, 248, 0.4);
+  --tp-text-primary: rgba(255, 255, 255, 0.92);
+  --tp-text-secondary: rgba(255, 255, 255, 0.5);
+  --tp-text-muted: rgba(255, 255, 255, 0.3);
+  --tp-input-bg: rgba(255, 255, 255, 0.04);
+  --tp-input-border: rgba(255, 255, 255, 0.08);
+  --tp-input-focus: rgba(129, 140, 248, 0.4);
+  --tp-accent-green: #4edea3;
+  --tp-accent-green-muted: rgba(78, 222, 163, 0.15);
+  --tp-danger: rgba(239, 68, 68, 0.6);
+  --tp-danger-hover: rgba(239, 68, 68, 0.9);
+  --tp-divider: rgba(255, 255, 255, 0.06);
+  --tp-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+
+  /* Category Colors */
+  --tp-cat-study: #818cf8;
+  --tp-cat-study-bg: rgba(129, 140, 248, 0.15);
+  --tp-cat-work: #fb923c;
+  --tp-cat-work-bg: rgba(251, 146, 60, 0.15);
+  --tp-cat-personal: #f472b6;
+  --tp-cat-personal-bg: rgba(244, 114, 182, 0.15);
+  --tp-cat-creative: #a78bfa;
+  --tp-cat-creative-bg: rgba(167, 139, 250, 0.15);
+  --tp-cat-other: #94a3b8;
+  --tp-cat-other-bg: rgba(148, 163, 184, 0.15);
+}

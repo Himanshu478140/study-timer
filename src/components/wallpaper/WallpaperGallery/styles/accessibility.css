@@ -1,0 +1,15 @@
+/* === Accessibility: Reduced Motion === */
+@media (prefers-reduced-motion: reduce) {
+  .wg-thumb__preview,
+  .wg-thumb__preview-inner,
+  .wg-thumb .wg-thumb__label,
+  .wg-chip,
+  .wg-upload-card__preview,
+  .wg-fav-btn,
+  .wg-delete-btn,
+  .wg-youtube-card__submit {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}

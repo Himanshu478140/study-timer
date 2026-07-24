@@ -1,0 +1,151 @@
+/* === Upload Card === */
+.wg-upload-card {
+  flex-shrink: 0;
+  width: var(--wg-thumb-w);
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: center;
+}
+
+.wg-upload-card__preview {
+  width: var(--wg-thumb-w);
+  height: var(--wg-thumb-h);
+  border-radius: var(--wg-radius-md);
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  color: var(--wg-text-secondary);
+  transition: all 0.2s ease;
+  background: var(--wg-bg-card);
+}
+
+.wg-upload-card:hover .wg-upload-card__preview {
+  border-color: var(--color-accent, #818cf8);
+  color: var(--color-accent, #818cf8);
+  background: rgba(var(--color-accent-rgb, 129, 140, 248), 0.06);
+  transform: translateY(-2px);
+}
+
+.wg-upload-card:focus-visible .wg-upload-card__preview {
+  outline: 2px solid var(--color-accent, #818cf8);
+  outline-offset: 2px;
+}
+
+.wg-upload-card__icon {
+  font-size: 1.25rem;
+}
+
+.wg-upload-card__label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--wg-text-secondary);
+}
+
+/* === YouTube Input Row (inside Custom) === */
+.wg-youtube-row {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.wg-youtube-card {
+  width: var(--wg-thumb-w);
+  height: var(--wg-thumb-h);
+  border-radius: var(--wg-radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--wg-bg-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  box-sizing: border-box;
+}
+
+.wg-youtube-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #ff0000;
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
+.wg-youtube-card__input-row {
+  display: flex;
+  gap: 0.375rem;
+  width: 100%;
+  padding: 0 0.25rem;
+  box-sizing: border-box;
+}
+
+.wg-youtube-card__input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--wg-radius-sm);
+  padding: 0.25rem 0.5rem;
+  color: #fff;
+  font-size: 0.6875rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.wg-youtube-card__input:focus {
+  border-color: var(--color-accent, #818cf8);
+}
+
+.wg-youtube-card__input:focus-visible {
+  outline: 2px solid var(--color-accent, #818cf8);
+  outline-offset: 1px;
+}
+
+.wg-youtube-card__submit {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--wg-radius-sm);
+  border: none;
+  background: var(--color-accent, #818cf8);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.wg-youtube-card__submit:hover {
+  transform: scale(1.08);
+}
+
+.wg-youtube-card__submit:focus-visible {
+  outline: 2px solid var(--color-accent, #818cf8);
+  outline-offset: 2px;
+}
+
+/* === Divider between categories === */
+.wg-divider {
+  height: 1px;
+  background: var(--wg-border);
+}
+
+/* === Empty state === */
+.wg-empty {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--wg-text-muted);
+  font-size: 0.8125rem;
+  font-style: italic;
+}

@@ -1,0 +1,302 @@
+/* ============================================
+   TASK STRIP — Left Vertical Context Bar
+   ============================================ */
+
+.task-strip {
+  position: fixed;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  z-index: 40;
+}
+
+/* Trigger button */
+.task-strip__trigger {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.task-strip__trigger:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--color-text-primary);
+}
+
+.task-strip__trigger:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Rotated task label */
+.task-strip__label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.4);
+  max-height: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+  transition: color 0.3s ease;
+}
+
+.task-strip:hover .task-strip__label {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* Backdrop for click-outside close */
+.task-strip__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+}
+
+/* Dropdown panel */
+.task-strip__panel {
+  position: absolute;
+  left: calc(100% + var(--space-2));
+  top: 0;
+  width: 240px;
+  background: rgba(15, 15, 20, 0.85);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  padding: var(--space-2);
+  z-index: 50;
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+  animation: task-panel-enter 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes task-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-8px) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Panel header */
+.task-strip__panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-1) var(--space-2);
+  margin-bottom: var(--space-1);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.task-strip__add-btn {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.task-strip__add-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.task-strip__add-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Task list */
+.task-strip__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.task-strip__item {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  font-family: inherit;
+}
+
+.task-strip__item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.task-strip__item.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.task-strip__item:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: -2px;
+}
+
+.task-strip__item-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-strip__empty {
+  text-align: center;
+  padding: var(--space-3);
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+/* ============================================
+   RIGHT STRIP — Data & Settings Bar
+   ============================================ */
+
+.right-strip {
+  position: fixed;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  z-index: 40;
+}
+
+.right-strip__btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.right-strip__btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--color-text-primary);
+  transform: scale(1.1);
+}
+
+.right-strip__btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Shifting Vertical Dock Avatar */
+.shifting-vdock {
+  position: fixed;
+  top: calc(var(--safe-top-offset) + 1.5rem);
+  right: var(--space-3);
+  transform: scale(var(--ui-scale));
+  transform-origin: top right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.avatar-circle-container {
+  width: 52px;
+  height: 52px;
+  padding: 5px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-glass-bg), rgba(var(--color-accent-rgb), var(--glass-tint-strength)));
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, var(--widget-border-opacity));
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.avatar-circle-container:hover {
+  transform: scale(1.1) translateY(-2px);
+  border-color: rgba(var(--color-accent-rgb), 0.5);
+  box-shadow: 0 12px 40px 0 rgba(var(--color-accent-rgb), 0.25);
+}
+
+.user-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(var(--color-accent-rgb), 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+}

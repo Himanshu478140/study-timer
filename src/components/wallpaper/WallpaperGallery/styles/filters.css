@@ -1,0 +1,59 @@
+/* === Filter Chips === */
+.wg-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;          /* 8px */
+}
+
+.wg-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;          /* 8px */
+}
+
+.wg-chip {
+  padding: 0.375rem 0.875rem;
+  border-radius: 99px;
+  background: var(--wg-bg-card);
+  border: 1px solid var(--wg-border);
+  color: var(--wg-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  line-height: 1.4;
+}
+
+.wg-chip:hover {
+  background: var(--wg-bg-card-hover);
+  color: var(--wg-text-primary);
+  border-color: var(--wg-border-hover);
+}
+
+.wg-chip.active {
+  background: var(--color-accent, #818cf8);
+  color: #fff;
+  border-color: var(--color-accent, #818cf8);
+  font-weight: 700;
+}
+
+.wg-chip:focus-visible {
+  outline: 2px solid var(--color-accent, #818cf8);
+  outline-offset: 2px;
+}
+
+/* Tone chip with color dot */
+.wg-chip--tone {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.wg-tone-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+}

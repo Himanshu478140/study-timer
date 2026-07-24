@@ -1,5 +1,5 @@
 import { Play, Pause, RotateCcw, Coffee } from 'lucide-react';
-import type { TimerStatus } from '../../hooks/useTimer';
+import type { TimerStatus } from './useTimer';
 import './timer.css';
 
 interface TimerControlsProps {

@@ -16,5 +16,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
         const subscription = () => callback();
         ipcRenderer.on('start-session', subscription);
         return () => ipcRenderer.removeListener('start-session', subscription);
+    },
+    drive: {
+        connect: () => ipcRenderer.invoke('focora:drive-connect'),
+        disconnect: () => ipcRenderer.invoke('focora:drive-disconnect'),
+        status: () => ipcRenderer.invoke('focora:drive-status'),
+        backup: (payload) => ipcRenderer.invoke('focora:drive-backup', payload),
+        restore: () => ipcRenderer.invoke('focora:drive-restore'),
+        onProgress: (callback) => {
+            const subscription = (event, status) => callback(status);
+            ipcRenderer.on('focora:drive-progress', subscription);
+            return () => ipcRenderer.removeListener('focora:drive-progress', subscription);
+        }
     }
 });

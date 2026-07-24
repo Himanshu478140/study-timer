@@ -1,0 +1,50 @@
+/* --- Attendance Setup Wizard Responsive Layouts --- */
+.attendance-setup-wizard-container {
+  width: 100%;
+  max-width: 1000px;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  transition: max-width 0.3s ease;
+}
+
+.attendance-setup-form {
+  display: grid;
+  grid-template-columns: 1.25fr 1.25fr 0.8fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .attendance-setup-wizard-container {
+    max-width: 720px;
+    padding: 1.5rem !important;
+  }
+  .attendance-setup-form {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  .col-calendar {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 680px) {
+  .attendance-setup-wizard-container {
+    max-width: 100%;
+    margin: 0.5rem;
+    padding: 1rem !important;
+  }
+  .attendance-setup-form {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .col-calendar {
+    grid-column: span 1;
+  }
+}
+
+/* Custom Dropdown Option Hover styles */
+.custom-dropdown-option:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: white !important;
+}

@@ -1,10 +1,9 @@
+import './initAppName.js';
 import { app, BrowserWindow, ipcMain, Tray, Menu, Notification, screen, protocol, net } from 'electron';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import Store from 'electron-store';
-
-// Set application name before initializing store to ensure it uses AppData/Roaming/Focora
-app.name = 'Focora';
+import { initDriveIPC } from '../src/Drivebackup/ipc/driveIPC.js';
 
 // Single Instance Lock to prevent database access conflicts and memory footprint
 if (!app.requestSingleInstanceLock()) {
@@ -302,6 +301,7 @@ app.whenReady().then(() => {
         });
     }
 
+    initDriveIPC();
     createWindow();
     createTray();
 });

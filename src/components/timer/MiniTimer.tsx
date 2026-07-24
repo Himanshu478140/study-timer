@@ -1,5 +1,5 @@
 import { Play, Pause, RefreshCw, X } from 'lucide-react';
-import type { TimerStatus } from '../../hooks/useTimer';
+import type { TimerStatus } from './useTimer';
 import type { WallpaperConfig } from '../wallpaper/WallpaperSelector';
 import { YouTubeWallpaper } from '../wallpaper/YouTubeWallpaper';
 import { VideoWallpaper } from '../wallpaper/VideoWallpaper';

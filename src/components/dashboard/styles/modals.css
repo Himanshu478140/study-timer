@@ -1,0 +1,90 @@
+/* Custom Nested Confirmation Modal */
+.nested-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    z-index: 3000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    animation: nestedModalFadeIn 0.2s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nested-modal-container {
+    width: 90%;
+    max-width: 480px;
+    background: rgba(18, 18, 22, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.5rem;
+    padding: var(--space-4);
+    box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    transform: scale(0.9);
+    animation: nestedModalScaleIn 0.2s forwards cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nested-modal-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: white;
+}
+
+.nested-modal-header.danger {
+    color: #ef4444;
+}
+
+.nested-modal-body {
+    font-size: var(--font-size-sm);
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+}
+
+.nested-modal-list {
+    margin: var(--space-2) 0;
+    padding-left: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.nested-modal-list-item {
+    font-size: var(--font-size-sm);
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.nested-modal-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    padding: var(--space-1) var(--space-2);
+    color: white;
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-align: center;
+    transition: all var(--transition-fast);
+}
+
+.nested-modal-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.nested-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+}

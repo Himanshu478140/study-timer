@@ -1,0 +1,193 @@
+/* Stats Section Styles */
+.stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 1rem;
+}
+
+.stats-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.25rem;
+    transition: color var(--transition-theme);
+}
+
+.stats-goal-adjuster {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 2.5rem;
+    flex-shrink: 0;
+}
+
+.glass-panel {
+    background: rgba(18, 18, 22, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.glass-panel:hover {
+    border-color: rgba(var(--color-accent-rgb), 0.3);
+}
+
+.stat-filters {
+    display: flex;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-filter-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    border-radius: 2rem;
+    transition: all 0.2s;
+}
+
+.stat-filter-btn:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.stat-filter-btn.active {
+    color: white;
+    background: rgba(var(--color-accent-rgb), 0.15);
+    border: 1px solid rgba(var(--color-accent-rgb), 0.3);
+}
+
+/* Responsive Grid for Stats */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* SMART ADJUSTER CARD */
+.smart-adjuster {
+    display: flex;
+    align-items: center;
+    background: rgba(18, 18, 22, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.25rem;
+    padding: 0.5rem;
+    width: fit-content;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.smart-adjuster:hover,
+.smart-adjuster:focus-within {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(var(--color-accent-rgb), 0.3);
+    transform: translateY(-2px);
+    box-shadow:
+        0 12px 32px rgba(0, 0, 0, 0.2),
+        0 0 15px rgba(var(--color-accent-rgb), 0.1);
+}
+
+.adjuster-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.8rem;
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    z-index: 2;
+}
+
+.adjuster-btn:hover {
+    background: var(--color-accent);
+    color: white;
+    transform: scale(1.05);
+}
+
+.adjuster-btn:active {
+    transform: scale(0.92);
+}
+
+.adjuster-input-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1rem;
+    z-index: 2;
+    min-width: 100px;
+}
+
+.adjuster-input {
+    background: transparent;
+    border: none;
+    color: white;
+    width: 80px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-align: center;
+    outline: none;
+    padding: 0;
+    transition: all 0.3s ease;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.adjuster-input:focus {
+    color: var(--color-accent);
+    text-shadow: 0 0 15px rgba(var(--color-accent-rgb), 0.4);
+}
+
+/* Reset arrows and styles for input */
+.adjuster-input::-webkit-outer-spin-button,
+.adjuster-input::-webkit-inner-spin-button,
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+.adjuster-input[type=number],
+.no-spinner[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.adjuster-unit {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-left: 4px;
+    pointer-events: none;
+    margin-top: 4px;
+}
+
+.adjuster-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(to right, rgba(var(--color-accent-rgb), 0.1), rgba(var(--color-accent-rgb), 0.05));
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1;
+}
+
+.smart-adjuster.error {
+    border-color: #ef4444 !important;
+    animation: inputShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+}

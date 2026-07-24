@@ -1,0 +1,262 @@
+/* --- NEW SETTINGS STYLES --- */
+.dashboard-section {
+    animation: dashboardFadeIn 0.3s ease;
+}
+
+.setting-group {
+    margin-bottom: 2.5rem;
+}
+
+.setting-group label {
+    display: block;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 1rem;
+}
+
+.setting-options {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.setting-btn {
+    padding: 0.6rem 1.2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.setting-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.setting-btn.active {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    box-shadow: 0 4px 12px rgba(var(--color-accent-rgb), 0.3);
+}
+
+/* Font Grid */
+.font-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 1rem;
+}
+
+.font-preview-card {
+    background: rgba(18, 18, 22, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    padding: 1.25rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.font-preview-card:hover {
+    background: rgba(18, 18, 22, 0.95);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-3px);
+}
+
+.font-preview-card.active {
+    background: rgba(var(--color-accent-rgb), 0.1);
+    border-color: var(--color-accent);
+    box-shadow: 0 8px 24px rgba(var(--color-accent-rgb), 0.15);
+}
+
+.font-sample {
+    font-size: 2.2rem;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+    color: white;
+}
+
+/* Feature Toggles */
+.feature-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(18, 18, 22, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Timezone Settings UI */
+.timezone-settings-container {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background: rgba(18, 18, 22, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.5rem;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.settings-subtitle {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    letter-spacing: 0.05em;
+}
+
+.timezone-list-wrapper {
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Custom Scrollbar for Timezone List */
+.timezone-list-wrapper::-webkit-scrollbar {
+    width: 6px;
+}
+
+.timezone-list-wrapper::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+}
+
+.timezone-list-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(var(--color-accent-rgb), 0.2);
+    border-radius: 10px;
+}
+
+.timezone-list-wrapper::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--color-accent-rgb), 0.5);
+}
+
+.timezone-region-group {
+    margin-bottom: 1.5rem;
+}
+
+.region-header {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--color-accent);
+    opacity: 0.8;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.timezone-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.timezone-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: rgba(18, 18, 22, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.timezone-card:hover {
+    background: rgba(18, 18, 22, 0.95);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateX(4px);
+}
+
+.timezone-card.active {
+    background: rgba(var(--color-accent-rgb), 0.12);
+    border-color: rgba(var(--color-accent-rgb), 0.4);
+}
+
+.tz-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.tz-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+}
+
+.tz-subtext {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.tz-active-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--color-accent);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--color-accent);
+}
+
+.settings-help-text {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.3);
+    line-height: 1.4;
+    font-style: italic;
+}
+
+/* Segmented Control Pill Switcher */
+.setting-pill {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0;
+    margin-bottom: 0;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 0.25rem; /* 4px */
+    border-radius: 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    flex-shrink: 0;
+    align-self: center;
+}
+
+.setting-pill .setting-btn {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+    background: transparent;
+    border: none;
+    border-radius: 0.45rem;
+    margin: 0;
+    box-shadow: none;
+    color: rgba(255, 255, 255, 0.6);
+    transition: all 0.15s ease;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.setting-pill .setting-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.setting-pill .setting-btn.active {
+    background: var(--color-accent);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(var(--color-accent-rgb), 0.25);
+}
