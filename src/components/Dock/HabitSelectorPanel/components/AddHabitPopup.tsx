@@ -1,7 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Dumbbell, Sprout, BookOpen, Palette } from 'lucide-react';
+import {
+    X, Dumbbell, Sprout, BookOpen, Palette, Droplet, Flame, Brain, Target, Heart, Moon, Pencil, Coffee, Music, Smile, Zap
+} from 'lucide-react';
 import { FrequencyDropdown } from './FrequencyDropdown';
-import { ICON_TO_EMOJI } from '../utils/constants';
+
+const ICON_MAP = {
+    dumbbell: Dumbbell,
+    sprout: Sprout,
+    book: BookOpen,
+    palette: Palette,
+    droplet: Droplet,
+    flame: Flame,
+    brain: Brain,
+    target: Target,
+    heart: Heart,
+    moon: Moon,
+    pencil: Pencil,
+    coffee: Coffee,
+    music: Music,
+    smile: Smile,
+    zap: Zap
+};
+
+type IconKey = keyof typeof ICON_MAP;
 
 interface AddHabitPopupProps {
     onClose: () => void;
@@ -10,7 +31,7 @@ interface AddHabitPopupProps {
 
 export const AddHabitPopup = ({ onClose, onSubmit }: AddHabitPopupProps) => {
     const [newHabitName, setNewHabitName] = useState('');
-    const [selectedIcon, setSelectedIcon] = useState<'dumbbell' | 'sprout' | 'book' | 'palette'>('dumbbell');
+    const [selectedIcon, setSelectedIcon] = useState<IconKey>('dumbbell');
     const [habitGoal, setHabitGoal] = useState('');
     const [frequency, setFrequency] = useState<'daily' | 'weekdays' | 'weekly' | 'custom'>('daily');
     const [selectedDays, setSelectedDays] = useState<Record<string, boolean>>({
@@ -24,6 +45,28 @@ export const AddHabitPopup = ({ onClose, onSubmit }: AddHabitPopupProps) => {
     });
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const formRef = useRef<HTMLFormElement>(null);
+
+    useEffect(() => {
+        const handleOutsideClick = (e: MouseEvent) => {
+            const addHabitBtn = document.querySelector('.ht-add-habit-btn');
+            if (addHabitBtn && addHabitBtn.contains(e.target as Node)) {
+                return;
+            }
+            if (formRef.current && !formRef.current.contains(e.target as Node)) {
+                onClose();
+            }
+        };
+
+        const timer = setTimeout(() => {
+            document.addEventListener('mousedown', handleOutsideClick);
+        }, 10);
+
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener('mousedown', handleOutsideClick);
+        };
+    }, [onClose]);
 
     useEffect(() => {
         if (!isDropdownOpen) return;
@@ -39,19 +82,18 @@ export const AddHabitPopup = ({ onClose, onSubmit }: AddHabitPopupProps) => {
     const handleSubmitLocal = (e: React.FormEvent) => {
         e.preventDefault();
         if (newHabitName.trim()) {
-            const emoji = ICON_TO_EMOJI[selectedIcon] || '🧘';
             let activeDaysList: string[] = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
             if (frequency === 'custom') {
                 activeDaysList = Object.keys(selectedDays).filter(d => selectedDays[d]);
             } else if (frequency === 'weekdays') {
                 activeDaysList = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
             }
-            onSubmit(newHabitName.trim(), emoji, habitGoal.trim(), frequency, activeDaysList);
+            onSubmit(newHabitName.trim(), selectedIcon, habitGoal.trim(), frequency, activeDaysList);
         }
     };
 
     return (
-        <form className="ht-popup" onSubmit={handleSubmitLocal}>
+        <form ref={formRef} className="ht-popup" onSubmit={handleSubmitLocal}>
             <div className="ht-popup-header">
                 <h3 className="ht-popup-title">New Habit</h3>
                 <button
@@ -81,10 +123,8 @@ export const AddHabitPopup = ({ onClose, onSubmit }: AddHabitPopupProps) => {
             <div className="ht-popup-field">
                 <span className="ht-popup-label">Icon</span>
                 <div className="ht-popup-icon-row" role="radiogroup" aria-label="Select icon">
-                    {(['dumbbell', 'sprout', 'book', 'palette'] as const).map(iconType => {
-                        const Icon = iconType === 'dumbbell' ? Dumbbell :
-                                     iconType === 'sprout' ? Sprout :
-                                     iconType === 'book' ? BookOpen : Palette;
+                    {(Object.keys(ICON_MAP) as IconKey[]).map(iconType => {
+                        const Icon = ICON_MAP[iconType];
                         return (
                             <button
                                 key={iconType}

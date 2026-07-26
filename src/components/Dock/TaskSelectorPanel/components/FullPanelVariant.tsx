@@ -44,9 +44,9 @@ export const FullPanelVariant = ({
     return (
         <motion.div
             ref={panelRef}
-            initial={{ opacity: 0, x: 40 * scale, scale: 0.98 * scale }}
-            animate={{ opacity: isPositioned ? 1 : 0, x: 0, y: 0, scale: scale }}
-            exit={{ opacity: 0, x: 40 * scale, scale: 0.98 * scale }}
+            initial={{ opacity: 0, x: 40 * scale, scale: 0.98 * scale, pointerEvents: 'none' }}
+            animate={{ opacity: isPositioned ? 1 : 0, x: 0, y: 0, scale: scale, pointerEvents: isPositioned ? 'auto' : 'none' }}
+            exit={{ opacity: 0, x: 40 * scale, scale: 0.98 * scale, pointerEvents: 'none' }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="task-selector-panel-mobile task-panel"
             style={{

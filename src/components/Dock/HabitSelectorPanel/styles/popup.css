@@ -5,7 +5,7 @@
     right: var(--space-3);
     width: 2.5rem;
     height: 2.5rem;
-    border-radius: 50%;
+    border-radius: 0.625rem;
     background: var(--ht-accent);
     border: none;
     color: white;
@@ -280,11 +280,38 @@
 .ht-popup-icon-row {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.25rem 0.1rem 0.5rem 0.1rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--color-accent-rgb, 74, 124, 89), 0.5) rgba(255, 255, 255, 0.03);
+    -webkit-overflow-scrolling: touch;
+}
+
+.ht-popup-icon-row::-webkit-scrollbar {
+    height: 4px;
+}
+
+.ht-popup-icon-row::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+}
+
+.ht-popup-icon-row::-webkit-scrollbar-thumb {
+    background: rgba(var(--color-accent-rgb, 74, 124, 89), 0.5);
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.ht-popup-icon-row::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent, #4a7c59);
 }
 
 .ht-popup-icon-btn {
     width: 2.2rem;
     height: 2.2rem;
+    flex-shrink: 0;
     border-radius: 0.5rem;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.06);

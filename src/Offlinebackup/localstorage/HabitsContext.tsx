@@ -158,12 +158,12 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
                     newStreak = 0; // Reset streak if active days missed
                 }
 
-                // 6-Month Data Retention Policy on local stats history
-                const sixMonthsAgo = new Date();
-                sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-                const sixMonthsAgoStr = sixMonthsAgo.toISOString().split('T')[0];
+                // 12-Month Data Retention Policy on local stats history
+                const twelveMonthsAgo = new Date();
+                twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
+                const twelveMonthsAgoStr = twelveMonthsAgo.toISOString().split('T')[0];
 
-                const cleanHistory = prev.history.filter(s => s.date >= sixMonthsAgoStr);
+                const cleanHistory = prev.history.filter(s => s.date >= twelveMonthsAgoStr);
 
                 return {
                     ...prev,
@@ -173,13 +173,13 @@ export const HabitsProvider = ({ children, timezone }: { children: ReactNode, ti
                 };
             });
 
-            // 6-Month Data Retention Policy on local calendar events
+            // 12-Month Data Retention Policy on local calendar events
             setEvents(prev => {
-                const sixMonthsAgo = new Date();
-                sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-                const sixMonthsAgoStr = sixMonthsAgo.toISOString().split('T')[0];
+                const twelveMonthsAgo = new Date();
+                twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
+                const twelveMonthsAgoStr = twelveMonthsAgo.toISOString().split('T')[0];
 
-                return prev.filter(e => e.date >= sixMonthsAgoStr);
+                return prev.filter(e => e.date >= twelveMonthsAgoStr);
             });
         }
     }, [timezone, stats.today.date]);

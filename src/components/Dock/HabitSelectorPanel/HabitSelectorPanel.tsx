@@ -90,16 +90,16 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
             {isOpen && (
                 <motion.div
                     ref={panelRef}
-                    initial={{ opacity: 0, x: 40 * scale, scale: 0.98 * scale }}
-                    animate={{ opacity: isPositioned ? 1 : 0, x: 0, scale: scale }}
-                    exit={{ opacity: 0, x: 40 * scale, scale: 0.98 * scale }}
+                    initial={{ opacity: 0, x: 40 * scale, scale: 0.98 * scale, pointerEvents: 'none' }}
+                    animate={{ opacity: isPositioned ? 1 : 0, x: 0, scale: scale, pointerEvents: isPositioned ? 'auto' : 'none' }}
+                    exit={{ opacity: 0, x: 40 * scale, scale: 0.98 * scale, pointerEvents: 'none' }}
                     transition={{ type: "spring", damping: 25, stiffness: 300 }}
                     className="task-selector-panel-mobile"
                     style={{
                         position: 'fixed',
                         right: `${92 * scale}px`,
                         top: yPos,
-                        width: 'var(--panel-width, 520px)',
+                        width: 'var(--panel-width, 840px)',
                         maxWidth: 'calc(100vw - 40px)',
                         borderRadius: '2rem',
                         border: '1px solid rgba(255, 255, 255, 0.06)',
@@ -113,7 +113,7 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
                         display: 'flex',
                         flexDirection: 'column',
                         maxHeight: maxHeight,
-                        overflowY: isAdding ? 'visible' : 'auto',
+                        overflowY: 'auto',
                         transformOrigin: 'right center',
                         visibility: isPositioned ? 'visible' : 'hidden'
                     }}
@@ -127,8 +127,7 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
                             boxShadow: 'none',
                             border: 'none',
                             height: 'auto',
-                            minHeight: isAdding ? '26.25rem' : 'auto',
-                            transition: 'min-height 0.25s ease'
+                            minHeight: '27rem'
                         }}
                         aria-label="Habit Tracker"
                     >
@@ -141,54 +140,70 @@ export const HabitSelectorPanel = ({ isOpen, onClose, triggerRef }: HabitSelecto
                             <X size={16} />
                         </button>
 
-                        {/* ===== DAY SELECTOR BAR ===== */}
-                        <WeekBar
-                            weekDays={weekDays}
-                            isDayFullyCompleted={isDayFullyCompleted}
-                            isDayPartiallyCompleted={isDayPartiallyCompleted}
-                        />
+                        {/* ===== 2-COLUMN SPLIT LAYOUT ===== */}
+                        <div className="ht-split-layout">
+                            {/* LEFT COLUMN: Remaining Layout (WeekBar + Stats + Heatmap) */}
+                            <div className="ht-left-column">
+                                {/* ===== DAY SELECTOR BAR ===== */}
+                                <WeekBar
+                                    weekDays={weekDays}
+                                    isDayFullyCompleted={isDayFullyCompleted}
+                                    isDayPartiallyCompleted={isDayPartiallyCompleted}
+                                />
 
-                        {/* ===== STATS + HEATMAP ROW ===== */}
-                        <div className="ht-stats-heatmap-row">
-                            <StatsPanel stats={stats} />
-                            <Heatmap heatmapData={heatmapData} />
+                                {/* ===== STATS + HEATMAP ROW ===== */}
+                                <div className="ht-stats-heatmap-row">
+                                    <StatsPanel stats={stats} />
+                                    <Heatmap heatmapData={heatmapData} />
+                                </div>
+                            </div>
+
+                            {/* RIGHT COLUMN: Current Habits Section */}
+                            <div className="ht-right-column">
+                                <header className="ht-section-header">
+                                    <h2 className="ht-section-title">Current Habits</h2>
+                                    <button
+                                        className="ht-add-habit-btn"
+                                        onClick={() => setIsAdding(!isAdding)}
+                                        aria-label={isAdding ? "Close habit popup" : "Add new habit"}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.375rem',
+                                            padding: '0.4rem 0.75rem',
+                                            background: isAdding ? 'rgba(255,255,255,0.1)' : 'var(--ht-accent)',
+                                            color: isAdding ? 'var(--ht-text-primary)' : 'white',
+                                            border: 'none',
+                                            borderRadius: '0.5rem',
+                                            fontSize: '0.75rem',
+                                            fontWeight: 600,
+                                            cursor: 'pointer',
+                                            boxShadow: isAdding ? 'none' : '0 2px 8px rgba(var(--ht-accent-rgb), 0.3)',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                    >
+                                        <Plus size={16} strokeWidth={2.5} style={{ transform: isAdding ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s ease' }} />
+                                        <span>{isAdding ? 'Close' : 'Add Habit'}</span>
+                                    </button>
+                                </header>
+
+                                {/* ===== ADD FORM POPUP ===== */}
+                                {isAdding && (
+                                    <AddHabitPopup
+                                        onClose={() => setIsAdding(false)}
+                                        onSubmit={handleAddHabit}
+                                    />
+                                )}
+
+                                {/* ===== HABITS GRID ===== */}
+                                <HabitGrid
+                                    habits={habits}
+                                    today={today}
+                                    onToggleHabit={handleToggleToday}
+                                    onDeleteHabit={deleteHabit}
+                                />
+                            </div>
                         </div>
-
-                        {/* ===== SECTION HEADER ===== */}
-                        <header className="ht-section-header">
-                            <h2 className="ht-section-title">Current Habits</h2>
-                        </header>
-
-                        {/* ===== HABITS GRID ===== */}
-                        <HabitGrid
-                            habits={habits}
-                            today={today}
-                            onToggleHabit={handleToggleToday}
-                            onDeleteHabit={deleteHabit}
-                        />
-
-                        {/* ===== ADD FORM POPUP ===== */}
-                        {isAdding && (
-                            <AddHabitPopup
-                                onClose={() => setIsAdding(false)}
-                                onSubmit={handleAddHabit}
-                            />
-                        )}
-
-                        {/* ===== FAB ===== */}
-                        <button
-                            className="ht-fab"
-                            onClick={() => setIsAdding(!isAdding)}
-                            aria-label={isAdding ? "Close habit popup" : "Add new habit"}
-                            style={{
-                                transform: isAdding ? 'rotate(45deg)' : 'none',
-                                background: isAdding ? 'rgba(255,255,255,0.1)' : 'var(--ht-accent)',
-                                color: isAdding ? 'var(--ht-text-primary)' : 'white',
-                                boxShadow: isAdding ? 'none' : '0 4px 16px rgba(var(--ht-accent-rgb), 0.4), 0 2px 4px rgba(0, 0, 0, 0.2)'
-                            }}
-                        >
-                            <Plus size={18} strokeWidth={2.5} />
-                        </button>
                     </section>
                 </motion.div>
             )}

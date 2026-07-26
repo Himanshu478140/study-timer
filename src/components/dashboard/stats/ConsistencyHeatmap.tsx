@@ -9,8 +9,9 @@ export const ConsistencyHeatmap = ({ history: _history }: ConsistencyHeatmapProp
     const { habits } = useHabits();
 
     const heatmapData = useMemo(() => {
-        const cells: { date: string; level: number }[] = [];
+        const cells: { date: string; level: number; completedCount: number; totalHabits: number }[] = [];
         const now = new Date();
+        const totalHabits = habits.length;
 
         for (let i = 181; i >= 0; i--) {
             const d = new Date(now);
@@ -22,12 +23,15 @@ export const ConsistencyHeatmap = ({ history: _history }: ConsistencyHeatmapProp
             );
 
             let level = 0;
-            if (completedCount >= 4) level = 4;
-            else if (completedCount === 3) level = 3;
-            else if (completedCount === 2) level = 2;
-            else if (completedCount === 1) level = 1;
+            if (totalHabits > 0 && completedCount > 0) {
+                const ratio = completedCount / totalHabits;
+                if (ratio >= 0.75) level = 4;
+                else if (ratio >= 0.50) level = 3;
+                else if (ratio >= 0.25) level = 2;
+                else level = 1;
+            }
 
-            cells.push({ date: dateStr, level });
+            cells.push({ date: dateStr, level, completedCount, totalHabits });
         }
 
         return cells;
@@ -64,20 +68,27 @@ export const ConsistencyHeatmap = ({ history: _history }: ConsistencyHeatmapProp
                 gap: '4px',
                 width: '100%'
             }}>
-                {heatmapData.map((cell, i) => (
-                    <div
-                        key={i}
-                        title={`${cell.date}: ${cell.level} habit${cell.level !== 1 ? 's' : ''} completed`}
-                        style={{
-                            width: '100%',
-                            aspectRatio: '1',
-                            borderRadius: '2px',
-                            background: getIntensityColor(cell.level),
-                            transition: 'background 0.15s ease',
-                            cursor: 'pointer'
-                        }}
-                    />
-                ))}
+                {heatmapData.map((cell, i) => {
+                    const pct = cell.totalHabits > 0 ? Math.round((cell.completedCount / cell.totalHabits) * 100) : 0;
+                    const tooltip = cell.totalHabits > 0
+                        ? `${cell.date}: ${cell.completedCount}/${cell.totalHabits} completed (${pct}%)`
+                        : `${cell.date}: No habits tracked`;
+
+                    return (
+                        <div
+                            key={i}
+                            title={tooltip}
+                            style={{
+                                width: '100%',
+                                aspectRatio: '1',
+                                borderRadius: '2px',
+                                background: getIntensityColor(cell.level),
+                                transition: 'background 0.15s ease',
+                                cursor: 'pointer'
+                            }}
+                        />
+                    );
+                })}
             </div>
         </div>
     );

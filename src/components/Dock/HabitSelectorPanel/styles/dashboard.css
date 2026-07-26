@@ -1,4 +1,15 @@
-/* --- Main Container --- */
+/* --- Main Container & Panel Scrollbar --- */
+.task-selector-panel-mobile {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+.task-selector-panel-mobile::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
 .ht-container {
     width: 100%;
     height: 100%;
@@ -19,6 +30,37 @@
     position: relative;
     overflow: visible;
     pointer-events: auto;
+}
+
+/* --- 2-Column Split Layout --- */
+.ht-split-layout {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 1.25rem;
+    width: 100%;
+    height: 100%;
+    align-items: stretch;
+}
+
+.ht-left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    min-width: 0;
+    height: 100%;
+}
+
+.ht-right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+}
+
+@media (max-width: 768px) {
+    .ht-split-layout {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Ambient glow */
@@ -109,17 +151,19 @@
 /* --- Stats + Heatmap Row --- */
 .ht-stats-heatmap-row {
     display: flex;
+    flex-direction: column;
     gap: var(--space-2);
-    flex-shrink: 0;
+    width: 100%;
+    flex: 1;
     min-height: 0;
 }
 
 .ht-stats-column {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--space-1);
-    flex: 0 0 35%;
-    min-width: 0;
+    width: 100%;
+    flex-shrink: 0;
 }
 
 .ht-stat-card {
@@ -169,17 +213,19 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: var(--space-1);
+    gap: var(--space-2);
     padding: var(--space-2);
     background: var(--ht-surface);
     border: 1px solid var(--ht-border);
     border-radius: var(--ht-radius-md);
+    box-sizing: border-box;
 }
 
 .ht-heatmap-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .ht-heatmap-title {
@@ -204,22 +250,29 @@
 
 .ht-heatmap-grid {
     display: grid;
-    grid-template-rows: repeat(7, 1fr);
+    grid-template-rows: repeat(11, 16px);
     grid-auto-flow: column;
-    grid-auto-columns: 1fr;
-    gap: 1px;
+    grid-auto-columns: 16px;
+    row-gap: 3.5px;
+    column-gap: 3.5px;
+    width: 100%;
+    justify-content: space-between;
+    align-content: center;
     flex: 1;
     min-height: 0;
 }
 
 .ht-heatmap-cell {
-    width: 100%;
-    aspect-ratio: 1;
-    border-radius: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
     background: rgba(var(--ht-accent-rgb), 0.08);
-    transition: background 0.15s ease;
-    max-width: 0.95rem;
-    max-height: 0.95rem;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.ht-heatmap-cell:hover {
+    transform: scale(1.2);
+    z-index: 2;
 }
 
 .ht-heatmap-cell--l1 {

@@ -44,14 +44,14 @@ export const ModeSelectorPanel = ({ isOpen, onClose, currentMode, onModeChange, 
     const scale = dimensions.scale;
 
     const motionProps = shouldReduceMotion ? {
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
+        initial: { opacity: 0, pointerEvents: 'none' as const },
+        animate: { opacity: 1, pointerEvents: 'auto' as const },
+        exit: { opacity: 0, pointerEvents: 'none' as const },
         transition: { duration: 0.1 }
     } : {
-        initial: { opacity: 0, x: 40 * scale, scale: 0.98 * scale },
-        animate: { opacity: 1, x: 0, scale: scale },
-        exit: { opacity: 0, x: 40 * scale, scale: 0.98 * scale },
+        initial: { opacity: 0, x: 40 * scale, scale: 0.98 * scale, pointerEvents: 'none' as const },
+        animate: { opacity: 1, x: 0, scale: scale, pointerEvents: 'auto' as const },
+        exit: { opacity: 0, x: 40 * scale, scale: 0.98 * scale, pointerEvents: 'none' as const },
         transition: { type: "spring" as const, damping: 25, stiffness: 300 }
     };
 
@@ -135,7 +135,7 @@ export const ModeSelectorPanel = ({ isOpen, onClose, currentMode, onModeChange, 
                 <motion.div
                     ref={panelRef}
                     {...motionProps}
-                    animate={shouldReduceMotion ? undefined : { opacity: isPositioned ? 1 : 0, x: 0, scale: scale }}
+                    animate={shouldReduceMotion ? undefined : { opacity: isPositioned ? 1 : 0, x: 0, scale: scale, pointerEvents: isPositioned ? 'auto' : 'none' }}
                     className="mode-selector-panel"
                     style={{
                         position: 'fixed',

@@ -13,6 +13,8 @@ export interface WeekDayInfo {
 export interface HeatmapCell {
     date: string;
     level: number;
+    completedCount?: number;
+    totalHabits?: number;
 }
 
 export interface HabitStats {
